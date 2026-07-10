@@ -490,6 +490,7 @@ function onMIn(){
   document.getElementById('progFill').style.width=Math.min(100,(cnt/cfg.n)*100)+'%';
   document.getElementById('progLbl').textContent=`${cnt} / ${cfg.n} 입력됨${cnt>=cfg.n?' ✓':''}`;
   document.getElementById('pendNote').style.display=(cnt>0&&cnt<cfg.n)?'block':'none';
+  if(cnt>=cfg.n)saveEntry();
 }
 
 // ═══ SAVE ENTRY (sparse values preserved) ═══
