@@ -985,14 +985,14 @@ function saveStore(){
   saveDataToFirebase();
 }
 function saveDataToFirebase(){
-  fetch(FB_DB_URL+'/data.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(allData)})
+  fetch(FB_DB_URL+'/dataBlob.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(allData))})
     .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);})
     .catch(e=>{console.error(e);showToast('Firebase 저장 실패: '+e.message,'warn');});
 }
 function loadDataFromFirebase(cb){
-  fetch(FB_DB_URL+'/data.json')
+  fetch(FB_DB_URL+'/dataBlob.json')
     .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-    .then(json=>{allData=json||{};cb&&cb();})
+    .then(str=>{allData=str?JSON.parse(str):{};cb&&cb();})
     .catch(e=>{console.error(e);showToast('데이터 불러오기 실패: '+e.message,'warn');cb&&cb();});
 }
 let toastT=null;
