@@ -372,19 +372,35 @@ const inputCache = {};
 function cacheKey(){return curKey();}
 
 function autoSavePendingInputs(){
-  // Read current inputs and save to cache (not to allData — just UI state)
-  const dateVal = document.getElementById('inDate')?.value || '';
-  const slots = [];
-  let hasAny = false;
+  // Actually save entered values to allData/Firebase before switching combo (not just UI cache)
+  const dInp=document.getElementById('inDate');
+  if(!dInp)return;
+  const dv=fromDateInput(dInp.value);
+  const vals=new Array(6).fill(null);let hasVal=false;
   for(let i=1;i<=6;i++){
     const el=document.getElementById(`m${i}`);
-    const v=el&&el.value.trim()!==''?el.value:null;
-    slots[i-1]=v;
-    if(v!==null)hasAny=true;
+    if(el&&el.value.trim()!==''){
+      const v=parseFloat(el.value);
+      if(!isNaN(v)){vals[i-1]=v;hasVal=true;}
+    }
   }
-  if(hasAny||dateVal){
-    inputCache[cacheKey()]={date:dateVal,slots};
+  if(!dv||!hasVal)return; // nothing entered — nothing to save
+  const trimmed=sparseValues(vals);
+  const cnt=countVals(trimmed);
+  const key=curKey();ensureData(key);const pd=allData[key];
+  const ci=pd.complete.findIndex(d=>d.date===dv),pi=pd.pending.findIndex(d=>d.date===dv);
+  if(cnt>=cfg.n){
+    if(ci>=0)pd.complete[ci].values=trimmed;
+    else{if(pi>=0)pd.pending.splice(pi,1);pd.complete.push({date:dv,values:trimmed});}
+    sortD(pd.complete);
+  }else{
+    if(pi>=0)pd.pending[pi].values=trimmed;
+    else if(ci>=0){pd.complete.splice(ci,1);pd.pending.push({date:dv,values:trimmed});}
+    else pd.pending.push({date:dv,values:trimmed});
+    sortD(pd.pending);
   }
+  saveStore();
+  delete inputCache[cacheKey()];
 }
 
 function restorePendingInputs(){
