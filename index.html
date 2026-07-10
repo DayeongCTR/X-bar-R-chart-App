@@ -6,6 +6,19 @@
 <title>X̄–R 관리도</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBoQVhlAnvKwVHRfHECC4kxTNxoGYDDI-U",
+  authDomain: "x-bar-r.firebaseapp.com",
+  databaseURL: "https://x-bar-r-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "x-bar-r",
+  storageBucket: "x-bar-r.firebasestorage.app",
+  messagingSenderId: "410510666424",
+  appId: "1:410510666424:web:aa33719d8617dfdd60624d",
+  measurementId: "G-X80ZHJRLJ2"
+};
+const FB_DB_URL = firebaseConfig.databaseURL;
+</script>
 <style>
 :root{
   --bg:#0d1117;--sur:#161b22;--sur2:#21262d;--sur3:#2d333b;
@@ -219,6 +232,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
         <div class="date-inp-wrap" style="flex:1">
           <input type="date" id="inDate" onchange="onDateChange()" oninput="onDateRaw(event)" style="width:100%">
         </div>
+        <button class="today-btn" onclick="saveEntry()">저장</button>
       </div>
       <div id="measGrid"></div>
       <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0"></div></div>
@@ -299,7 +313,7 @@ const DEF={lines:['L1'],lineProds:{L1:['A','B','C','D']},dims:['ㄱ','ㄴ','ㄷ'
 let cfg=JSON.parse(localStorage.getItem('xrr6_cfg')||'null')||JSON.parse(JSON.stringify(DEF));
 if(!cfg.lines)cfg.lines=DEF.lines; if(!cfg.lineProds)cfg.lineProds=DEF.lineProds;
 if(!cfg.dims)cfg.dims=DEF.dims; if(!cfg.specs)cfg.specs={}; if(cfg.drMode===undefined)cfg.drMode=0;
-let allData=JSON.parse(localStorage.getItem('xrr6_data')||'null')||{};
+let allData={};
 let curLine=cfg.lines[0]||'L1',curProd=(cfg.lineProds[curLine]||[])[0]||'A',curDim=(cfg.dims||[])[0]||'ㄱ';
 let hlX=null,hlR=null,xChart=null,rChart=null,gAX=null,gAR=null;
 let cfgTabIdx=0,lmLineSel=null,rdeSelLine=null,rdeSelProd=null,rdeSelDim=null,drTabMode=0;
@@ -409,9 +423,9 @@ function buildSelDrops(){
   document.getElementById('selProd').innerHTML=(cfg.lineProds[curLine]||[]).map(p=>`<option value="${esc(p)}"${p===curProd?' selected':''}>${esc(p)}</option>`).join('');
   document.getElementById('selDim').innerHTML=(cfg.dims||[]).map(d=>`<option value="${esc(d)}"${d===curDim?' selected':''}>${esc(d)}</option>`).join('');
 }
-function onSelLine(){autoSavePendingInputs();curLine=document.getElementById('selLine').value;curProd=(cfg.lineProds[curLine]||[])[0]||'';buildSelDrops();ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();}
-function onSelProd(){autoSavePendingInputs();curProd=document.getElementById('selProd').value;ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();}
-function onSelDim(){autoSavePendingInputs();curDim=document.getElementById('selDim').value;ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();}
+function onSelLine(){autoSavePendingInputs();curLine=document.getElementById('selLine').value;curProd=(cfg.lineProds[curLine]||[])[0]||'';buildSelDrops();loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
+function onSelProd(){autoSavePendingInputs();curProd=document.getElementById('selProd').value;loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
+function onSelDim(){autoSavePendingInputs();curDim=document.getElementById('selDim').value;loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
 
 // ═══ DATE INPUT ═══
 function setToday(){const v=getTodayKey();document.getElementById('inDate').value=v;}
@@ -949,16 +963,32 @@ function exportExcel(){
 }
 
 // ═══ STORAGE & TOAST ═══
-function saveStore(){try{localStorage.setItem('xrr6_cfg',JSON.stringify(cfg));localStorage.setItem('xrr6_data',JSON.stringify(allData));}catch(e){showToast('저장 실패 (용량?)','warn');}}
+function saveStore(){
+  try{localStorage.setItem('xrr6_cfg',JSON.stringify(cfg));}catch(e){}
+  saveDataToFirebase();
+}
+function saveDataToFirebase(){
+  fetch(FB_DB_URL+'/data.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(allData)})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);})
+    .catch(e=>{console.error(e);showToast('Firebase 저장 실패: '+e.message,'warn');});
+}
+function loadDataFromFirebase(cb){
+  fetch(FB_DB_URL+'/data.json')
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(json=>{allData=json||{};cb&&cb();})
+    .catch(e=>{console.error(e);showToast('데이터 불러오기 실패: '+e.message,'warn');cb&&cb();});
+}
 let toastT=null;
 function showToast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.style.background=type==='warn'?'#d29922':'#3fb950';el.classList.add('show');if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2500);}
 
 window.addEventListener('load',()=>{
-  init();
-  restorePendingInputs();
-  // Attach date shorthand handler after DOM ready
-  const inp=document.getElementById('inDate');
-  if(inp)inp.addEventListener('blur',handleDateShorthand);
+  loadDataFromFirebase(()=>{
+    init();
+    restorePendingInputs();
+    // Attach date shorthand handler after DOM ready
+    const inp=document.getElementById('inDate');
+    if(inp)inp.addEventListener('blur',handleDateShorthand);
+  });
 });
 </script>
 </body>
