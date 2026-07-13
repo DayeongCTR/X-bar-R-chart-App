@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X̄–R 관리도</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBoQVhlAnvKwVHRfHECC4kxTNxoGYDDI-U",
+  authDomain: "x-bar-r.firebaseapp.com",
+  databaseURL: "https://x-bar-r-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "x-bar-r",
+  storageBucket: "x-bar-r.firebasestorage.app",
+  messagingSenderId: "410510666424",
+  appId: "1:410510666424:web:aa33719d8617dfdd60624d",
+  measurementId: "G-X80ZHJRLJ2"
+};
+const FB_DB_URL = firebaseConfig.databaseURL;
+</script>
+<style>
+:root{
+  --bg:#0d1117;--sur:#161b22;--sur2:#21262d;--sur3:#2d333b;
+  --bdr:#373e47;--bdr2:#545d68;
+  --acc:#58a6ff;--red:#f85149;--grn:#3fb950;--yel:#d29922;
+  --tx:#ffffff;--tx2:#dddddd;--tx3:#aaaaaa;
+  --ucl:#ff6b6b;--cl:#4ade80;--lcl:#60a5fa;
+  --r:6px;--font:system-ui,-apple-system,sans-serif;--mono:'Courier New',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px;display:flex;flex-direction:column}
+.outer{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* LEFT */
+.left{width:280px;min-width:260px;flex-shrink:0;background:var(--sur);border-right:2px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden}
+.mini-dash{background:#0a0e14;border-bottom:2px solid var(--bdr);padding:8px 10px;display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+.md-row{display:flex;gap:5px;align-items:center}
+.md-lbl{font-size:12px;color:var(--tx3);font-weight:700;white-space:nowrap;min-width:32px}
+.md-sel{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);font-size:14px;padding:4px 7px;cursor:pointer;flex:1;min-width:0}
+.md-sel option{background:#1a2030}
+
+/* Stats table in dashboard */
+.stat-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:3px}
+.stat-tbl td{padding:3px 6px;border:1px solid var(--bdr);white-space:nowrap}
+.stat-tbl .st-lbl{color:var(--tx3);background:var(--sur3);font-size:11px;text-align:right;font-weight:700;width:50%}
+.stat-tbl .st-v{font-family:var(--mono);font-weight:700;font-size:13px;text-align:center}
+.sv-ucl{color:var(--ucl)}.sv-cl{color:var(--cl)}.sv-lcl{color:var(--lcl)}.sv-spec{color:#e879f9}.sv-n{color:var(--acc)}
+
+.md-btns{display:flex;gap:4px;margin-top:2px}
+.md-btn{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx2);cursor:pointer;font-size:14px;font-weight:600;padding:5px 10px;white-space:nowrap}
+.md-btn:hover{border-color:var(--acc);color:var(--acc)}
+
+.inp-wrap{flex:1;overflow-y:auto;padding:10px}
+.sec-h{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tx3);margin-bottom:8px}
+.input-area{background:#1e2430;border:2px solid var(--bdr2);border-radius:var(--r);padding:9px}
+.date-row{display:flex;gap:5px;align-items:center;margin-bottom:8px}
+.date-inp-wrap{position:relative;flex:1}
+.date-inp-wrap input[type="date"]{width:100%;background:#fff;border:1.5px solid #888;border-radius:4px;color:#111;padding:4px 6px;font-size:13px;font-weight:600;color-scheme:light}
+.date-inp-wrap input[type="date"]:focus{outline:none;border-color:#3b82f6}
+.today-btn{background:#334155;border:1px solid #556;border-radius:4px;color:#fff;cursor:pointer;font-size:11px;padding:4px 7px;white-space:nowrap}
+.today-btn:hover{background:#475569}
+
+.mrow{display:grid;grid-template-columns:26px 1fr 20px;gap:4px;align-items:center;margin-bottom:4px}
+.mlbl{font-size:13px;color:#aaa;font-weight:700;text-align:right;font-family:var(--mono)}
+.mrow input{background:#fff;border:1.5px solid #888;border-radius:4px;color:#111;padding:5px 7px;font-size:14px;font-family:var(--mono);width:100%;-moz-appearance:textfield}
+.mrow input::-webkit-inner-spin-button,.mrow input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.mrow input:focus{outline:none;border-color:#3b82f6}
+.clrb{background:transparent;border:none;color:#888;cursor:pointer;font-size:13px;padding:0}
+.clrb:hover{color:var(--red)}
+.prog-wrap{background:var(--sur3);border-radius:3px;height:4px;margin-top:8px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;background:var(--grn);transition:width .3s}
+.prog-lbl{font-size:12px;color:var(--tx3);margin-top:3px}
+.pend-note{background:#1c180a;border:1px solid var(--yel);border-radius:4px;color:var(--yel);font-size:11px;padding:6px 8px;margin-top:6px;display:none;line-height:1.4}
+.act-row{display:flex;gap:5px;margin-top:8px}
+.save-btn{flex:1;background:var(--acc);border:none;border-radius:var(--r);color:#0d1117;cursor:pointer;font-size:13px;font-weight:700;padding:7px}
+.save-btn:hover{opacity:.85}
+.cnt-box{margin-top:8px;font-size:13px;color:var(--tx2)}
+
+/* RIGHT */
+.right{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.charts-area{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.chart-row{display:flex;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;min-height:280px}
+.np{width:100px;flex-shrink:0;background:#0e1420;border-right:1px solid var(--bdr);display:flex;flex-direction:column;padding:7px 6px;gap:3px}
+.np-t{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--tx3);text-align:center;margin-bottom:5px}
+.np-g{display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:1}
+.nb{border-radius:4px;border:1.5px solid var(--bdr2);cursor:pointer;font-size:11px;font-weight:700;font-family:var(--mono);background:var(--sur2);color:var(--tx2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 3px;transition:all .2s}
+.nb:hover{border-color:var(--acc)}.nb .nn{font-size:13px;font-weight:800}.nb .ns{font-size:10px;letter-spacing:.3px;text-align:center}
+.nb.ok{background:#0d2818;border-color:var(--grn);color:var(--grn)}
+.nb.viol{background:#2d0a09;border-color:var(--red);color:var(--red);animation:pb 1.5s infinite}
+.nb.hl{box-shadow:0 0 0 2px #fff,0 0 8px rgba(255,255,255,.4)!important}
+@keyframes pb{0%,100%{box-shadow:0 0 0 0 rgba(248,81,73,.6)}50%{box-shadow:0 0 0 5px rgba(248,81,73,0)}}
+.ci{flex:1;display:flex;flex-direction:column;padding:9px 11px;min-width:0}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.ct{font-size:14px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--tx2)}
+.cl-leg{display:flex;gap:10px;flex-wrap:wrap}
+.cl-item{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:600}
+.cl-line{width:16px;height:0;border-top-width:2px;border-top-style:dashed;flex-shrink:0}
+.cw{flex:1;min-height:0;height:250px;position:relative}
+
+/* RAW TABLE */
+.raw-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 11px}
+.raw-hdr{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tx3);margin-bottom:6px;display:flex;justify-content:space-between}
+.raw-hdr span{color:var(--tx2);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0}
+.ts{overflow-x:auto}
+.rt{border-collapse:collapse;font-size:11px;font-family:var(--mono);min-width:100%}
+.rt th{background:var(--sur3);color:var(--tx);font-size:11px;font-weight:700;padding:3px 8px;text-align:center;border:1px solid var(--bdr);white-space:nowrap}
+.rt td{padding:2px 8px;text-align:center;border:1px solid var(--bdr);color:var(--tx);white-space:nowrap}
+.rt tr:hover td{background:var(--sur2)}
+.rl{background:var(--sur3)!important;color:var(--tx2);font-weight:700}
+.cv{color:var(--red)!important;font-weight:700}
+
+/* TOOLTIP */
+.tip{position:fixed;background:#1a2030;border:1px solid var(--bdr2);border-radius:var(--r);color:var(--tx);font-size:13px;padding:8px 12px;pointer-events:none;z-index:9999;max-width:270px;line-height:1.55;display:none;box-shadow:0 6px 20px rgba(0,0,0,.6)}
+
+/* PASSWORD */
+.pw-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center}
+.pw-overlay.open{display:flex}
+.pw-box{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;padding:28px 30px;width:280px;text-align:center}
+.pw-box h2{font-size:16px;margin-bottom:5px;color:var(--tx)}
+.pw-box p{font-size:13px;color:var(--tx3);margin-bottom:16px}
+.pw-dots{display:flex;justify-content:center;gap:10px;margin-bottom:18px}
+.pw-dot{width:14px;height:14px;border-radius:50%;background:var(--sur3);border:2px solid var(--bdr2);transition:all .15s}
+.pw-dot.filled{background:var(--acc);border-color:var(--acc)}
+.pw-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:200px;margin:0 auto}
+.pw-key{background:var(--sur2);border:1px solid var(--bdr2);border-radius:8px;color:var(--tx);cursor:pointer;font-size:18px;font-weight:700;padding:12px;transition:all .15s}
+.pw-key:hover{background:var(--sur3);border-color:var(--acc)}
+.pw-key.del{font-size:14px;color:var(--tx3)}
+.pw-err{color:var(--red);font-size:13px;margin-top:10px;height:18px}
+
+/* SETTINGS MODAL */
+.cfg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
+.cfg-overlay.open{display:flex}
+.cfg-modal{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;width:740px;max-width:97vw;max-height:92vh;display:flex;flex-direction:column}
+.cfg-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--bdr)}
+.cfg-head h2{font-size:16px;font-weight:700;color:var(--tx)}
+.cfg-close{background:transparent;border:none;color:var(--tx3);cursor:pointer;font-size:20px;padding:0}
+.cfg-close:hover{color:var(--tx)}
+.cfg-tabs{display:flex;border-bottom:1px solid var(--bdr);padding:0 16px}
+.cfg-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--tx3);cursor:pointer;font-size:15px;font-weight:600;padding:9px 14px;transition:all .15s}
+.cfg-tab:hover{color:var(--tx)}.cfg-tab.on{border-bottom-color:var(--acc);color:var(--acc)}
+.cfg-body{flex:1;overflow-y:auto;padding:16px 20px}
+.mf{margin-bottom:13px}
+.mf label{display:block;color:var(--tx2);font-size:13px;margin-bottom:5px;font-weight:600}
+.mf input,.mf select{width:100%;background:var(--sur2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--tx);padding:7px 10px;font-size:14px}
+.mf input[type="date"]{color-scheme:dark}
+.mf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cfg-acts{padding:12px 20px;border-top:1px solid var(--bdr);display:flex;gap:8px;justify-content:flex-end}
+.mbtn{border-radius:var(--r);cursor:pointer;font-size:14px;font-weight:600;padding:7px 18px;border:none}
+.mbtn.p{background:var(--acc);color:#0d1117}.mbtn.s{background:var(--sur2);border:1px solid var(--bdr2);color:var(--tx)}
+
+/* ITEM LISTS */
+.lm-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.col-section{display:flex;flex-direction:column;gap:6px}
+.col-h{font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:2px}
+.item-list{display:flex;flex-direction:column;gap:3px;border:1px solid var(--bdr);border-radius:4px;padding:4px;min-height:60px;max-height:170px;overflow-y:auto;background:var(--bg)}.item-list.dim-list{max-height:420px}
+.item-row{display:flex;align-items:center;gap:5px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:4px 8px;cursor:grab;user-select:none}
+.item-row:active{opacity:.7}
+.item-drag{color:var(--tx3);font-size:15px;flex-shrink:0}
+.item-name{flex:1;font-size:13px;color:var(--tx)}
+.ibtn-sm{background:transparent;border:1px solid var(--bdr2);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 7px;color:var(--tx2)}
+.ibtn-sm:hover{border-color:var(--acc);color:var(--acc)}
+.ibtn-sm.del-sm{border-color:transparent;color:var(--tx3)}
+.ibtn-sm.del-sm:hover{border-color:var(--red);color:var(--red)}
+.add-row{display:flex;gap:5px;margin-top:4px}
+.add-row input{flex:1;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:5px 9px;font-size:13px}
+.add-btn{background:var(--grn);border:none;border-radius:4px;color:#0d1117;cursor:pointer;font-size:13px;font-weight:700;padding:5px 12px;white-space:nowrap}
+.line-sel-row{display:flex;align-items:center;gap:8px;margin:8px 0 4px}
+.line-sel-row label{font-size:12px;color:var(--tx3);font-weight:600;white-space:nowrap}
+.line-sel-row select{flex:1;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:4px 8px;font-size:13px}
+
+/* SPEC MATRIX */
+.smt{border-collapse:collapse;min-width:100%}
+.smt th,.smt td{border:1px solid var(--bdr);padding:4px 10px;text-align:center;font-size:13px}
+.smt th{background:var(--sur3);color:var(--tx);font-weight:700}
+.smt td{background:var(--sur2)}
+.smt input{background:transparent;border:none;color:var(--tx);font-size:13px;width:70px;text-align:center;padding:2px}
+.smt input:focus{outline:1px solid var(--acc);border-radius:3px}
+
+/* DATE RANGE */
+.dr-box{background:#0e1420;border:1px solid var(--bdr);border-radius:var(--r);padding:12px;margin-top:4px}
+.dr-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.dr-tab{background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--tx3);cursor:pointer;font-size:13px;padding:5px 12px}
+.dr-tab.on{background:var(--acc);border-color:var(--acc);color:#0d1117;font-weight:700}
+
+/* RDE */
+.rde-top-bar{display:flex;align-items:flex-end;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.rde-sel-grp{display:flex;flex-direction:column;gap:3px}
+.rde-sel-grp label{font-size:12px;color:var(--tx2);font-weight:600}
+.rde-sel-grp select{background:var(--sur2);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--tx);padding:5px 9px;font-size:13px}
+.excel-btn{background:#2ea043;border:none;border-radius:var(--r);color:#fff;cursor:pointer;font-size:13px;font-weight:600;padding:6px 12px;white-space:nowrap}
+.excel-btn:hover{background:#3fb950}
+.add-row-btn{background:var(--sur2);border:1px dashed var(--bdr2);border-radius:4px;color:var(--tx3);cursor:pointer;font-size:13px;padding:5px 12px;white-space:nowrap}
+.add-row-btn:hover{border-color:var(--acc);color:var(--acc)}
+.rde-hint{font-size:12px;color:var(--tx3);margin-bottom:8px}
+.rdt{border-collapse:collapse;width:100%;font-size:13px;font-family:var(--mono)}
+.rdt th{background:var(--sur3);color:var(--tx);font-size:12px;padding:5px 8px;border:1px solid var(--bdr);white-space:nowrap;text-align:center}
+.rdt td{padding:3px 4px;border:1px solid var(--bdr);text-align:center}
+.rdt input[type="date"]{background:#fff;border:1px solid #888;border-radius:3px;color:#111;font-size:11px;padding:2px 3px;width:115px;color-scheme:light}
+.rdt input[type="number"]{background:#fff;border:1px solid #888;border-radius:3px;color:#111;font-size:12px;width:76px;padding:2px 4px;-moz-appearance:textfield}
+.rdt input[type="number"]::-webkit-inner-spin-button,.rdt input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.rdel{color:var(--red);cursor:pointer;font-size:15px;background:transparent;border:none;padding:0 4px}
+.rdel:hover{color:#fca5a5}
+.cp-row{background:#1c180a}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--grn);color:#0d1117;font-weight:700;padding:9px 16px;border-radius:var(--r);font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:600}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="outer">
+<div class="left">
+  <div class="mini-dash">
+    <div class="md-row"><span class="md-lbl">라인</span><select class="md-sel" id="selLine" onchange="onSelLine()"></select></div>
+    <div class="md-row"><span class="md-lbl">품번</span><select class="md-sel" id="selProd" onchange="onSelProd()"></select></div>
+    <div class="md-row"><span class="md-lbl">치수</span><select class="md-sel" id="selDim"  onchange="onSelDim()"></select></div>
+    <table class="stat-tbl" id="statTbl">
+      <tr><td class="st-lbl">USL(X̄)</td><td class="st-v sv-spec" id="di-usl">—</td><td class="st-lbl">USL(R)</td><td class="st-v sv-spec">—</td></tr>
+      <tr><td class="st-lbl">UCL(X̄)</td><td class="st-v sv-ucl" id="di-ucl">—</td><td class="st-lbl">UCL(R)</td><td class="st-v sv-ucl" id="di-uclr">—</td></tr>
+      <tr><td class="st-lbl">X̄̄</td><td class="st-v sv-cl" id="di-xbb">—</td><td class="st-lbl">R̄</td><td class="st-v sv-cl" id="di-rb">—</td></tr>
+      <tr><td class="st-lbl">LCL(X̄)</td><td class="st-v sv-lcl" id="di-lcl">—</td><td class="st-lbl">LCL(R)</td><td class="st-v sv-lcl" id="di-lclr">—</td></tr>
+      <tr><td class="st-lbl">LSL(X̄)</td><td class="st-v sv-spec" id="di-lsl">—</td><td class="st-lbl">LSL(R)</td><td class="st-v sv-spec">—</td></tr>
+      <tr><td class="st-lbl">군 크기</td><td class="st-v sv-n" id="di-n">3</td><td class="st-lbl">표시 군</td><td class="st-v sv-n" id="di-k">0</td></tr>
+    </table>
+    <div class="md-btns"><button class="md-btn" style="flex:1" onclick="openPwModal()">⚙ 설정</button></div>
+  </div>
+  <div class="inp-wrap">
+    <div class="sec-h">측정값 입력</div>
+    <div class="input-area">
+      <div class="date-row">
+        <div class="date-inp-wrap" style="flex:1">
+          <input type="date" id="inDate" onchange="onDateChange()" oninput="onDateRaw(event)" style="width:100%">
+        </div>
+        <button class="today-btn" onclick="saveEntry()">저장</button>
+      </div>
+      <div id="measGrid"></div>
+      <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0"></div></div>
+      <div class="prog-lbl" id="progLbl">0 / 3 입력됨</div>
+      <div class="pend-note" id="pendNote">⚠ 군 크기 미달 — 백업 저장</div>
+      
+    </div>
+    <div class="cnt-box">설정: <strong id="cnt-all">0</strong>군 표시 / 실제: <strong id="cnt-view">0</strong>군 표시 / 백업: <strong id="cnt-pend">0</strong></div>
+  </div>
+</div>
+<div class="right">
+  <div class="charts-area">
+    <div class="chart-row">
+      <div class="np"><div class="np-t">X̄ 규칙</div><div class="np-g" id="nbX"></div></div>
+      <div class="ci">
+        <div class="ch"><span class="ct">X̄ 관리도</span><div class="cl-leg" id="legX"></div></div>
+        <div class="cw"><canvas id="cXbar"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="np"><div class="np-t">R 규칙</div><div class="np-g" id="nbR"></div></div>
+      <div class="ci">
+        <div class="ch"><span class="ct">R 관리도</span><div class="cl-leg" id="legR"></div></div>
+        <div class="cw"><canvas id="cR"></canvas></div>
+      </div>
+    </div>
+    <div class="raw-card">
+      <div class="raw-hdr">측정 데이터</div>
+      <div class="ts"><table class="rt"><thead id="rtHead"></thead><tbody id="rtBody"></tbody></table></div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="tip" id="tip"></div>
+<!-- PASSWORD -->
+<div class="pw-overlay" id="pwModal">
+  <div class="pw-box">
+    <h2>⚙ 설정 접근</h2><p>비밀번호 4자리를 입력하세요</p>
+    <div class="pw-dots"><div class="pw-dot" id="pd0"></div><div class="pw-dot" id="pd1"></div><div class="pw-dot" id="pd2"></div><div class="pw-dot" id="pd3"></div></div>
+    <div class="pw-pad">
+      <button class="pw-key" onclick="pwKey('1')">1</button><button class="pw-key" onclick="pwKey('2')">2</button><button class="pw-key" onclick="pwKey('3')">3</button>
+      <button class="pw-key" onclick="pwKey('4')">4</button><button class="pw-key" onclick="pwKey('5')">5</button><button class="pw-key" onclick="pwKey('6')">6</button>
+      <button class="pw-key" onclick="pwKey('7')">7</button><button class="pw-key" onclick="pwKey('8')">8</button><button class="pw-key" onclick="pwKey('9')">9</button>
+      <button class="pw-key del" onclick="pwDel()">⌫</button><button class="pw-key" onclick="pwKey('0')">0</button>
+      <button class="pw-key" onclick="closePwModal()" style="font-size:12px;color:var(--tx3)">취소</button>
+    </div>
+    <div class="pw-err" id="pwErr"></div>
+  </div>
+</div>
+<!-- SETTINGS -->
+<div class="cfg-overlay" id="cfgModal">
+<div class="cfg-modal">
+  <div class="cfg-head"><h2>⚙ 설정</h2><button class="cfg-close" onclick="closeCfg()">✕</button></div>
+  <div class="cfg-tabs">
+    <button class="cfg-tab on" onclick="cfgTab(0,this)">일반 설정</button>
+    <button class="cfg-tab"   onclick="cfgTab(1,this)">라인/품번/치수</button>
+    <button class="cfg-tab"   onclick="cfgTab(2,this)">규격 설정</button>
+    <button class="cfg-tab"   onclick="cfgTab(3,this)">로데이터 편집</button>
+  </div>
+  <div class="cfg-body" id="cfgBody"></div>
+  <div class="cfg-acts">
+    <button class="mbtn s" onclick="closeCfg()">닫기</button>
+    <button class="mbtn p" id="cfgSaveBtn" onclick="saveCfgActive()">저장</button>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// ═══ CONSTANTS ═══
+const CC={2:{A2:1.880,D3:0,D4:3.267},3:{A2:1.023,D3:0,D4:2.574},4:{A2:0.729,D3:0,D4:2.282},5:{A2:0.577,D3:0,D4:2.114},6:{A2:0.483,D3:0,D4:2.004},7:{A2:0.419,D3:0.076,D4:1.924},8:{A2:0.373,D3:0.136,D4:1.864},9:{A2:0.337,D3:0.184,D4:1.816},10:{A2:0.308,D3:0.223,D4:1.777}};
+const NX=[{id:'X1',lbl:'R1',desc:'이탈',det:'1점이 UCL 또는 LCL을 벗어남 (3σ 이상)'},{id:'X2',lbl:'R2',desc:'편향',det:'연속 9점이 CL 같은 쪽에 위치 (공정 편향·이동)'},{id:'X3',lbl:'R3',desc:'추세',det:'연속 6점이 단조증가 또는 단조감소 (드리프트)'},{id:'X4',lbl:'R4',desc:'진동',det:'연속 14점이 교대로 상하 반복 (과잉보정 또는 2공정 혼합)'},{id:'X5',lbl:'R5',desc:'2σ접근',det:'연속 3점 중 2점이 같은 방향으로 2σ 바깥'},{id:'X6',lbl:'R6',desc:'1σ접근',det:'연속 5점 중 4점이 같은 방향으로 1σ 바깥'},{id:'X7',lbl:'R7',desc:'층화',det:'연속 15점이 모두 1σ 이내 (측정 해상도 불량 의심)'},{id:'X8',lbl:'R8',desc:'혼합',det:'연속 8점이 1σ 바깥 양쪽에 위치 (두 분포 혼합)'}];
+const NR=[{id:'R1',lbl:'R1',desc:'UCL이탈',det:'R: 1점이 UCL 초과 (변동 급증)'},{id:'R2',lbl:'R2',desc:'하편향',det:'R: 연속 9점이 CL 아래 (변동 감소·개선 또는 층화)'},{id:'R3',lbl:'R3',desc:'증가추세',det:'R: 연속 6점 단조증가 (공구 마모·재료 열화)'},{id:'R4',lbl:'R4',desc:'진동',det:'R: 연속 14점이 교대 상하 반복'},{id:'R5',lbl:'R5',desc:'2σ↑',det:'R: 연속 3점 중 2점이 2σ 초과 (상향만)'},{id:'R6',lbl:'R6',desc:'1σ↑',det:'R: 연속 5점 중 4점이 1σ 초과 (상향만)'},{id:'R7',lbl:'R7',desc:'층화',det:'R: 연속 15점이 1σ 이내 (분해능 불량)'},{id:'R8',lbl:'R8',desc:'혼합',det:'R: 연속 8점이 1σ 바깥 (2개 이상 공정 혼합)'}];
+const PRELOAD_C=[{date:'3/2',values:[44.83,45.42,44.95]},{date:'3/3',values:[44.18,44.84,44.76]},{date:'3/11',values:[44.55,44.68,44.44]},{date:'3/12',values:[44.69,44.58,44.61]},{date:'3/13',values:[44.58,44.44,44.38]},{date:'3/16',values:[44.38,44.64,44.77]},{date:'3/17',values:[44.29,44.53,44.37]},{date:'3/18',values:[44.98,44.37,44.64]},{date:'3/19',values:[44.87,44.76,44.55]},{date:'3/20',values:[44.66,44.84,44.46]},{date:'3/23',values:[44.91,45.12,44.32]},{date:'3/24',values:[44.83,45.21,45.11]},{date:'4/6',values:[44.27,44.58,44.45]},{date:'4/8',values:[45.15,45.24,44.91]},{date:'4/9',values:[44.68,45.04,45.20]},{date:'4/10',values:[44.87,45.22,44.69]},{date:'4/13',values:[45.21,44.84,44.98]},{date:'4/14',values:[44.35,44.72,44.88]},{date:'4/15',values:[44.56,44.84,44.93]},{date:'4/16',values:[44.58,44.77,44.67]}];
+const PRELOAD_P=[{date:'3/10',values:[null,44.67,null,44.58]},{date:'3/25',values:[44.91]},{date:'4/1',values:[44.62]},{date:'4/17',values:[44.65]}];
+
+// ═══ STATE ═══
+const DEF={lines:['L1'],lineProds:{L1:['A','B','C','D']},dims:['ㄱ','ㄴ','ㄷ'],n:3,k:20,drMode:0,drDate:null,specs:{}};
+let cfg=JSON.parse(localStorage.getItem('xrr6_cfg')||'null')||JSON.parse(JSON.stringify(DEF));
+if(!cfg.lines)cfg.lines=DEF.lines; if(!cfg.lineProds)cfg.lineProds=DEF.lineProds;
+if(!cfg.dims)cfg.dims=DEF.dims; if(!cfg.specs)cfg.specs={}; if(cfg.drMode===undefined)cfg.drMode=0;
+let allData={};
+let curLine=cfg.lines[0]||'L1',curProd=(cfg.lineProds[curLine]||[])[0]||'A',curDim=(cfg.dims||[])[0]||'ㄱ';
+let hlX=null,hlR=null,xChart=null,rChart=null,gAX=null,gAR=null;
+let cfgTabIdx=0,lmLineSel=null,rdeSelLine=null,rdeSelProd=null,rdeSelDim=null,drTabMode=0;
+let specLineSel2=null;
+
+// ═══ HELPERS ═══
+function getKey(l,p,d){return `${l}__${p}__${d}`;}
+function curKey(){return getKey(curLine,curProd,curDim);}
+function ensureData(key){
+  if(!allData[key]){
+    const dk=getKey(cfg.lines[0],(cfg.lineProds[cfg.lines[0]]||[])[0],(cfg.dims||[])[0]);
+    allData[key]=key===dk?{complete:JSON.parse(JSON.stringify(PRELOAD_C)),pending:JSON.parse(JSON.stringify(PRELOAD_P))}:{complete:[],pending:[]};
+  }
+}
+function getSpec(){return cfg.specs[`${curLine}__${curProd}__${curDim}`]||{lsl:null,usl:null};}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function dateNum(s){const p=(s||'').split('/').map(Number);return(p[0]||0)*100+(p[1]||0);}
+function sortD(arr){arr.sort((a,b)=>dateNum(a.date)-dateNum(b.date));}
+function toDateInput(s){// "M/D" -> "YYYY-MM-DD"
+  if(!s)return '';const p=s.split('/').map(Number);if(p.length<2)return '';
+  const y=new Date().getFullYear();return `${y}-${String(p[0]).padStart(2,'0')}-${String(p[1]).padStart(2,'0')}`;
+}
+function fromDateInput(v){// "YYYY-MM-DD" -> "M/D"
+  if(!v)return '';const p=v.split('-').map(Number);return p.length>=3?`${p[1]}/${p[2]}`:'';
+}
+// Compact sparse array: remove trailing nulls, keep internal structure
+function sparseValues(vals){// remove trailing nulls only
+  let arr=[...vals];while(arr.length>0&&(arr[arr.length-1]==null))arr.pop();return arr;
+}
+// Count non-null values
+function countVals(vals){return vals.filter(v=>v!=null&&v!==undefined&&v!=='').length;}
+// Sum/avg/min/max ignoring nulls
+function validVals(vals){return vals.filter(v=>v!=null&&!isNaN(v));}
+
+
+// ═══ FORMAT VALUE (show as-entered, no forced decimal places) ═══
+function fmtV(v){
+  if(v==null||isNaN(v))return '—';
+  // Round to reasonable precision (avoid floating point noise like 44.730000000001)
+  const rounded=Math.round(v*10000)/10000;
+  return String(rounded);
+}
+
+// ═══ TODAY KEY (오전8시 이전은 전날로) ═══
+function getTodayKey(){
+  const now=new Date();
+  // If before 08:00, use previous day
+  if(now.getHours()<8){now.setDate(now.getDate()-1);}
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
+
+// ═══ INPUT CACHE (per combination, keyed by "line__prod__dim__date") ═══
+// Stores: { date: "YYYY-MM-DD", slots: [v0,v1,...,v5] }
+const inputCache = {};
+
+function cacheKey(){return curKey();}
+
+function autoSavePendingInputs(){
+  if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
+  // Cache raw UI state so returning to this combo restores exactly what was there
+  const dInp=document.getElementById('inDate');
+  if(!dInp)return;
+  const dateVal=dInp.value;
+  const slots=[];let hasAny=false;
+  for(let i=1;i<=6;i++){
+    const el=document.getElementById(`m${i}`);
+    const v=el&&el.value.trim()!==''?el.value:null;
+    slots[i-1]=v;
+    if(v!==null)hasAny=true;
+  }
+  if(hasAny||dateVal)inputCache[cacheKey()]={date:dateVal,slots};
+  // Also actually save entered values to allData/Firebase before switching combo
+  const dv=fromDateInput(dateVal);
+  if(!dv||!hasAny)return; // nothing entered — nothing to persist
+  const vals=new Array(6).fill(null);let hasVal=false;
+  for(let i=1;i<=6;i++){
+    if(slots[i-1]!=null){
+      const v=parseFloat(slots[i-1]);
+      if(!isNaN(v)){vals[i-1]=v;hasVal=true;}
+    }
+  }
+  if(!hasVal)return;
+  const trimmed=sparseValues(vals);
+  const cnt=countVals(trimmed);
+  const key=curKey();ensureData(key);const pd=allData[key];
+  const ci=pd.complete.findIndex(d=>d.date===dv),pi=pd.pending.findIndex(d=>d.date===dv);
+  if(cnt>=cfg.n){
+    if(ci>=0)pd.complete[ci].values=trimmed;
+    else{if(pi>=0)pd.pending.splice(pi,1);pd.complete.push({date:dv,values:trimmed});}
+    sortD(pd.complete);
+  }else{
+    if(pi>=0)pd.pending[pi].values=trimmed;
+    else if(ci>=0){pd.complete.splice(ci,1);pd.pending.push({date:dv,values:trimmed});}
+    else pd.pending.push({date:dv,values:trimmed});
+    sortD(pd.pending);
+  }
+  saveStore();
+}
+
+function restorePendingInputs(){
+  const cached=inputCache[cacheKey()];
+  // Determine today's date key for auto-fill
+  const todayStr=getTodayKey();
+  if(cached){
+    const el=document.getElementById('inDate');
+    if(el)el.value=cached.date||todayStr;
+    for(let i=1;i<=6;i++){
+      const m=document.getElementById(`m${i}`);
+      if(m)m.value=cached.slots[i-1]??'';
+    }
+  }else{
+    // Set date to today, clear slots
+    const el=document.getElementById('inDate');
+    if(el)el.value=todayStr;
+    for(let i=1;i<=6;i++){const m=document.getElementById(`m${i}`);if(m)m.value='';}
+  }
+  onMIn();
+}
+
+// ═══ INIT ═══
+function init(){
+  ensureData(curKey());
+  buildSelDrops();
+  buildMeasGrid();
+  buildNelsonBtns();
+  setToday();
+  render();
+}
+
+// ═══ DROPDOWNS ═══
+function buildSelDrops(){
+  document.getElementById('selLine').innerHTML=cfg.lines.map(l=>`<option value="${esc(l)}"${l===curLine?' selected':''}>${esc(l)}</option>`).join('');
+  document.getElementById('selProd').innerHTML=(cfg.lineProds[curLine]||[]).map(p=>`<option value="${esc(p)}"${p===curProd?' selected':''}>${esc(p)}</option>`).join('');
+  document.getElementById('selDim').innerHTML=(cfg.dims||[]).map(d=>`<option value="${esc(d)}"${d===curDim?' selected':''}>${esc(d)}</option>`).join('');
+}
+function onSelLine(){autoSavePendingInputs();curLine=document.getElementById('selLine').value;curProd=(cfg.lineProds[curLine]||[])[0]||'';buildSelDrops();loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
+function onSelProd(){autoSavePendingInputs();curProd=document.getElementById('selProd').value;loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
+function onSelDim(){autoSavePendingInputs();curDim=document.getElementById('selDim').value;loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
+
+// ═══ DATE INPUT ═══
+function setToday(){const v=getTodayKey();document.getElementById('inDate').value=v;}
+function onDateChange(){}
+function onDateRaw(e){
+  // Allow yymmdd shorthand: if user types 6 digits interpret as MMDDYY or YYMMDD
+  // We'll handle via blur
+}
+document.getElementById && document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('inDate');
+  if(inp){inp.addEventListener('blur',handleDateShorthand);}
+});
+function handleDateShorthand(){
+  const inp=document.getElementById('inDate');if(!inp)return;
+  const raw=inp.value.replace(/[-\/\s]/g,'');
+  if(/^\d{6}$/.test(raw)){
+    // Try YYMMDD: e.g. 260703 → 2026-07-03
+    const yy=parseInt(raw.slice(0,2)),mm=parseInt(raw.slice(2,4)),dd=parseInt(raw.slice(4,6));
+    if(mm>=1&&mm<=12&&dd>=1&&dd<=31){
+      const yyyy=2000+yy;
+      inp.value=`${yyyy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+      return;
+    }
+    // Try MMDDYY fallback
+    const mm2=parseInt(raw.slice(0,2)),dd2=parseInt(raw.slice(2,4)),yy2=parseInt(raw.slice(4,6));
+    if(mm2>=1&&mm2<=12&&dd2>=1&&dd2<=31){
+      const yyyy2=2000+yy2;
+      inp.value=`${yyyy2}-${String(mm2).padStart(2,'0')}-${String(dd2).padStart(2,'0')}`;
+    }
+  }
+}
+
+// ═══ MEAS GRID (sparse — x1..x6 with individual slots) ═══
+function buildMeasGrid(){
+  const g=document.getElementById('measGrid');g.innerHTML='';
+  for(let i=1;i<=6;i++){
+    const r=document.createElement('div');r.className='mrow';
+    r.innerHTML=`<span class="mlbl">x${i}</span><input type="number" step="0.001" id="m${i}" placeholder="—" oninput="onMIn()" onkeydown="onMK(event,${i})"><button class="clrb" onclick="clrM(${i})">✕</button>`;
+    g.appendChild(r);
+  }
+}
+function onMK(e,i){if(e.key==='Enter'){const nx=document.getElementById(`m${i+1}`);if(nx)nx.focus();else saveEntry();}}
+function clrM(i){const el=document.getElementById(`m${i}`);if(el){el.value='';onMIn();}}
+let autoSaveTimer=null;
+function onMIn(){
+  let cnt=0;for(let i=1;i<=6;i++){const el=document.getElementById(`m${i}`);if(el&&el.value.trim()!=='')cnt++;}
+  document.getElementById('progFill').style.width=Math.min(100,(cnt/cfg.n)*100)+'%';
+  document.getElementById('progLbl').textContent=`${cnt} / ${cfg.n} 입력됨${cnt>=cfg.n?' ✓':''}`;
+  document.getElementById('pendNote').style.display=(cnt>0&&cnt<cfg.n)?'block':'none';
+  if(autoSaveTimer)clearTimeout(autoSaveTimer);
+  if(cnt>=cfg.n)autoSaveTimer=setTimeout(saveEntry,900);
+}
+
+// ═══ SAVE ENTRY (sparse values preserved) ═══
+function saveEntry(){
+  if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
+  const dInp=document.getElementById('inDate');
+  handleDateShorthand();
+  const dv=fromDateInput(dInp.value);
+  if(!dv){showToast('날짜 입력 필요','warn');return;}
+  // Build sparse array: index 0..5 = x1..x6, null if empty — preserve slot positions
+  const vals=new Array(6).fill(null);let hasVal=false;
+  for(let i=1;i<=6;i++){
+    const el=document.getElementById(`m${i}`);
+    if(el&&el.value.trim()!==''){
+      const v=parseFloat(el.value);if(isNaN(v)){showToast(`x${i} 오류`,'warn');return;}
+      vals[i-1]=v;hasVal=true;
+    }
+  }
+  if(!hasVal){showToast('값 입력 필요','warn');return;}
+  const trimmed=sparseValues(vals);
+  const cnt=countVals(trimmed);
+  const key=curKey();ensureData(key);const pd=allData[key];
+  const ci=pd.complete.findIndex(d=>d.date===dv),pi=pd.pending.findIndex(d=>d.date===dv);
+  if(cnt>=cfg.n){
+    if(ci>=0)pd.complete[ci].values=trimmed;
+    else{if(pi>=0)pd.pending.splice(pi,1);pd.complete.push({date:dv,values:trimmed});}
+    sortD(pd.complete);showToast(`${dv} 저장`,'ok');
+  }else{
+    if(pi>=0)pd.pending[pi].values=trimmed;
+    else if(ci>=0){pd.complete.splice(ci,1);pd.pending.push({date:dv,values:trimmed});}
+    else pd.pending.push({date:dv,values:trimmed});
+    sortD(pd.pending);showToast(`${dv} 백업 (${cnt}/${cfg.n})`,'warn');
+  }
+  saveStore();
+  hlX=null;hlR=null;render();
+}
+
+// ═══ VIEW WINDOW ═══
+function getViewData(){
+  const key=curKey();ensureData(key);
+  const all=[...allData[key].complete];sortD(all);
+  if(!all.length)return[];
+  const k=cfg.k||20,mode=cfg.drMode??0;
+  if(mode===0)return all.slice(Math.max(0,all.length-k));
+  if(mode===1&&cfg.drDate){const dn=dateNum(cfg.drDate);const si=Math.max(0,all.findIndex(d=>dateNum(d.date)>=dn));return all.slice(si,si+k);}
+  if(mode===2&&cfg.drDate){const dn=dateNum(cfg.drDate);const filtered=all.filter(d=>dateNum(d.date)<=dn);return filtered.slice(Math.max(0,filtered.length-k));}
+  return all.slice(Math.max(0,all.length-k));
+}
+
+// ═══ STATS ═══
+function calcStats(groups){
+  if(!groups||!groups.length)return null;
+  const n=cfg.n,c=CC[Math.min(Math.max(n,2),10)];
+  const g2=groups.map(d=>{
+    const v=validVals(d.values);
+    const xb=v.length?v.reduce((s,x)=>s+x,0)/v.length:0;
+    const R=v.length>1?Math.max(...v)-Math.min(...v):0;
+    return{date:d.date,v,xb,R};
+  });
+  const xbb=g2.reduce((s,g)=>s+g.xb,0)/g2.length,Rb=g2.reduce((s,g)=>s+g.R,0)/g2.length;
+  const UCLx=xbb+c.A2*Rb,LCLx=xbb-c.A2*Rb,UCLr=c.D4*Rb,LCLr=c.D3*Rb;
+  const sx=Math.max((UCLx-xbb)/3,0.0001),sr=Math.max((UCLr-Rb)/3,0.0001);
+  return{groups:g2,xbb,Rb,UCLx,LCLx,UCLr,LCLr,sx,sr};
+}
+
+// ═══ NELSON ═══
+function nelsonCheck(vals,CL,UCL,LCL,sx,isR){
+  const n=vals.length,res={};
+  res['1']=vals.map((v,i)=>(v>UCL||(LCL>0&&v<LCL))?i:-1).filter(i=>i>=0);
+  const sw=(size,check)=>{const st=new Set();for(let i=size-1;i<n;i++){const seg=vals.slice(i-size+1,i+1);if(check(seg))for(let j=i-size+1;j<=i;j++)st.add(j);}return[...st];};
+  res['2']=sw(9,s=>s.every(v=>v>CL)||s.every(v=>v<CL));
+  res['3']=sw(6,s=>s.every((v,j)=>j===0||v>s[j-1])||s.every((v,j)=>j===0||v<s[j-1]));
+  res['4']=sw(14,s=>{for(let j=1;j<s.length;j++){if(j>1&&(s[j]-s[j-1])*(s[j-1]-s[j-2])>=0)return false;}return true;});
+  const s2U=CL+2*sx,s2L=CL-2*sx,s1U=CL+sx,s1L=CL-sx;
+  const r5=new Set();for(let i=2;i<n;i++){const seg=vals.slice(i-2,i+1);const abv=seg.filter(v=>v>s2U).length,blw=seg.filter(v=>v<s2L).length;if(isR){if(abv>=2)seg.forEach((v,j)=>{if(v>s2U)r5.add(i-2+j);});}else{if(abv>=2||blw>=2)seg.forEach((v,j)=>{if(v>s2U||v<s2L)r5.add(i-2+j);});}}res['5']=[...r5];
+  const r6=new Set();for(let i=4;i<n;i++){const seg=vals.slice(i-4,i+1);const abv=seg.filter(v=>v>s1U).length,blw=seg.filter(v=>v<s1L).length;if(isR){if(abv>=4)seg.forEach((v,j)=>{if(v>s1U)r6.add(i-4+j);});}else{if(abv>=4||blw>=4)seg.forEach((v,j)=>{if(v>s1U||v<s1L)r6.add(i-4+j);});}}res['6']=[...r6];
+  res['7']=sw(15,s=>s.every(v=>v>=s1L&&v<=s1U));
+  res['8']=sw(8,s=>s.every(v=>v>s1U||v<s1L));
+  return res;
+}
+
+// ═══ NELSON BUTTONS ═══
+function buildNelsonBtns(){
+  ['nbX','nbR'].forEach((id,ci)=>{const g=document.getElementById(id);g.innerHTML='';(ci===0?NX:NR).forEach((r,i)=>{const b=document.createElement('button');b.className='nb';b.id=`nb_${r.id}`;b.dataset.chart=ci===0?'X':'R';b.dataset.rule=String(i+1);b.innerHTML=`<span class="nn">${r.lbl}</span><span class="ns">${r.desc}</span>`;b.onclick=()=>toggleHL(ci===0?'X':'R',String(i+1));g.appendChild(b);});});
+  setupTip();
+}
+function updateNBtns(vX,vR){
+  NX.forEach((_,i)=>{const b=document.getElementById(`nb_X${i+1}`);if(!b)return;const v=vX[String(i+1)]||[];b.className='nb '+(v.length?'viol':'ok')+(hlX===String(i+1)?' hl':'');});
+  NR.forEach((_,i)=>{const b=document.getElementById(`nb_R${i+1}`);if(!b)return;const v=vR[String(i+1)]||[];b.className='nb '+(v.length?'viol':'ok')+(hlR===String(i+1)?' hl':'');});
+}
+function toggleHL(chart,rn){if(chart==='X')hlX=(hlX===rn)?null:rn;else hlR=(hlR===rn)?null:rn;render();}
+function setupTip(){
+  const tip=document.getElementById('tip');
+  document.querySelectorAll('.nb').forEach(b=>{const chart=b.dataset.chart,rn=parseInt(b.dataset.rule)-1;const info=chart==='X'?NX[rn]:NR[rn];if(!info)return;b.addEventListener('mouseenter',e=>{tip.innerHTML=`<strong>Rule ${rn+1} — ${info.desc}</strong><br>${info.det}`;tip.style.display='block';moveTip(e);});b.addEventListener('mousemove',moveTip);b.addEventListener('mouseleave',()=>tip.style.display='none');});
+}
+function moveTip(e){const tip=document.getElementById('tip');let x=e.clientX+14,y=e.clientY+14;if(x+275>window.innerWidth)x=e.clientX-287;if(y+80>window.innerHeight)y=e.clientY-90;tip.style.left=x+'px';tip.style.top=y+'px';}
+
+// ═══ RENDER ═══
+function render(){
+  const key=curKey();ensureData(key);const pd=allData[key];
+  const vg=getViewData();const stats=calcStats(vg);const spec=getSpec();
+  const vX={},vR={};
+  if(stats&&stats.groups.length>=2){const xv=stats.groups.map(g=>g.xb),rv=stats.groups.map(g=>g.R);Object.assign(vX,nelsonCheck(xv,stats.xbb,stats.UCLx,stats.LCLx,stats.sx,false));Object.assign(vR,nelsonCheck(rv,stats.Rb,stats.UCLr,stats.LCLr,stats.sr,true));}
+  updateDash(stats,pd,vg,spec);updateNBtns(vX,vR);renderCharts(stats,vX,vR);renderTable(pd,vg,stats,vX,vR);
+}
+function updateDash(stats,pd,vg,spec){
+  document.getElementById('di-n').textContent=cfg.n;
+  document.getElementById('di-k').textContent=vg.length;
+  document.getElementById('di-lsl').textContent=spec.lsl!=null?spec.lsl:'—';
+  document.getElementById('di-usl').textContent=spec.usl!=null?spec.usl:'—';
+  if(stats){
+    document.getElementById('di-xbb').textContent=stats.xbb.toFixed(4);
+    document.getElementById('di-rb').textContent=stats.Rb.toFixed(4);
+    document.getElementById('di-ucl').textContent=stats.UCLx.toFixed(4);
+    document.getElementById('di-lcl').textContent=stats.LCLx.toFixed(4);
+    document.getElementById('di-uclr').textContent=stats.UCLr.toFixed(4);
+    document.getElementById('di-lclr').textContent=stats.LCLr.toFixed(4);
+  }else['di-xbb','di-rb','di-ucl','di-lcl','di-uclr','di-lclr'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('cnt-all').textContent=pd.complete.length;
+  document.getElementById('cnt-view').textContent=vg.length;
+  document.getElementById('cnt-pend').textContent=pd.pending.length;
+}
+
+// ═══ CHARTS ═══
+function renderCharts(stats,vX,vR){
+  if(gAX){cancelAnimationFrame(gAX);gAX=null;}if(gAR){cancelAnimationFrame(gAR);gAR=null;}
+  if(xChart){xChart.destroy();xChart=null;}if(rChart){rChart.destroy();rChart=null;}
+  if(!stats||!stats.groups.length)return;
+  const labels=stats.groups.map(g=>g.date),xv=stats.groups.map(g=>g.xb),rv=stats.groups.map(g=>g.R),N=labels.length;
+  const hlX2=new Set(hlX?(vX[hlX]||[]):[]),hlR2=new Set(hlR?(vR[hlR]||[]):[]);
+  const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
+  const ptC=(vals,hl,av)=>vals.map((_,i)=>hl.has(i)?'#ff1111':av.has(i)?'#f85149':'#58a6ff');
+  const ptRad=(vals,hl)=>vals.map((_,i)=>hl.has(i)?10:5);
+  const cL=(v,col,dash,lbl)=>({label:lbl,data:Array(N).fill(v),borderColor:col,borderDash:dash,pointRadius:0,borderWidth:1.5,fill:false,tension:0,order:10});
+  const yR=(vals,UCL,LCL)=>{const pad=(UCL-LCL)*0.4;return{min:Math.min(...vals,LCL)-pad,max:Math.max(...vals,UCL)+pad};};
+  const glow=(hl)=>({id:'glow',afterDatasetsDraw(ch){if(!hl.size)return;const ctx=ch.ctx,meta=ch.getDatasetMeta(0),t=Date.now()/700;hl.forEach(i=>{const pt=meta.data[i];if(!pt)return;const p=0.35+0.45*Math.sin(t);ctx.save();const g=ctx.createRadialGradient(pt.x,pt.y,3,pt.x,pt.y,18);g.addColorStop(0,`rgba(255,20,20,${p})`);g.addColorStop(1,'rgba(255,0,0,0)');ctx.beginPath();ctx.arc(pt.x,pt.y,18,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.restore();});}});
+  const zone=(CL,sx,UCL,LCL)=>({id:'zone',beforeDatasetsDraw(ch){const ctx=ch.ctx,ya=ch.scales.y,ca=ch.chartArea;const band=(lo,hi,col)=>{const y1=ya.getPixelForValue(hi),y2=ya.getPixelForValue(lo);ctx.save();ctx.fillStyle=col;ctx.fillRect(ca.left,Math.min(y1,y2),ca.width,Math.abs(y2-y1));ctx.restore();};band(CL-sx,CL+sx,'rgba(63,185,80,.06)');band(CL+sx,CL+2*sx,'rgba(210,153,34,.07)');band(CL-2*sx,CL-sx,'rgba(210,153,34,.07)');band(CL+2*sx,UCL,'rgba(248,81,73,.09)');if(LCL<CL-2*sx)band(LCL,CL-2*sx,'rgba(248,81,73,.09)');}});
+  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2030',borderColor:'#373e47',borderWidth:1,titleColor:'#fff',bodyColor:'#ccc',padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',maxRotation:45,font:{size:11}},border:{color:'#373e47'}},y:{min:yMin,max:yMax,grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:'#373e47'}}}});
+  const xLim=[cL(stats.UCLx,'#ff6b6b',[6,3],'UCL'),cL(stats.xbb+2*stats.sx,'#fbbf24',[4,4],'+2σ'),cL(stats.xbb+stats.sx,'#fde68a',[2,4],'+1σ'),cL(stats.xbb,'#4ade80',[8,4],'CL'),cL(stats.xbb-stats.sx,'#bfdbfe',[2,4],'-1σ'),cL(stats.xbb-2*stats.sx,'#93c5fd',[4,4],'-2σ'),cL(stats.LCLx,'#60a5fa',[6,3],'LCL')];
+  const xr=yR(xv,stats.UCLx,stats.LCLx);
+  xChart=new Chart(document.getElementById('cXbar').getContext('2d'),{type:'line',plugins:[zone(stats.xbb,stats.sx,stats.UCLx,stats.LCLx),glow(hlX2)],data:{labels,datasets:[{label:'X̄',data:xv,fill:false,tension:.2,order:1,borderColor:'#58a6ff',borderWidth:2,pointRadius:ptRad(xv,hlX2),pointBackgroundColor:ptC(xv,hlX2,avX),pointBorderColor:ptC(xv,hlX2,avX),pointHoverRadius:9},...xLim]},options:opts(xr.min,xr.max)});
+  const rLim=[cL(stats.UCLr,'#ff6b6b',[6,3],'UCL'),cL(stats.Rb+2*stats.sr,'#fbbf24',[4,4],'+2σ'),cL(stats.Rb+stats.sr,'#fde68a',[2,4],'+1σ'),cL(stats.Rb,'#4ade80',[8,4],'CL')];
+  if(stats.LCLr>0){rLim.push(cL(stats.Rb-stats.sr,'#bfdbfe',[2,4],'-1σ'));rLim.push(cL(stats.Rb-2*stats.sr,'#93c5fd',[4,4],'-2σ'));rLim.push(cL(stats.LCLr,'#60a5fa',[6,3],'LCL'));}
+  const rr=yR(rv,stats.UCLr,Math.max(0,stats.LCLr));
+  rChart=new Chart(document.getElementById('cR').getContext('2d'),{type:'line',plugins:[zone(stats.Rb,stats.sr,stats.UCLr,Math.max(0,stats.LCLr)),glow(hlR2)],data:{labels,datasets:[{label:'R',data:rv,fill:false,tension:.2,order:1,borderColor:'#34d399',borderWidth:2,pointRadius:ptRad(rv,hlR2),pointBackgroundColor:ptC(rv,hlR2,avR),pointBorderColor:ptC(rv,hlR2,avR),pointHoverRadius:9},...rLim]},options:opts(rr.min,rr.max)});
+  const show=['UCL','CL','LCL','+1σ','-1σ','+2σ','-2σ'];
+  const mkL=(id,lim)=>{document.getElementById(id).innerHTML=lim.filter(d=>show.includes(d.label)).map(d=>`<div class="cl-item"><div class="cl-line" style="border-color:${d.borderColor};border-top-style:dashed"></div><span style="color:${d.borderColor}">${d.label}</span></div>`).join('');};
+  mkL('legX',xLim);mkL('legR',rLim);
+  const startG=(w)=>{const loop=()=>{if(w==='X'&&xChart){xChart.draw();gAX=requestAnimationFrame(loop);}else if(w==='R'&&rChart){rChart.draw();gAR=requestAnimationFrame(loop);}};if(w==='X'){if(gAX)cancelAnimationFrame(gAX);gAX=requestAnimationFrame(loop);}else{if(gAR)cancelAnimationFrame(gAR);gAR=requestAnimationFrame(loop);}};
+  if(hlX2.size)startG('X');if(hlR2.size)startG('R');
+}
+
+// ═══ TABLE (x1~x6 always shown, sparse) ═══
+function renderTable(pd,vg,stats,vX,vR){
+  const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
+  const th=document.getElementById('rtHead'),tb=document.getElementById('rtBody');
+  th.innerHTML=`<tr><th class="rl">측정</th>${vg.map(d=>`<th>${d.date}</th>`).join('')}</tr>`;
+  const rows=[];
+  for(let i=0;i<6;i++)rows.push({lbl:`x${i+1}`,type:'xi',idx:i});
+  rows.push({lbl:'X̄',type:'xb'},{lbl:'R',type:'R'});
+  tb.innerHTML=rows.map(row=>{
+    const tds=vg.map((d,di)=>{
+      if(row.type==='xi'){const v=d.values[row.idx];return `<td>${(v!=null&&!isNaN(v))?String(v):'—'}</td>`;}
+      if(row.type==='xb'){const vv=validVals(d.values);const xb=vv.length?vv.reduce((s,v)=>s+v,0)/vv.length:0;return `<td class="${avX.has(di)?'cv':''}">${fmtV(xb)}</td>`;}
+      if(row.type==='R'){const vv=validVals(d.values);const R=vv.length>1?Math.max(...vv)-Math.min(...vv):0;return `<td class="${avR.has(di)?'cv':''}">${fmtV(R)}</td>`;}
+    }).join('');
+    return `<tr><th class="rl">${row.lbl}</th>${tds}</tr>`;
+  }).join('');
+  // rawSub removed
+}
+
+// ═══ PASSWORD ═══
+const PW='1111';let pwBuf='';
+function openPwModal(){pwBuf='';updatePwDots();document.getElementById('pwErr').textContent='';document.getElementById('pwModal').classList.add('open');}
+function closePwModal(){document.getElementById('pwModal').classList.remove('open');pwBuf='';}
+function pwKey(k){if(pwBuf.length>=4)return;pwBuf+=k;updatePwDots();if(pwBuf.length===4){if(pwBuf===PW){closePwModal();openCfg();}else{document.getElementById('pwErr').textContent='비밀번호가 틀렸습니다';setTimeout(()=>{pwBuf='';updatePwDots();document.getElementById('pwErr').textContent='';},900);}}}
+function pwDel(){if(pwBuf.length){pwBuf=pwBuf.slice(0,-1);updatePwDots();}}
+function updatePwDots(){for(let i=0;i<4;i++)document.getElementById(`pd${i}`).classList.toggle('filled',i<pwBuf.length);}
+
+// ═══ SETTINGS ═══
+function openCfg(){
+  // Always open at 일반설정 (tab 0)
+  cfgTabIdx=0;
+  lmLineSel=cfg.lines[0]||'';
+  rdeSelLine=curLine;rdeSelProd=curProd;rdeSelDim=curDim;
+  drTabMode=cfg.drMode??0;
+  specLineSel2=cfg.lines[0]||'';
+  document.querySelectorAll('.cfg-tab').forEach((b,i)=>b.classList.toggle('on',i===0));
+  renderCfgTab();
+  document.getElementById('cfgModal').classList.add('open');
+}
+function closeCfg(){document.getElementById('cfgModal').classList.remove('open');}
+document.getElementById('cfgModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCfg();});
+function cfgTab(idx,btn){cfgTabIdx=idx;document.querySelectorAll('.cfg-tab').forEach((b,i)=>b.classList.toggle('on',i===idx));renderCfgTab();}
+function saveCfgActive(){if(cfgTabIdx===0)saveGeneral();else if(cfgTabIdx===1)saveLM();else if(cfgTabIdx===2)saveSpec();else if(cfgTabIdx===3)saveRde();}
+function renderCfgTab(){
+  const body=document.getElementById('cfgBody');
+  if(cfgTabIdx===0)body.innerHTML=renderGeneral();
+  else if(cfgTabIdx===1)body.innerHTML=renderLM();
+  else if(cfgTabIdx===2)body.innerHTML=renderSpec();
+  else if(cfgTabIdx===3)body.innerHTML=renderRde();
+  document.getElementById('cfgSaveBtn').style.display='';
+}
+
+// ─── TAB 0: GENERAL ───
+function renderGeneral(){
+  return `<div class="mf-row"><div class="mf"><label>군 크기 (n) — n이상 모두 포함</label><input type="number" id="gn" min="2" max="10" value="${cfg.n}"></div><div class="mf"><label>표시 군 개수 (k)</label><input type="number" id="gk" min="2" max="500" value="${cfg.k}"></div></div>
+<div class="mf"><label>표시 날짜 범위</label><div class="dr-box"><div class="dr-tabs"><button class="dr-tab${drTabMode===0?' on':''}" id="drt0" onclick="setDrTab(0)">가장 최신 날짜</button><button class="dr-tab${drTabMode===1?' on':''}" id="drt1" onclick="setDrTab(1)">첫 번째 날짜 기준</button><button class="dr-tab${drTabMode===2?' on':''}" id="drt2" onclick="setDrTab(2)">마지막 날짜 기준</button></div>
+<div id="drDateArea" style="display:${drTabMode>0?'block':'none'}"><div class="mf" style="margin-bottom:0"><label id="drLbl">${drTabMode===1?'첫 번째':'마지막'} 날짜 선택</label><input type="date" id="drPickDate" value="${cfg.drDate?toDateInput(cfg.drDate):''}" style="color-scheme:dark"></div></div></div></div>`;
+}
+function setDrTab(m){drTabMode=m;[0,1,2].forEach(i=>{const b=document.getElementById(`drt${i}`);if(b)b.classList.toggle('on',i===m);});const da=document.getElementById('drDateArea');if(da)da.style.display=m>0?'block':'none';const lbl=document.getElementById('drLbl');if(lbl)lbl.textContent=(m===1?'첫 번째':'마지막')+' 날짜 선택';}
+function saveGeneral(){
+  const n=parseInt(document.getElementById('gn')?.value);if(!CC[n]){showToast('군 크기 2~10만 지원','warn');return;}
+  cfg.n=n;cfg.k=parseInt(document.getElementById('gk')?.value)||20;cfg.drMode=drTabMode;
+  if(drTabMode>0){
+    const dv=document.getElementById('drPickDate')?.value;
+    cfg.drDate=dv?fromDateInput(dv):null;
+  }else{
+    cfg.drDate=null;
+  }
+  saveStore();buildMeasGrid();onMIn();hlX=null;hlR=null;render();showToast('일반 설정 저장됨','ok');
+}
+
+// ─── TAB 1: LINE/PROD/DIM ───
+function getAL(){return lmLineSel||cfg.lines[0];}
+function renderLM(){
+  const al=getAL();const prods=cfg.lineProds[al]||[];const dims=cfg.dims||[];
+  return `<div class="lm-grid">
+<div class="col-section">
+  <div class="col-h">라인 목록</div>
+  <div class="item-list" id="ilLine">${cfg.lines.map((l,i)=>`<div class="item-row" draggable="true" data-type="line" data-idx="${i}" ondragstart="dndS(event)" ondragover="dndO(event)" ondrop="dndD(event,${i},'line')"><span class="item-drag">⠿</span><span class="item-name">${esc(l)}</span><button class="ibtn-sm" onclick="renameItem('line',${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('line',${i})">✕</button></div>`).join('')}</div>
+  <div class="add-row"><input id="addLineInp" placeholder="새 라인명"><button class="add-btn" onclick="addItem('line')">+ 추가</button></div>
+  <div class="line-sel-row"><label>선택 라인:</label><select id="lmLS" onchange="lmCL()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===al?' selected':''}>${esc(l)}</option>`).join('')}</select></div>
+  <div class="col-h">품번 목록 (${esc(al)})</div>
+  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" draggable="true" data-type="prod" data-idx="${i}" ondragstart="dndS(event)" ondragover="dndO(event)" ondrop="dndD(event,${i},'prod')"><span class="item-drag">⠿</span><span class="item-name">${esc(p)}</span><button class="ibtn-sm" onclick="renameItem('prod',${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
+  <div class="add-row"><input id="addProdInp" placeholder="새 품번"><button class="add-btn" onclick="addItem('prod')">+ 추가</button></div>
+</div>
+<div class="col-section">
+  <div class="col-h">치수 목록 (공통)</div>
+  <div class="item-list dim-list" id="ilDim">${dims.map((d,i)=>`<div class="item-row" draggable="true" data-type="dim" data-idx="${i}" ondragstart="dndS(event)" ondragover="dndO(event)" ondrop="dndD(event,${i},'dim')"><span class="item-drag">⠿</span><span class="item-name">${esc(d)}</span><button class="ibtn-sm" onclick="renameItem('dim',${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('dim',${i})">✕</button></div>`).join('')}</div>
+  <div class="add-row"><input id="addDimInp" placeholder="새 치수"><button class="add-btn" onclick="addItem('dim')">+ 추가</button></div>
+</div>
+</div>`;
+}
+function lmCL(){lmLineSel=document.getElementById('lmLS').value;document.getElementById('cfgBody').innerHTML=renderLM();}
+let dragSrc2=null;
+function dndS(e){dragSrc2=e.currentTarget;}
+function dndO(e){e.preventDefault();}
+function dndD(e,toIdx,type){
+  e.preventDefault();if(!dragSrc2)return;
+  const fromIdx=parseInt(dragSrc2.dataset.idx);if(fromIdx===toIdx)return;
+  const lmDropdown=document.getElementById('lmLS');
+  if(lmDropdown)lmLineSel=lmDropdown.value;
+  const al=getAL();
+  const arr=type==='line'?cfg.lines:type==='prod'?(cfg.lineProds[al]||[]):(cfg.dims||[]);
+  const[item]=arr.splice(fromIdx,1);arr.splice(toIdx,0,item);
+  document.getElementById('cfgBody').innerHTML=renderLM();
+}
+function addItem(type){
+  const map={line:'addLineInp',prod:'addProdInp',dim:'addDimInp'};
+  // Capture current dropdown selection BEFORE innerHTML wipe
+  const lmDropdown=document.getElementById('lmLS');
+  if(lmDropdown)lmLineSel=lmDropdown.value;
+  const inp=document.getElementById(map[type]);if(!inp||!inp.value.trim())return;
+  const val=inp.value.trim();const al=getAL();
+  if(type==='line'){if(!cfg.lines.includes(val)){cfg.lines.push(val);cfg.lineProds[val]=[];}}
+  else if(type==='prod'){if(!cfg.lineProds[al])cfg.lineProds[al]=[];if(!cfg.lineProds[al].includes(val))cfg.lineProds[al].push(val);}
+  else{if(!cfg.dims)cfg.dims=[];if(!cfg.dims.includes(val))cfg.dims.push(val);}
+  document.getElementById('cfgBody').innerHTML=renderLM();
+}
+function removeItem(type,idx){
+  const lmDropdown=document.getElementById('lmLS');
+  if(lmDropdown)lmLineSel=lmDropdown.value;
+  const al=getAL();
+  if(type==='line'){if(cfg.lines.length<=1){showToast('라인 최소 1개','warn');return;}const r=cfg.lines.splice(idx,1)[0];if(lmLineSel===r)lmLineSel=cfg.lines[0];}
+  else if(type==='prod'){(cfg.lineProds[al]||[]).splice(idx,1);}
+  else{(cfg.dims||[]).splice(idx,1);}
+  document.getElementById('cfgBody').innerHTML=renderLM();
+}
+function renameItem(type,idx){
+  // Capture dropdown state before prompt (prompt blocks UI, dropdown stays)
+  const lmDropdown=document.getElementById('lmLS');
+  if(lmDropdown)lmLineSel=lmDropdown.value;
+  const al=getAL();
+  const arr=type==='line'?cfg.lines:type==='prod'?(cfg.lineProds[al]||[]):(cfg.dims||[]);
+  const cur=arr[idx];if(cur===undefined)return;
+  const nv=prompt(`이름 변경 (현재: ${cur})`,cur);
+  if(!nv||nv.trim()===''||nv.trim()===cur)return;
+  const newVal=nv.trim();
+  if(type==='line'){
+    const old=cfg.lines[idx];
+    cfg.lines[idx]=newVal;
+    cfg.lineProds[newVal]=cfg.lineProds[old]||[];
+    delete cfg.lineProds[old];
+    if(lmLineSel===old)lmLineSel=newVal;
+  }else if(type==='prod'){
+    (cfg.lineProds[al]||[])[idx]=newVal;
+  }else{
+    (cfg.dims||[])[idx]=newVal;
+  }
+  document.getElementById('cfgBody').innerHTML=renderLM();
+}
+function saveLM(){
+  // Capture any unsaved dropdown state
+  const lmDropdown=document.getElementById('lmLS');
+  if(lmDropdown)lmLineSel=lmDropdown.value;
+  // Sort alphabetically
+  cfg.lines.sort((a,b)=>a.localeCompare(b,'ko'));
+  Object.keys(cfg.lineProds).forEach(l=>{(cfg.lineProds[l]||[]).sort((a,b)=>a.localeCompare(b,'ko'));});
+  // dims keep drag order
+  saveStore();
+  buildSelDrops();
+  if(!cfg.lines.includes(curLine)){curLine=cfg.lines[0];curProd=(cfg.lineProds[curLine]||[])[0]||'';buildSelDrops();ensureData(curKey());}
+  hlX=null;hlR=null;render();
+  showToast('라인/품번/치수 저장됨 (오름차순 정렬)','ok');
+}
+
+// ─── TAB 2: SPEC MATRIX ───
+function renderSpec(){
+  const sl=specLineSel2||cfg.lines[0];const prods=cfg.lineProds[sl]||[];const dims=cfg.dims||[];
+  let tbl='';
+  if(prods.length&&dims.length){
+    tbl=`<div style="overflow-x:auto"><table class="smt"><thead><tr><th>품번＼치수</th>${dims.map(d=>`<th>${esc(d)}</th>`).join('')}</tr></thead><tbody>`;
+    prods.forEach(p=>{tbl+=`<tr><th>${esc(p)}</th>${dims.map(d=>{const k2=`${sl}__${p}__${d}`,sp=cfg.specs[k2]||{};return `<td><div style="font-size:11px;color:var(--tx3);margin-bottom:2px">LSL</div><input id="spl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${sp.lsl??''}" style="margin-bottom:4px"><div style="font-size:11px;color:var(--tx3);margin-bottom:2px">USL</div><input id="spu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${sp.usl??''}"></td>`;}).join('')}</tr>`;});
+    tbl+='</tbody></table></div>';
+  }else tbl='<div style="color:var(--tx3);padding:10px">이 라인에 품번 또는 치수가 없습니다</div>';
+  return `<div class="mf"><label>라인 선택</label><select id="specLS" style="background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:6px 10px;font-size:14px;width:100%" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select></div>${tbl}`;
+}
+function specLC(){specLineSel2=document.getElementById('specLS').value;document.getElementById('cfgBody').innerHTML=renderSpec();}
+function saveSpec(){
+  const sl=specLineSel2||cfg.lines[0];const prods=cfg.lineProds[sl]||[];const dims=cfg.dims||[];
+  prods.forEach(p=>dims.forEach(d=>{
+    const lslEl=document.getElementById(`spl_${sl}_${p}_${d}`),uslEl=document.getElementById(`spu_${sl}_${p}_${d}`);
+    const lsl=lslEl&&lslEl.value.trim()!==''?parseFloat(lslEl.value):null;
+    const usl=uslEl&&uslEl.value.trim()!==''?parseFloat(uslEl.value):null;
+    cfg.specs[`${sl}__${p}__${d}`]={lsl:isNaN(lsl)?null:lsl,usl:isNaN(usl)?null:usl};
+  }));
+  saveStore();render();showToast('규격 저장됨','ok');
+}
+
+// ─── TAB 3: RAW DATA EDITOR ───
+function rdeKey(){return getKey(rdeSelLine||curLine,rdeSelProd||curProd,rdeSelDim||curDim);}
+function getRdeAll(){
+  const key=rdeKey();ensureData(key);const pd=allData[key];
+  const all=[...pd.complete.map(d=>({...d,tp:'complete'})),...pd.pending.map(d=>({...d,tp:'pending'}))];
+  sortD(all);return all;
+}
+function renderRde(){
+  const rl=rdeSelLine||curLine;const prods=cfg.lineProds[rl]||[];const rp=rdeSelProd||(prods[0]||'');
+  const dims=cfg.dims||[];const rd=rdeSelDim||(dims[0]||'');
+  rdeSelLine=rl;rdeSelProd=rp;rdeSelDim=rd;
+  const all=getRdeAll();
+  const rows=all.map((d,ri)=>{
+    const bg=d.tp==='pending'?'class="cp-row"':'';
+    // Ensure values array is padded to 6 slots
+    const slots=Array.from({length:6},(_,xi)=>{
+      const v=d.values[xi];
+      return (v!=null&&!isNaN(v)&&v!=='')?v:'';
+    });
+    const xs=slots.map((v,xi)=>`<td><input type="number" step="0.001" data-ri="${ri}" data-xi="${xi}" value="${v}"></td>`).join('');
+    return `<tr ${bg}><td><input type="date" data-ri="${ri}" data-xi="date" value="${toDateInput(d.date)}" style="color-scheme:light"></td>${xs}<td><button class="rdel" onclick="rdeDel(${ri})">🗑</button></td></tr>`;
+  }).join('');
+  return `<div class="rde-top-bar">
+  <div class="rde-sel-grp"><label>라인</label><select id="rdeL" onchange="onRdeL()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===rl?' selected':''}>${esc(l)}</option>`).join('')}</select></div>
+  <div class="rde-sel-grp"><label>품번</label><select id="rdeP" onchange="onRdeP()">${prods.map(p=>`<option value="${esc(p)}"${p===rp?' selected':''}>${esc(p)}</option>`).join('')}</select></div>
+  <div class="rde-sel-grp"><label>치수</label><select id="rdeD" onchange="onRdeD()">${dims.map(d=>`<option value="${esc(d)}"${d===rd?' selected':''}>${esc(d)}</option>`).join('')}</select></div>
+  <button class="add-row-btn" onclick="rdeAddRow()">+ 행 추가</button>
+  <button class="excel-btn" onclick="exportExcel()">📥 Excel 저장</button>
+</div>
+<div class="rde-hint">날짜는 그래프 조회시 자동 정렬됩니다. <span style="color:var(--yel)">●</span> 황색 = 군 크기 미달(백업)</div>
+<div style="overflow-x:auto"><table class="rdt" id="rdeTable">
+<thead><tr><th>날짜</th><th>x1</th><th>x2</th><th>x3</th><th>x4</th><th>x5</th><th>x6</th><th></th></tr></thead>
+<tbody id="rdeTbody">${rows}</tbody>
+</table></div>`;
+}
+function onRdeL(){rdeSelLine=document.getElementById('rdeL').value;rdeSelProd=(cfg.lineProds[rdeSelLine]||[])[0]||'';document.getElementById('cfgBody').innerHTML=renderRde();}
+function onRdeP(){rdeSelProd=document.getElementById('rdeP').value;document.getElementById('cfgBody').innerHTML=renderRde();}
+function onRdeD(){rdeSelDim=document.getElementById('rdeD').value;document.getElementById('cfgBody').innerHTML=renderRde();}
+function rdeAddRow(){
+  // auto-save current state first
+  _collectAndSaveRde();
+  const key=rdeKey();ensureData(key);
+  allData[key].pending.push({date:'',values:[]});
+  saveStore();document.getElementById('cfgBody').innerHTML=renderRde();
+}
+function rdeDel(ri){
+  // First collect current edits so we operate on latest state
+  _collectAndSaveRde();
+  const all=getRdeAll();const row=all[ri];if(!row)return;
+  if(!confirm(`${row.date||'빈 행'} 삭제?`))return;
+  const key=rdeKey();ensureData(key);const pd=allData[key];
+  if(row.date){
+    pd[row.tp]=pd[row.tp].filter(d=>d.date!==row.date);
+  }else{
+    // remove first empty-date pending
+    const emptyIdx=pd.pending.findIndex(d=>!d.date);
+    if(emptyIdx>=0)pd.pending.splice(emptyIdx,1);
+  }
+  saveStore();render();document.getElementById('cfgBody').innerHTML=renderRde();showToast('삭제됨','ok');
+}
+function _collectAndSaveRde(){
+  const key=rdeKey();ensureData(key);const pd=allData[key];
+  const tbody=document.getElementById('rdeTbody');if(!tbody)return;
+  const newC=[],newP=[];
+  [...tbody.querySelectorAll('tr')].forEach(tr=>{
+    const dInp=tr.querySelector('input[type="date"]');
+    const dateStr=dInp?fromDateInput(dInp.value):'';
+    if(!dateStr)return;
+    // Collect sparse: slot 0..5 preserving positions
+    const vals=new Array(6).fill(null);
+    let hasAny=false;
+    for(let xi=0;xi<6;xi++){
+      const inp=tr.querySelector(`input[data-xi="${xi}"]`);
+      if(inp&&inp.value.trim()!==''){
+        const v=parseFloat(inp.value);
+        if(!isNaN(v)){vals[xi]=v;hasAny=true;}
+      }
+    }
+    if(!hasAny)return;
+    const trimmed=sparseValues(vals);
+    const cnt=countVals(trimmed);
+    if(cnt>=cfg.n)newC.push({date:dateStr,values:trimmed});
+    else if(cnt>0)newP.push({date:dateStr,values:trimmed});
+  });
+  sortD(newC);sortD(newP);
+  pd.complete=newC;pd.pending=newP;
+  saveStore();
+}
+function saveRde(){
+  _collectAndSaveRde();render();document.getElementById('cfgBody').innerHTML=renderRde();showToast('로데이터 저장됨','ok');
+}
+
+// ═══ EXCEL (RDE — all data in RDE table + stats) ═══
+function exportExcel(){
+  _collectAndSaveRde();
+  const rl=rdeSelLine||curLine,rp=rdeSelProd||curProd,rd=rdeSelDim||curDim;
+  const key=rdeKey();ensureData(key);const pd=allData[key];
+  const spec=cfg.specs[`${rl}__${rp}__${rd}`]||{lsl:null,usl:null};
+  // Use ALL data from this combo (complete + pending)
+  const allRows=[...pd.complete,...pd.pending].sort((a,b)=>dateNum(a.date)-dateNum(b.date));
+  const stats=calcStats(pd.complete);
+  let vX={},vR={};
+  if(stats&&pd.complete.length>=2){
+    Object.assign(vX,nelsonCheck(pd.complete.map(d=>validVals(d.values).reduce((s,v)=>s+v,0)/Math.max(validVals(d.values).length,1)),stats.xbb,stats.UCLx,stats.LCLx,stats.sx,false));
+    Object.assign(vR,nelsonCheck(pd.complete.map(d=>{const vv=validVals(d.values);return vv.length>1?Math.max(...vv)-Math.min(...vv):0;}),stats.Rb,stats.UCLr,stats.LCLr,stats.sr,true));
+  }
+  const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
+  const wb=XLSX.utils.book_new();
+  // Build rows: data columns A-J, stats in columns L-M
+  const headerRow=['라인','품번','치수','날짜','x1','x2','x3','x4','x5','x6','X̄','R','판정(X̄)','판정(R)','','','통계(X̄)','통계(R)'];
+  const dataRows=[];
+  const statLabels=['USL','UCL','X̄̄ / R̄','LCL','LSL','n','군 개수'];
+  const statValsX=[
+    spec.usl!=null?+spec.usl:'',
+    stats?+stats.UCLx.toFixed(4):'',
+    stats?+stats.xbb.toFixed(4):'',
+    stats?+stats.LCLx.toFixed(4):'',
+    spec.lsl!=null?+spec.lsl:'',
+    cfg.n,
+    pd.complete.length
+  ];
+  const statValsR=[
+    '',
+    stats?+stats.UCLr.toFixed(4):'',
+    stats?+stats.Rb.toFixed(4):'',
+    stats?+stats.LCLr.toFixed(4):'',
+    '','','',
+  ];
+  allRows.forEach((d,i)=>{
+    const vv=validVals(d.values);const xb=vv.length?vv.reduce((s,v)=>s+v,0)/vv.length:0;const R=vv.length>1?Math.max(...vv)-Math.min(...vv):0;
+    const compIdx=pd.complete.findIndex(c=>c.date===d.date);
+    const jX=compIdx>=0?avX.has(compIdx)?'위반':'정상':'—';const jR=compIdx>=0?avR.has(compIdx)?'위반':'정상':'—';
+    const statLbl=i<statLabels.length?statLabels[i]:'';const sX=i<statValsX.length?statValsX[i]:'';const sR=i<statValsR.length?statValsR[i]:'';
+    dataRows.push([rl,rp,rd,d.date,d.values[0]??'',d.values[1]??'',d.values[2]??'',d.values[3]??'',d.values[4]??'',d.values[5]??'',+xb.toFixed(4),+R.toFixed(4),jX,jR,'',statLbl,sX,sR]);
+  });
+  // Fill remaining stat rows if data rows < 7
+  for(let i=dataRows.length;i<statLabels.length;i++){
+    dataRows.push(['','','','','','','','','','','','','','','',statLabels[i],statValsX[i],statValsR[i]]);
+  }
+  const ws=XLSX.utils.aoa_to_sheet([headerRow,...dataRows]);
+  XLSX.utils.book_append_sheet(wb,ws,'로데이터');
+  XLSX.writeFile(wb,`XbarR_${rl}_${rp}${rd}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('Excel 저장됨','ok');
+}
+
+// ═══ STORAGE & TOAST ═══
+function saveStore(){
+  try{localStorage.setItem('xrr6_cfg',JSON.stringify(cfg));}catch(e){}
+  saveDataToFirebase();
+}
+function saveDataToFirebase(){
+  fetch(FB_DB_URL+'/dataBlob.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(allData))})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);})
+    .catch(e=>{console.error(e);showToast('Firebase 저장 실패: '+e.message,'warn');});
+}
+function loadDataFromFirebase(cb){
+  fetch(FB_DB_URL+'/dataBlob.json')
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(str=>{allData=str?JSON.parse(str):{};cb&&cb();})
+    .catch(e=>{console.error(e);showToast('데이터 불러오기 실패: '+e.message,'warn');cb&&cb();});
+}
+let toastT=null;
+function showToast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.style.background=type==='warn'?'#d29922':'#3fb950';el.classList.add('show');if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2500);}
+
+window.addEventListener('load',()=>{
+  loadDataFromFirebase(()=>{
+    init();
+    restorePendingInputs();
+    // Attach date shorthand handler after DOM ready
+    const inp=document.getElementById('inDate');
+    if(inp)inp.addEventListener('blur',handleDateShorthand);
+  });
+});
+</script>
+</body>
+</html>
