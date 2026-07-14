@@ -132,7 +132,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 /* SETTINGS MODAL */
 .cfg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
 .cfg-overlay.open{display:flex}
-.cfg-modal{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;width:900px;max-width:97vw;max-height:92vh;display:flex;flex-direction:column}
+.cfg-modal{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;width:800px;max-width:97vw;max-height:92vh;display:flex;flex-direction:column}
 .cfg-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--bdr)}
 .cfg-head h2{font-size:16px;font-weight:700;color:var(--tx)}
 .cfg-close{background:transparent;border:none;color:var(--tx3);cursor:pointer;font-size:20px;padding:0}
@@ -171,12 +171,20 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .line-sel-row select{flex:1;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:4px 8px;font-size:13px}
 .dsel{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:6px 10px;font-size:14px}
 .dsel option{background:#1a2030}
+.msel{position:relative;display:inline-block}
+.msel-btn{display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;width:100%}
+.msel-panel{position:absolute;top:calc(100% + 2px);left:0;z-index:80;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;max-height:390px;overflow-y:auto;width:240px;padding:4px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.msel-panel label{display:block;padding:4px 6px;font-size:13px;color:var(--tx);cursor:pointer;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msel-panel label:hover{background:var(--sur3)}
+.msel-panel input[type=checkbox]{margin-right:6px}
 
 /* SPEC MATRIX */
 .smt{border-collapse:collapse;min-width:100%}
 .smt th,.smt td{border:1px solid var(--bdr);padding:4px 10px;text-align:center;font-size:13px}
 .smt th{background:var(--sur3);color:var(--tx);font-weight:700}
 .smt td{background:var(--sur2)}
+.smt th:nth-child(1),.smt td:nth-child(1){position:sticky;left:0;z-index:2}
+.smt th:nth-child(2),.smt td:nth-child(2){position:sticky;left:150px;z-index:2}
 .smt input{background:transparent;border:none;color:var(--tx);font-size:13px;width:70px;text-align:center;padding:2px}
 .smt input:focus{outline:1px solid var(--acc);border-radius:3px}
 
@@ -231,7 +239,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
     <div class="sec-h">측정값 입력</div>
     <div class="input-area">
       <div class="date-row" style="display:grid;grid-template-columns:26px 1fr 44px;gap:4px;align-items:center;margin-bottom:8px">
-        <label class="mlbl">날짜</label>
+        <label class="mlbl" style="font-size:10px;white-space:nowrap">날짜</label>
         <div class="date-inp-wrap">
           <input type="date" id="inDate" onchange="onDateChange()" oninput="onDateRaw(event)" style="width:100%">
         </div>
@@ -315,11 +323,14 @@ const PRELOAD_P=[{date:'3/10',values:[null,44.67,null,44.58]},{date:'3/25',value
 // ═══ STATE ═══
 const DEF={lines:['L1'],lineProds:{L1:['A','B','C','D']},dims:['ㄱ','ㄴ','ㄷ'],n:3,k:20,drMode:0,drDate:null,specs:{}};
 let cfg=JSON.parse(localStorage.getItem('xrr6_cfg')||'null')||JSON.parse(JSON.stringify(DEF));
-if(!cfg.lines)cfg.lines=DEF.lines; if(!cfg.lineProds)cfg.lineProds=DEF.lineProds;
-if(!cfg.dims)cfg.dims=DEF.dims; if(!cfg.specs)cfg.specs={}; if(cfg.drMode===undefined)cfg.drMode=0;
-if(!cfg.prodNames)cfg.prodNames={};
-if(!cfg.admins)cfg.admins=[];
-if(!cfg.assignments)cfg.assignments=[];
+function ensureCfgDefaults(){
+  if(!cfg.lines)cfg.lines=DEF.lines; if(!cfg.lineProds)cfg.lineProds=DEF.lineProds;
+  if(!cfg.dims)cfg.dims=DEF.dims; if(!cfg.specs)cfg.specs={}; if(cfg.drMode===undefined)cfg.drMode=0;
+  if(!cfg.prodNames)cfg.prodNames={};
+  if(!cfg.admins)cfg.admins=[];
+  if(!cfg.assignments)cfg.assignments=[];
+}
+ensureCfgDefaults();
 let allData={};
 let curLine=cfg.lines[0]||'L1',curProd=(cfg.lineProds[curLine]||[])[0]||'A',curDim=(cfg.dims||[])[0]||'ㄱ';
 let hlX=null,hlR=null,xChart=null,rChart=null,gAX=null,gAR=null;
@@ -337,6 +348,11 @@ function ensureData(key){
 }
 function getSpec(){return cfg.specs[`${curLine}__${curProd}__${curDim}`]||{lsl:null,usl:null};}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function shortDate(s){
+  if(!s)return '';
+  if(s.indexOf('-')>=0){const p=s.split('-').map(Number);return p.length>=3?`${p[1]}/${p[2]}`:s;}
+  return s;
+}
 function dateNum(s){
   if(!s)return 0;
   if(s.indexOf('-')>=0){const t=new Date(s).getTime();return isNaN(t)?0:t;}
@@ -644,7 +660,7 @@ function renderCharts(stats,vX,vR){
   if(gAX){cancelAnimationFrame(gAX);gAX=null;}if(gAR){cancelAnimationFrame(gAR);gAR=null;}
   if(xChart){xChart.destroy();xChart=null;}if(rChart){rChart.destroy();rChart=null;}
   if(!stats||!stats.groups.length)return;
-  const labels=stats.groups.map(g=>g.date),xv=stats.groups.map(g=>g.xb),rv=stats.groups.map(g=>g.R),N=labels.length;
+  const labels=stats.groups.map(g=>shortDate(g.date)),xv=stats.groups.map(g=>g.xb),rv=stats.groups.map(g=>g.R),N=labels.length;
   const hlX2=new Set(hlX?(vX[hlX]||[]):[]),hlR2=new Set(hlR?(vR[hlR]||[]):[]);
   const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
   const ptC=(vals,hl,av)=>vals.map((_,i)=>hl.has(i)?'#ff1111':av.has(i)?'#f85149':'#58a6ff');
@@ -672,7 +688,7 @@ function renderCharts(stats,vX,vR){
 function renderTable(pd,vg,stats,vX,vR){
   const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
   const th=document.getElementById('rtHead'),tb=document.getElementById('rtBody');
-  th.innerHTML=`<tr><th class="rl">측정</th>${vg.map(d=>`<th>${d.date}</th>`).join('')}</tr>`;
+  th.innerHTML=`<tr><th class="rl">측정</th>${vg.map(d=>`<th>${shortDate(d.date)}</th>`).join('')}</tr>`;
   const rows=[];
   for(let i=0;i<6;i++)rows.push({lbl:`x${i+1}`,type:'xi',idx:i});
   rows.push({lbl:'X̄',type:'xb'},{lbl:'R',type:'R'});
@@ -694,12 +710,20 @@ function syncTableColsToChart(){
   const table=document.getElementById('rawTable');if(!table)return;
   const ca=chart.chartArea;
   const N=(chart.data.labels||[]).length;if(!N)return;
+  // Chart.js line charts place category points edge-to-edge (offset:false):
+  // point 0 sits exactly at ca.left, point N-1 sits exactly at ca.right.
+  // So each point's pixel = ca.left + i*step, step=(ca.right-ca.left)/(N-1).
+  // To center each table column UNDER its point, each column must span
+  // half a step on either side of the point — including a half-step
+  // overhang before the first point and after the last point.
+  const step=N>1?(ca.right-ca.left)/(N-1):(ca.right-ca.left);
+  const half=step/2;
+  const labelW=Math.max(20,Math.round(ca.left-half));
   table.style.marginLeft=Math.max(0,NP_SIDEBAR_W-RAW_CARD_PAD)+'px';
-  table.style.width=chart.width+'px';
+  table.style.width=Math.round(labelW+N*step)+'px';
   const headCells=table.querySelectorAll('thead th');
-  if(headCells[0])headCells[0].style.width=Math.round(ca.left)+'px';
-  const colW=(ca.right-ca.left)/N;
-  for(let i=1;i<headCells.length;i++)headCells[i].style.width=Math.round(colW)+'px';
+  if(headCells[0])headCells[0].style.width=labelW+'px';
+  for(let i=1;i<headCells.length;i++)headCells[i].style.width=Math.round(step)+'px';
 }
 
 // ═══ PASSWORD ═══
@@ -957,7 +981,7 @@ function cloneSpecRow(sl,destProd){
   const sel=document.getElementById(`cln_${sl}_${destProd}`);if(!sel||!sel.value)return;
   const[srcLine,srcProd]=sel.value.split('__');
   const srcName=cfg.prodNames[srcProd]||'',destName=cfg.prodNames[destProd]||'';
-  const msg=`해당 제품의 규격을 복제하시겠습니까?\n복제할 규격 : ${srcLine} ${srcProd} ${srcName}\n붙여넣을 제품 : ${sl} ${destProd} ${destName}`;
+  const msg=`해당 제품의 규격을 복제하시겠습니까?\n${srcLine} ${srcProd} 의 규격을 복제\n${sl} ${destProd} 으로 붙여넣기`;
   if(!confirm(msg)){sel.value='';return;}
   (cfg.dims||[]).forEach(d=>{
     const srcSpec=cfg.specs[`${srcLine}__${srcProd}__${d}`];
@@ -1006,7 +1030,7 @@ function renderRde(){
   <button class="add-row-btn" onclick="rdeAddRow()">+ 행 추가</button>
   <button class="excel-btn" onclick="exportExcel()">📥 Excel 저장</button>
 </div>
-<div style="overflow-x:auto"><table class="rdt" id="rdeTable">
+<div style="overflow-x:auto;overflow-y:auto;max-height:420px"><table class="rdt" id="rdeTable">
 <thead><tr><th>날짜</th><th>x1</th><th>x2</th><th>x3</th><th>x4</th><th>x5</th><th>x6</th><th></th></tr></thead>
 <tbody id="rdeTbody">${rows}</tbody>
 </table></div>`;
@@ -1090,22 +1114,38 @@ function allProdItemsSorted(selectedSet){
   items.sort((a,b)=>{const as=selectedSet.has(a.key)?0:1,bs=selectedSet.has(b.key)?0:1;return as-bs;});
   return items;
 }
+let openMselId=null;
+function toggleMsel(id){
+  const panel=document.getElementById(`msel_panel_${id}`);
+  if(!panel)return;
+  const isOpen=panel.style.display!=='none';
+  document.querySelectorAll('.msel-panel').forEach(p=>p.style.display='none');
+  panel.style.display=isOpen?'none':'block';
+  openMselId=isOpen?null:id;
+}
+document.addEventListener('click',(e)=>{
+  if(!e.target.closest('.msel'))document.querySelectorAll('.msel-panel').forEach(p=>p.style.display='none');
+});
 function renderAlerts(){
   const adminRows=cfg.admins.map((a,i)=>{
     const mySet=new Set(cfg.assignments.filter(x=>x.admin===a.name).map(x=>`${x.line}__${x.prod}`));
     const items=allProdItemsSorted(mySet);
-    const optsHtml=items.map(it=>`<option value="${esc(it.key)}"${mySet.has(it.key)?' selected':''}>${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?'('+esc(cfg.prodNames[it.prod])+')':''}</option>`).join('');
-    return `<div class="item-row" style="flex-wrap:wrap;align-items:flex-start;cursor:default">
+    const label=mySet.size?`${mySet.size}개 제품 배정됨`:'제품 선택...';
+    const checks=items.map(it=>`<label><input type="checkbox" value="${esc(it.key)}" ${mySet.has(it.key)?'checked':''} onchange="onAdminProdCheck(${i},this)"> ${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?'('+esc(cfg.prodNames[it.prod])+')':''}</label>`).join('');
+    return `<div class="item-row" style="align-items:center;cursor:default">
       <input value="${esc(a.name)}" id="adm_name_${i}" style="width:90px;background:var(--sur3);border:1px solid var(--bdr2);border-radius:3px;color:var(--tx);padding:3px 6px">
       <button class="ibtn-sm" onclick="renameAdminName(${i})">수정</button>
       <input value="${esc(a.email)}" id="adm_email_${i}" style="width:170px;background:var(--sur3);border:1px solid var(--bdr2);border-radius:3px;color:var(--tx);padding:3px 6px">
       <button class="ibtn-sm" onclick="renameAdminEmail(${i})">수정</button>
+      <div class="msel" id="msel_wrap_adm${i}" style="width:200px">
+        <button type="button" class="dsel msel-btn" onclick="toggleMsel('adm${i}')"><span id="msel_label_adm${i}">${esc(label)}</span><span>▾</span></button>
+        <div class="msel-panel" id="msel_panel_adm${i}" style="display:none">${checks}</div>
+      </div>
       <button class="ibtn-sm del-sm" onclick="removeAdmin(${i})">✕</button>
-      <select multiple size="15" class="dsel" id="adm_sel_${i}" style="width:100%;margin-top:6px" onchange="onAdminProdSelChange(${i})">${optsHtml}</select>
     </div>`;
   }).join('');
   return `<div class="col-h">관리자 목록</div>
-  <div class="item-list" style="max-height:460px">${adminRows||'<div style="color:var(--tx3);padding:8px;font-size:13px">등록된 관리자가 없습니다</div>'}</div>
+  <div class="item-list" style="max-height:400px;overflow:visible">${adminRows||'<div style="color:var(--tx3);padding:8px;font-size:13px">등록된 관리자가 없습니다</div>'}</div>
   <div class="add-row">
     <input id="addAdmName" placeholder="새 관리자 이름" style="max-width:110px">
     <input id="addAdmEmail" placeholder="이메일 (@ctr.co.kr)">
@@ -1114,33 +1154,59 @@ function renderAlerts(){
   <div class="col-h" style="margin-top:14px">미배정 제품 확인</div>
   ${renderUnassignedList()}`;
 }
+function safeId(s){return String(s).replace(/[^a-zA-Z0-9]/g,'_');}
 function renderUnassignedList(){
   const assignedSet=new Set(cfg.assignments.map(x=>`${x.line}__${x.prod}`));
   const items=[];
   cfg.lines.forEach(ln=>{(cfg.lineProds[ln]||[]).forEach(pc=>{const key=`${ln}__${pc}`;if(!assignedSet.has(key))items.push({line:ln,prod:pc,key});});});
   if(!items.length)return '<div style="color:var(--tx3);font-size:13px;padding:8px;border:1px solid var(--bdr);border-radius:4px">모든 제품이 배정되었습니다</div>';
-  const adminOpts=cfg.admins.map(a=>`<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('');
-  const rows=items.map(it=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid var(--bdr)">
+  const rows=items.map(it=>{
+    const uid=`un_${safeId(it.line)}_${safeId(it.prod)}`;
+    const checks=cfg.admins.map(a=>`<label><input type="checkbox" value="${esc(a.name)}" onchange="onUnassignedCheck('${esc(it.line)}','${esc(it.prod)}',this)"> ${esc(a.name)}</label>`).join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">등록된 관리자 없음</div>';
+    return `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid var(--bdr)">
       <span style="flex:1;font-size:13px;color:var(--tx2)">${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?'('+esc(cfg.prodNames[it.prod])+')':''}</span>
-      <select multiple size="4" class="dsel" style="width:140px;font-size:12px" onchange="onUnassignedSelChange(this,'${esc(it.line)}','${esc(it.prod)}')">${adminOpts}</select>
-    </div>`).join('');
+      <div class="msel" id="msel_wrap_${uid}" style="width:160px">
+        <button type="button" class="dsel msel-btn" style="font-size:12px;padding:5px 8px" onclick="toggleMsel('${uid}')"><span id="msel_label_${uid}">관리자 선택...</span><span>▾</span></button>
+        <div class="msel-panel" id="msel_panel_${uid}" style="display:none">${checks}</div>
+      </div>
+    </div>`;
+  }).join('');
   return `<div style="max-height:280px;overflow-y:auto;border:1px solid var(--bdr);border-radius:4px;padding:2px 8px 2px 2px">${rows}</div>`;
 }
-function onUnassignedSelChange(selEl,line,prod){
-  const selectedAdmins=[...selEl.selectedOptions].map(o=>o.value);
-  if(!selectedAdmins.length)return;
-  selectedAdmins.forEach(adminName=>{
+function onUnassignedCheck(line,prod,checkboxEl){
+  const adminName=checkboxEl.value;
+  if(checkboxEl.checked){
     if(!cfg.assignments.some(x=>x.admin===adminName&&x.line===line&&x.prod===prod))cfg.assignments.push({line,prod,admin:adminName});
-  });
-  saveStore();document.getElementById('cfgBody').innerHTML=renderAlerts();showToast('배정됨','ok');
+  }else{
+    cfg.assignments=cfg.assignments.filter(x=>!(x.admin===adminName&&x.line===line&&x.prod===prod));
+  }
+  saveStore();
+  const uid=`un_${safeId(line)}_${safeId(prod)}`;
+  const cnt=cfg.assignments.filter(x=>x.line===line&&x.prod===prod).length;
+  const lbl=document.getElementById(`msel_label_${uid}`);
+  if(lbl)lbl.textContent=cnt?`${cnt}명 배정됨`:'관리자 선택...';
+  // also refresh matching admin's own product-select label/checkbox state if visible
+  const idx=cfg.admins.findIndex(a=>a.name===adminName);
+  if(idx>=0){
+    const cb=document.querySelector(`#msel_panel_adm${idx} input[value="${CSS.escape(line+'__'+prod)}"]`);
+    if(cb)cb.checked=checkboxEl.checked;
+    const acnt=cfg.assignments.filter(x=>x.admin===adminName).length;
+    const albl=document.getElementById(`msel_label_adm${idx}`);
+    if(albl)albl.textContent=acnt?`${acnt}개 제품 배정됨`:'제품 선택...';
+  }
 }
-function onAdminProdSelChange(idx){
+function onAdminProdCheck(idx,checkboxEl){
   const a=cfg.admins[idx];if(!a)return;
-  const sel=document.getElementById(`adm_sel_${idx}`);if(!sel)return;
-  const selectedKeys=new Set([...sel.selectedOptions].map(o=>o.value));
-  cfg.assignments=cfg.assignments.filter(x=>x.admin!==a.name);
-  selectedKeys.forEach(k=>{const parts=k.split('__');cfg.assignments.push({line:parts[0],prod:parts[1],admin:a.name});});
-  saveStore();document.getElementById('cfgBody').innerHTML=renderAlerts();
+  const parts=checkboxEl.value.split('__');const line=parts[0],prod=parts[1];
+  if(checkboxEl.checked){
+    if(!cfg.assignments.some(x=>x.admin===a.name&&x.line===line&&x.prod===prod))cfg.assignments.push({line,prod,admin:a.name});
+  }else{
+    cfg.assignments=cfg.assignments.filter(x=>!(x.admin===a.name&&x.line===line&&x.prod===prod));
+  }
+  saveStore();
+  const cnt=cfg.assignments.filter(x=>x.admin===a.name).length;
+  const lbl=document.getElementById(`msel_label_adm${idx}`);
+  if(lbl)lbl.textContent=cnt?`${cnt}개 제품 배정됨`:'제품 선택...';
 }
 function addAdmin(){
   const nameInp=document.getElementById('addAdmName'),emailInp=document.getElementById('addAdmEmail');
@@ -1241,6 +1307,22 @@ function exportExcel(){
 function saveStore(){
   try{localStorage.setItem('xrr6_cfg',JSON.stringify(cfg));}catch(e){}
   saveDataToFirebase();
+  saveCfgToFirebase();
+}
+function saveCfgToFirebase(){
+  fetch(FB_DB_URL+'/cfgBlob.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(cfg))})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);})
+    .catch(e=>{console.error(e);showToast('설정 저장 실패: '+e.message,'warn');});
+}
+function loadCfgFromFirebase(cb){
+  fetch(FB_DB_URL+'/cfgBlob.json')
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(str=>{
+      if(str){try{cfg=JSON.parse(str);}catch(e){}}
+      ensureCfgDefaults();
+      cb&&cb();
+    })
+    .catch(e=>{console.error(e);ensureCfgDefaults();cb&&cb();});
 }
 function saveDataToFirebase(){
   fetch(FB_DB_URL+'/dataBlob.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(allData))})
@@ -1257,12 +1339,14 @@ let toastT=null;
 function showToast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.style.background=type==='warn'?'#d29922':'#3fb950';el.classList.add('show');if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2500);}
 
 window.addEventListener('load',()=>{
-  loadDataFromFirebase(()=>{
-    init();
-    restorePendingInputs();
-    // Attach date shorthand handler after DOM ready
-    const inp=document.getElementById('inDate');
-    if(inp)inp.addEventListener('blur',handleDateShorthand);
+  loadCfgFromFirebase(()=>{
+    loadDataFromFirebase(()=>{
+      init();
+      restorePendingInputs();
+      // Attach date shorthand handler after DOM ready
+      const inp=document.getElementById('inDate');
+      if(inp)inp.addEventListener('blur',handleDateShorthand);
+    });
   });
 });
 </script>
