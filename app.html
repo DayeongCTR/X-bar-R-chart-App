@@ -104,7 +104,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .raw-hdr{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tx3);margin-bottom:6px;display:flex;justify-content:space-between}
 .raw-hdr span{color:var(--tx2);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0}
 .ts{overflow-x:auto}
-.rt{border-collapse:collapse;font-size:11px;font-family:var(--mono);width:100%;table-layout:fixed}
+.rt{border-collapse:collapse;font-size:11px;font-family:var(--mono);table-layout:fixed}
 .rt th{background:var(--sur3);color:var(--tx);font-size:11px;font-weight:700;padding:3px 8px;text-align:center;border:1px solid var(--bdr);white-space:nowrap}
 .rt td{padding:2px 8px;text-align:center;border:1px solid var(--bdr);color:var(--tx);white-space:nowrap}
 .rt tr:hover td{background:var(--sur2)}
@@ -169,6 +169,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .line-sel-row{display:flex;align-items:center;gap:8px;margin:8px 0 4px}
 .line-sel-row label{font-size:12px;color:var(--tx3);font-weight:600;white-space:nowrap}
 .line-sel-row select{flex:1;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:4px 8px;font-size:13px}
+.dsel{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:6px 10px;font-size:14px}
+.dsel option{background:#1a2030}
 
 /* SPEC MATRIX */
 .smt{border-collapse:collapse;min-width:100%}
@@ -241,7 +243,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
       <div class="pend-note" id="pendNote">⚠ 군 크기 미달 — 백업 저장</div>
       
     </div>
-    <div class="cnt-box" style="font-size:11px;line-height:1.7">설정 군수 : <strong id="cnt-view">0</strong>군<br>로데이터 중 설정 만족 군수 : <strong id="cnt-all">0</strong>군<br>로데이터 중 설정 불만족 군수 : <strong id="cnt-pend">0</strong>군</div>
+    <div class="cnt-box" style="font-size:11px;line-height:1.7;color:var(--sur3)">설정 군수 : <strong id="cnt-view">0</strong>군<br>로데이터 중 설정 만족 군수 : <strong id="cnt-all">0</strong>군<br>로데이터 중 설정 불만족 군수 : <strong id="cnt-pend">0</strong>군</div>
   </div>
 </div>
 <div class="right">
@@ -262,7 +264,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
     </div>
     <div class="raw-card">
       <div class="raw-hdr">측정 데이터</div>
-      <div class="ts"><table class="rt"><thead id="rtHead"></thead><tbody id="rtBody"></tbody></table></div>
+      <div class="ts"><table class="rt" id="rawTable"><thead id="rtHead"></thead><tbody id="rtBody"></tbody></table></div>
     </div>
   </div>
 </div>
@@ -651,7 +653,7 @@ function renderCharts(stats,vX,vR){
   const yR=(vals,UCL,LCL)=>{const pad=(UCL-LCL)*0.4;return{min:Math.min(...vals,LCL)-pad,max:Math.max(...vals,UCL)+pad};};
   const glow=(hl)=>({id:'glow',afterDatasetsDraw(ch){if(!hl.size)return;const ctx=ch.ctx,meta=ch.getDatasetMeta(0),t=Date.now()/700;hl.forEach(i=>{const pt=meta.data[i];if(!pt)return;const p=0.35+0.45*Math.sin(t);ctx.save();const g=ctx.createRadialGradient(pt.x,pt.y,3,pt.x,pt.y,18);g.addColorStop(0,`rgba(255,20,20,${p})`);g.addColorStop(1,'rgba(255,0,0,0)');ctx.beginPath();ctx.arc(pt.x,pt.y,18,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.restore();});}});
   const zone=(CL,sx,UCL,LCL)=>({id:'zone',beforeDatasetsDraw(ch){const ctx=ch.ctx,ya=ch.scales.y,ca=ch.chartArea;const band=(lo,hi,col)=>{const y1=ya.getPixelForValue(hi),y2=ya.getPixelForValue(lo);ctx.save();ctx.fillStyle=col;ctx.fillRect(ca.left,Math.min(y1,y2),ca.width,Math.abs(y2-y1));ctx.restore();};band(CL-sx,CL+sx,'rgba(63,185,80,.06)');band(CL+sx,CL+2*sx,'rgba(210,153,34,.07)');band(CL-2*sx,CL-sx,'rgba(210,153,34,.07)');band(CL+2*sx,UCL,'rgba(248,81,73,.09)');if(LCL<CL-2*sx)band(LCL,CL-2*sx,'rgba(248,81,73,.09)');}});
-  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},layout:{padding:{left:0,right:0}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2030',borderColor:'#373e47',borderWidth:1,titleColor:'#fff',bodyColor:'#ccc',padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',maxRotation:45,font:{size:11}},border:{color:'#373e47'}},y:{min:yMin,max:yMax,afterFit:s=>{s.width=50;},grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:'#373e47'}}}});
+  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},layout:{padding:{left:0,right:0}},onResize:()=>{setTimeout(syncTableColsToChart,0);},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2030',borderColor:'#373e47',borderWidth:1,titleColor:'#fff',bodyColor:'#ccc',padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',maxRotation:45,font:{size:11}},border:{color:'#373e47'}},y:{min:yMin,max:yMax,afterFit:s=>{s.width=50;},grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:'#373e47'}}}});
   const xLim=[cL(stats.UCLx,'#ff6b6b',[6,3],'UCL'),cL(stats.xbb+2*stats.sx,'#fbbf24',[4,4],'+2σ'),cL(stats.xbb+stats.sx,'#fde68a',[2,4],'+1σ'),cL(stats.xbb,'#4ade80',[8,4],'CL'),cL(stats.xbb-stats.sx,'#bfdbfe',[2,4],'-1σ'),cL(stats.xbb-2*stats.sx,'#93c5fd',[4,4],'-2σ'),cL(stats.LCLx,'#60a5fa',[6,3],'LCL')];
   const xr=yR(xv,stats.UCLx,stats.LCLx);
   xChart=new Chart(document.getElementById('cXbar').getContext('2d'),{type:'line',plugins:[zone(stats.xbb,stats.sx,stats.UCLx,stats.LCLx),glow(hlX2)],data:{labels,datasets:[{label:'X̄',data:xv,fill:false,tension:.2,order:1,borderColor:'#58a6ff',borderWidth:2,pointRadius:ptRad(xv,hlX2),pointBackgroundColor:ptC(xv,hlX2,avX),pointBorderColor:ptC(xv,hlX2,avX),pointHoverRadius:9},...xLim]},options:opts(xr.min,xr.max)});
@@ -670,9 +672,7 @@ function renderCharts(stats,vX,vR){
 function renderTable(pd,vg,stats,vX,vR){
   const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
   const th=document.getElementById('rtHead'),tb=document.getElementById('rtBody');
-  const N=vg.length;
-  const dcw=N>0?`calc((100% - 150px)/${N})`:'auto';
-  th.innerHTML=`<tr><th class="rl" style="width:150px">측정</th>${vg.map(d=>`<th style="width:${dcw}">${d.date}</th>`).join('')}</tr>`;
+  th.innerHTML=`<tr><th class="rl">측정</th>${vg.map(d=>`<th>${d.date}</th>`).join('')}</tr>`;
   const rows=[];
   for(let i=0;i<6;i++)rows.push({lbl:`x${i+1}`,type:'xi',idx:i});
   rows.push({lbl:'X̄',type:'xb'},{lbl:'R',type:'R'});
@@ -682,9 +682,24 @@ function renderTable(pd,vg,stats,vX,vR){
       if(row.type==='xb'){const vv=validVals(d.values);const xb=vv.length?vv.reduce((s,v)=>s+v,0)/vv.length:0;return `<td class="${avX.has(di)?'cv':''}">${fmtV(xb)}</td>`;}
       if(row.type==='R'){const vv=validVals(d.values);const R=vv.length>1?Math.max(...vv)-Math.min(...vv):0;return `<td class="${avR.has(di)?'cv':''}">${fmtV(R)}</td>`;}
     }).join('');
-    return `<tr><th class="rl" style="width:150px">${row.lbl}</th>${tds}</tr>`;
+    return `<tr><th class="rl">${row.lbl}</th>${tds}</tr>`;
   }).join('');
-  // rawSub removed
+  syncTableColsToChart();
+}
+// Read Chart.js's ACTUAL rendered pixel layout (chartArea) and apply those exact
+// pixel widths to the raw-data table's columns — no guessing, always matches.
+const NP_SIDEBAR_W=100, RAW_CARD_PAD=11;
+function syncTableColsToChart(){
+  const chart=xChart||rChart;if(!chart||!chart.chartArea)return;
+  const table=document.getElementById('rawTable');if(!table)return;
+  const ca=chart.chartArea;
+  const N=(chart.data.labels||[]).length;if(!N)return;
+  table.style.marginLeft=Math.max(0,NP_SIDEBAR_W-RAW_CARD_PAD)+'px';
+  table.style.width=chart.width+'px';
+  const headCells=table.querySelectorAll('thead th');
+  if(headCells[0])headCells[0].style.width=Math.round(ca.left)+'px';
+  const colW=(ca.right-ca.left)/N;
+  for(let i=1;i<headCells.length;i++)headCells[i].style.width=Math.round(colW)+'px';
 }
 
 // ═══ PASSWORD ═══
@@ -714,14 +729,14 @@ function cfgTab(idx,btn){
   saveCfgActive(); // auto-save whichever tab we're leaving before switching
   cfgTabIdx=idx;document.querySelectorAll('.cfg-tab').forEach((b,i)=>b.classList.toggle('on',i===idx));renderCfgTab();
 }
-function saveCfgActive(){if(cfgTabIdx===0)saveGeneral();else if(cfgTabIdx===1)saveLM();else if(cfgTabIdx===2)saveSpec();else if(cfgTabIdx===3)saveRde();else if(cfgTabIdx===4){/* 알림발송은 즉시저장 방식 */}}
+function saveCfgActive(){if(cfgTabIdx===0)saveGeneral();else if(cfgTabIdx===1)saveLM();else if(cfgTabIdx===2)saveSpec();else if(cfgTabIdx===3)saveRde();else if(cfgTabIdx===4)saveAlerts();}
 function renderCfgTab(){
   const body=document.getElementById('cfgBody');
   if(cfgTabIdx===0)body.innerHTML=renderGeneral();
   else if(cfgTabIdx===1)body.innerHTML=renderLM();
   else if(cfgTabIdx===2)body.innerHTML=renderSpec();
   else if(cfgTabIdx===3)body.innerHTML=renderRde();
-  else if(cfgTabIdx===4){body.innerHTML=renderAlerts();document.getElementById('cfgSaveBtn').style.display='none';return;}
+  else if(cfgTabIdx===4)body.innerHTML=renderAlerts();
   document.getElementById('cfgSaveBtn').style.display='';
 }
 
@@ -770,7 +785,7 @@ function renderLM(){
   <div class="add-row"><input id="addLineInp" placeholder="새 라인명"><button class="add-btn" onclick="addItem('line')">+ 추가</button></div>
   <div class="line-sel-row"><label>선택 라인:</label><select id="lmLS" onchange="lmCL()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===al?' selected':''}>${esc(l)}</option>`).join('')}</select></div>
   <div class="col-h">품번/품명 목록 (${esc(al)})</div>
-  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" draggable="true" data-type="prod" data-idx="${i}" ondragstart="dndS(event)" ondragover="dndO(event)" ondrop="dndD(event,${i},'prod')"><span class="item-drag">⠿</span><span class="item-name">${esc(p)}</span><button class="ibtn-sm" onclick="renameProdCode(${i})">수정</button><span class="item-name">${esc(cfg.prodNames[p]||'')}</span><button class="ibtn-sm" onclick="renameProdName(${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
+  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" draggable="true" data-type="prod" data-idx="${i}" ondragstart="dndS(event)" ondragover="dndO(event)" ondrop="dndD(event,${i},'prod')"><span class="item-drag">⠿</span><span class="item-name" style="flex:0 0 70px">${esc(p)}</span><button class="ibtn-sm" onclick="renameProdCode(${i})">수정</button><span class="item-name" style="flex:1">${esc(cfg.prodNames[p]||'')}</span><button class="ibtn-sm" onclick="renameProdName(${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
   <div class="add-row"><input id="addProdInp" placeholder="새 품번" style="max-width:120px"><input id="addProdNameInp" placeholder="새 품명"><button class="add-btn" onclick="addProd()">+ 추가</button></div>
 </div>
 <div class="col-section">
@@ -933,14 +948,17 @@ function renderSpec(){
       return opts.join('');
     };
     tbl=`<div style="overflow-x:auto"><table class="smt"><thead><tr><th style="min-width:150px">구분</th><th>복제</th>${dims.map(d=>`<th>${esc(d)}</th>`).join('')}</tr></thead><tbody>`;
-    prods.forEach(p=>{tbl+=`<tr><th style="min-width:150px">${esc(p)}<br>${esc(cfg.prodNames[p]||'')}</th><td><select id="cln_${esc(sl)}_${esc(p)}" style="font-size:12px;max-width:150px">${cloneOpts()}</select><button class="ibtn-sm" onclick="cloneSpecRow('${esc(sl)}','${esc(p)}')">복제</button></td>${dims.map(d=>{const k2=`${sl}__${p}__${d}`,sp=cfg.specs[k2]||{};return `<td><input id="spu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${sp.usl??''}" placeholder="USL" style="margin-bottom:4px"><input id="spl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${sp.lsl??''}" placeholder="LSL"></td>`;}).join('')}</tr>`;});
+    prods.forEach(p=>{tbl+=`<tr><th style="min-width:150px">${esc(p)}<br>${esc(cfg.prodNames[p]||'')}</th><td><select id="cln_${esc(sl)}_${esc(p)}" class="dsel" style="font-size:12px;width:110px;padding:4px 6px" onchange="cloneSpecRow('${esc(sl)}','${esc(p)}')">${cloneOpts()}</select></td>${dims.map(d=>{const k2=`${sl}__${p}__${d}`,sp=cfg.specs[k2]||{};return `<td><input id="spu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${sp.usl??''}" placeholder="USL" style="margin-bottom:4px"><input id="spl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${sp.lsl??''}" placeholder="LSL"></td>`;}).join('')}</tr>`;});
     tbl+='</tbody></table></div>';
   }else tbl='<div style="color:var(--tx3);padding:10px">이 라인에 품번 또는 치수가 없습니다</div>';
-  return `<div class="mf"><label>라인 선택</label><select id="specLS" style="background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:6px 10px;font-size:14px;width:100%" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select></div>${tbl}`;
+  return `<div class="mf"><label>라인 선택</label><select id="specLS" class="dsel" style="width:100%" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select></div>${tbl}`;
 }
 function cloneSpecRow(sl,destProd){
   const sel=document.getElementById(`cln_${sl}_${destProd}`);if(!sel||!sel.value)return;
   const[srcLine,srcProd]=sel.value.split('__');
+  const srcName=cfg.prodNames[srcProd]||'',destName=cfg.prodNames[destProd]||'';
+  const msg=`해당 제품의 규격을 복제하시겠습니까?\n복제할 규격 : ${srcLine} ${srcProd} ${srcName}\n붙여넣을 제품 : ${sl} ${destProd} ${destName}`;
+  if(!confirm(msg)){sel.value='';return;}
   (cfg.dims||[]).forEach(d=>{
     const srcSpec=cfg.specs[`${srcLine}__${srcProd}__${d}`];
     if(srcSpec)cfg.specs[`${sl}__${destProd}__${d}`]={lsl:srcSpec.lsl,usl:srcSpec.usl};
@@ -1058,47 +1076,77 @@ function saveRde(){
 }
 
 // ─── TAB 4: ALERT / ADMIN ASSIGNMENT ───
-let unassignedShown=false;
-function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
+function isValidEmail(e){return /^[^\s@]+@ctr\.co\.kr$/i.test(e);}
+const EMAIL_DOMAIN_ERR='이메일은 @ctr.co.kr 도메인만 사용 가능합니다.';
+function josaRL(word){
+  if(!word)return '를';
+  const code=word.charCodeAt(word.length-1)-0xAC00;
+  if(code<0||code>11171)return '를';
+  return (code%28===0)?'를':'을';
+}
+function allProdItemsSorted(selectedSet){
+  const items=[];
+  cfg.lines.forEach(ln=>{(cfg.lineProds[ln]||[]).forEach(pc=>{items.push({line:ln,prod:pc,key:`${ln}__${pc}`});});});
+  items.sort((a,b)=>{const as=selectedSet.has(a.key)?0:1,bs=selectedSet.has(b.key)?0:1;return as-bs;});
+  return items;
+}
 function renderAlerts(){
   const adminRows=cfg.admins.map((a,i)=>{
-    const assigns=cfg.assignments.filter(x=>x.admin===a.name);
-    const tags=assigns.map(x=>{const ai=cfg.assignments.indexOf(x);return `<span class="ibtn-sm" style="cursor:default">${esc(x.line)} - ${esc(x.prod)}${cfg.prodNames[x.prod]?'('+esc(cfg.prodNames[x.prod])+')':''} <button class="clrb" style="color:var(--red)" onclick="unassignProd(${ai})">✕</button></span>`;}).join(' ');
-    const opts=['<option value="">라인 - 품번 선택...</option>'];
-    cfg.lines.forEach(ln=>{(cfg.lineProds[ln]||[]).forEach(pc=>{opts.push(`<option value="${esc(ln)}__${esc(pc)}">${esc(ln)} - ${esc(pc)}${cfg.prodNames[pc]?'('+esc(cfg.prodNames[pc])+')':''}</option>`);});});
-    return `<div class="item-row" style="flex-wrap:wrap;align-items:center;cursor:default">
+    const mySet=new Set(cfg.assignments.filter(x=>x.admin===a.name).map(x=>`${x.line}__${x.prod}`));
+    const items=allProdItemsSorted(mySet);
+    const optsHtml=items.map(it=>`<option value="${esc(it.key)}"${mySet.has(it.key)?' selected':''}>${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?'('+esc(cfg.prodNames[it.prod])+')':''}</option>`).join('');
+    return `<div class="item-row" style="flex-wrap:wrap;align-items:flex-start;cursor:default">
       <input value="${esc(a.name)}" id="adm_name_${i}" style="width:90px;background:var(--sur3);border:1px solid var(--bdr2);border-radius:3px;color:var(--tx);padding:3px 6px">
       <button class="ibtn-sm" onclick="renameAdminName(${i})">수정</button>
-      <input value="${esc(a.email)}" id="adm_email_${i}" style="width:160px;background:var(--sur3);border:1px solid var(--bdr2);border-radius:3px;color:var(--tx);padding:3px 6px">
+      <input value="${esc(a.email)}" id="adm_email_${i}" style="width:170px;background:var(--sur3);border:1px solid var(--bdr2);border-radius:3px;color:var(--tx);padding:3px 6px">
       <button class="ibtn-sm" onclick="renameAdminEmail(${i})">수정</button>
-      <select id="adm_sel_${i}" style="font-size:12px;max-width:180px">${opts.join('')}</select>
-      <button class="ibtn-sm" onclick="assignProd(${i})">선택</button>
       <button class="ibtn-sm del-sm" onclick="removeAdmin(${i})">✕</button>
-      <div style="flex-basis:100%;margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">${tags||'<span style="color:var(--tx3);font-size:12px">배정된 제품 없음</span>'}</div>
+      <select multiple size="15" class="dsel" id="adm_sel_${i}" style="width:100%;margin-top:6px" onchange="onAdminProdSelChange(${i})">${optsHtml}</select>
     </div>`;
   }).join('');
-  let unassignedHtml='';
-  if(unassignedShown){
-    const assignedSet=new Set(cfg.assignments.map(x=>`${x.line}__${x.prod}`));
-    const list=[];
-    cfg.lines.forEach(ln=>{(cfg.lineProds[ln]||[]).forEach(pc=>{if(!assignedSet.has(`${ln}__${pc}`))list.push(`${ln} - ${pc}${cfg.prodNames[pc]?'('+cfg.prodNames[pc]+')':''}`);});});
-    unassignedHtml=`<div style="margin-top:8px;padding:8px;border:1px solid var(--bdr);border-radius:4px;background:var(--bg)">${list.length?list.map(t=>`<div style="font-size:13px;color:var(--tx2);padding:2px 0">${esc(t)}</div>`).join(''):'<div style="color:var(--tx3);font-size:13px">모든 제품이 배정되었습니다</div>'}</div>`;
-  }
   return `<div class="col-h">관리자 목록</div>
-  <div class="item-list" style="max-height:320px">${adminRows||'<div style="color:var(--tx3);padding:8px;font-size:13px">등록된 관리자가 없습니다</div>'}</div>
+  <div class="item-list" style="max-height:460px">${adminRows||'<div style="color:var(--tx3);padding:8px;font-size:13px">등록된 관리자가 없습니다</div>'}</div>
   <div class="add-row">
     <input id="addAdmName" placeholder="새 관리자 이름" style="max-width:110px">
-    <input id="addAdmEmail" placeholder="새 이메일 주소">
+    <input id="addAdmEmail" placeholder="이메일 (@ctr.co.kr)">
     <button class="add-btn" onclick="addAdmin()">+ 추가</button>
   </div>
-  <button class="md-btn" onclick="toggleUnassigned()" style="margin-top:10px">미배정 제품 확인</button>
-  ${unassignedHtml}`;
+  <div class="col-h" style="margin-top:14px">미배정 제품 확인</div>
+  ${renderUnassignedList()}`;
+}
+function renderUnassignedList(){
+  const assignedSet=new Set(cfg.assignments.map(x=>`${x.line}__${x.prod}`));
+  const items=[];
+  cfg.lines.forEach(ln=>{(cfg.lineProds[ln]||[]).forEach(pc=>{const key=`${ln}__${pc}`;if(!assignedSet.has(key))items.push({line:ln,prod:pc,key});});});
+  if(!items.length)return '<div style="color:var(--tx3);font-size:13px;padding:8px;border:1px solid var(--bdr);border-radius:4px">모든 제품이 배정되었습니다</div>';
+  const adminOpts=cfg.admins.map(a=>`<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('');
+  const rows=items.map(it=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid var(--bdr)">
+      <span style="flex:1;font-size:13px;color:var(--tx2)">${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?'('+esc(cfg.prodNames[it.prod])+')':''}</span>
+      <select multiple size="4" class="dsel" style="width:140px;font-size:12px" onchange="onUnassignedSelChange(this,'${esc(it.line)}','${esc(it.prod)}')">${adminOpts}</select>
+    </div>`).join('');
+  return `<div style="max-height:280px;overflow-y:auto;border:1px solid var(--bdr);border-radius:4px;padding:2px 8px 2px 2px">${rows}</div>`;
+}
+function onUnassignedSelChange(selEl,line,prod){
+  const selectedAdmins=[...selEl.selectedOptions].map(o=>o.value);
+  if(!selectedAdmins.length)return;
+  selectedAdmins.forEach(adminName=>{
+    if(!cfg.assignments.some(x=>x.admin===adminName&&x.line===line&&x.prod===prod))cfg.assignments.push({line,prod,admin:adminName});
+  });
+  saveStore();document.getElementById('cfgBody').innerHTML=renderAlerts();showToast('배정됨','ok');
+}
+function onAdminProdSelChange(idx){
+  const a=cfg.admins[idx];if(!a)return;
+  const sel=document.getElementById(`adm_sel_${idx}`);if(!sel)return;
+  const selectedKeys=new Set([...sel.selectedOptions].map(o=>o.value));
+  cfg.assignments=cfg.assignments.filter(x=>x.admin!==a.name);
+  selectedKeys.forEach(k=>{const parts=k.split('__');cfg.assignments.push({line:parts[0],prod:parts[1],admin:a.name});});
+  saveStore();document.getElementById('cfgBody').innerHTML=renderAlerts();
 }
 function addAdmin(){
   const nameInp=document.getElementById('addAdmName'),emailInp=document.getElementById('addAdmEmail');
   const name=(nameInp?nameInp.value:'').trim(),email=(emailInp?emailInp.value:'').trim();
   if(!name){alert('관리자 이름을 입력하세요.');return;}
-  if(!isValidEmail(email)){alert('올바른 이메일 형식이 아닙니다.');return;}
+  if(!isValidEmail(email)){alert(EMAIL_DOMAIN_ERR);return;}
   if(cfg.admins.some(a=>a.name===name)){alert('이미 등록된 관리자 이름입니다.');return;}
   if(cfg.admins.some(a=>a.email===email)){alert('이미 등록된 이메일 주소입니다.');return;}
   cfg.admins.push({name,email});
@@ -1119,7 +1167,7 @@ function renameAdminEmail(idx){
   const nv=prompt(`이메일 수정 (현재: ${a.email})`,a.email);
   if(nv===null)return;
   const newEmail=nv.trim();
-  if(!isValidEmail(newEmail)){alert('올바른 이메일 형식이 아닙니다.');return;}
+  if(!isValidEmail(newEmail)){alert(EMAIL_DOMAIN_ERR);return;}
   if(newEmail===a.email)return;
   if(cfg.admins.some((x,i)=>i!==idx&&x.email===newEmail)){alert('이미 등록된 이메일 주소입니다.');return;}
   a.email=newEmail;
@@ -1127,24 +1175,12 @@ function renameAdminEmail(idx){
 }
 function removeAdmin(idx){
   const a=cfg.admins[idx];if(!a)return;
-  if(!confirm(`${a.name} 삭제? (배정된 제품도 함께 해제됩니다)`))return;
+  if(!confirm(`${a.name}${josaRL(a.name)} 삭제하시겠습니까? (배정된 제품도 함께 해제됩니다)`))return;
   cfg.assignments=cfg.assignments.filter(x=>x.admin!==a.name);
   cfg.admins.splice(idx,1);
   saveStore();document.getElementById('cfgBody').innerHTML=renderAlerts();showToast('삭제됨','ok');
 }
-function assignProd(idx){
-  const a=cfg.admins[idx];if(!a)return;
-  const sel=document.getElementById(`adm_sel_${idx}`);if(!sel||!sel.value)return;
-  const parts=sel.value.split('__');const line=parts[0],prod=parts[1];
-  if(cfg.assignments.some(x=>x.admin===a.name&&x.line===line&&x.prod===prod)){showToast('이미 배정됨','warn');return;}
-  cfg.assignments.push({line,prod,admin:a.name});
-  saveStore();document.getElementById('cfgBody').innerHTML=renderAlerts();showToast('배정됨','ok');
-}
-function unassignProd(assignIdx){
-  cfg.assignments.splice(assignIdx,1);
-  saveStore();document.getElementById('cfgBody').innerHTML=renderAlerts();
-}
-function toggleUnassigned(){unassignedShown=!unassignedShown;document.getElementById('cfgBody').innerHTML=renderAlerts();}
+function saveAlerts(){saveStore();render();showToast('알림 발송 설정 저장됨','ok');}
 
 // ═══ EXCEL (RDE — all data in RDE table + stats) ═══
 function exportExcel(){
