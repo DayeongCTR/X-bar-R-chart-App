@@ -671,7 +671,7 @@ function renderCharts(stats,vX,vR){
   const yR=(vals,UCL,LCL)=>{const pad=(UCL-LCL)*0.4;return{min:Math.min(...vals,LCL)-pad,max:Math.max(...vals,UCL)+pad};};
   const glow=(hl)=>({id:'glow',afterDatasetsDraw(ch){if(!hl.size)return;const ctx=ch.ctx,meta=ch.getDatasetMeta(0),t=Date.now()/700;hl.forEach(i=>{const pt=meta.data[i];if(!pt)return;const p=0.35+0.45*Math.sin(t);ctx.save();const g=ctx.createRadialGradient(pt.x,pt.y,3,pt.x,pt.y,18);g.addColorStop(0,`rgba(255,20,20,${p})`);g.addColorStop(1,'rgba(255,0,0,0)');ctx.beginPath();ctx.arc(pt.x,pt.y,18,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.restore();});}});
   const zone=(CL,sx,UCL,LCL)=>({id:'zone',beforeDatasetsDraw(ch){const ctx=ch.ctx,ya=ch.scales.y,ca=ch.chartArea;const band=(lo,hi,col)=>{const y1=ya.getPixelForValue(hi),y2=ya.getPixelForValue(lo);ctx.save();ctx.fillStyle=col;ctx.fillRect(ca.left,Math.min(y1,y2),ca.width,Math.abs(y2-y1));ctx.restore();};band(CL-sx,CL+sx,'rgba(63,185,80,.06)');band(CL+sx,CL+2*sx,'rgba(210,153,34,.07)');band(CL-2*sx,CL-sx,'rgba(210,153,34,.07)');band(CL+2*sx,UCL,'rgba(248,81,73,.09)');if(LCL<CL-2*sx)band(LCL,CL-2*sx,'rgba(248,81,73,.09)');}});
-  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},layout:{padding:{left:0,right:14}},onResize:()=>{setTimeout(syncTableColsToChart,0);},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2030',borderColor:'#373e47',borderWidth:1,titleColor:'#fff',bodyColor:'#ccc',padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',maxRotation:45,font:{size:11}},border:{color:'#373e47'}},y:{min:yMin,max:yMax,afterFit:s=>{s.width=50;},grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:'#373e47'}}}});
+  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},layout:{padding:{left:0,right:28}},onResize:()=>{setTimeout(syncTableColsToChart,0);},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2030',borderColor:'#373e47',borderWidth:1,titleColor:'#fff',bodyColor:'#ccc',padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',maxRotation:45,font:{size:11}},border:{color:'#373e47'}},y:{min:yMin,max:yMax,afterFit:s=>{s.width=50;},grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:'#373e47'}}}});
   const xLim=[cL(stats.UCLx,'#ff6b6b',[6,3],'UCL'),cL(stats.xbb+2*stats.sx,'#fbbf24',[4,4],'+2σ'),cL(stats.xbb+stats.sx,'#fde68a',[2,4],'+1σ'),cL(stats.xbb,'#4ade80',[8,4],'CL'),cL(stats.xbb-stats.sx,'#bfdbfe',[2,4],'-1σ'),cL(stats.xbb-2*stats.sx,'#93c5fd',[4,4],'-2σ'),cL(stats.LCLx,'#60a5fa',[6,3],'LCL')];
   const xr=yR(xv,stats.UCLx,stats.LCLx);
   xChart=new Chart(document.getElementById('cXbar').getContext('2d'),{type:'line',plugins:[zone(stats.xbb,stats.sx,stats.UCLx,stats.LCLx),glow(hlX2)],data:{labels,datasets:[{label:'X̄',data:xv,fill:false,tension:.2,order:1,borderColor:'#58a6ff',borderWidth:2,pointRadius:ptRad(xv,hlX2),pointBackgroundColor:ptC(xv,hlX2,avX),pointBorderColor:ptC(xv,hlX2,avX),pointHoverRadius:9},...xLim]},options:opts(xr.min,xr.max)});
@@ -704,29 +704,41 @@ function renderTable(pd,vg,stats,vX,vR){
   }).join('');
   syncTableColsToChart();
 }
-// Read Chart.js's ACTUAL rendered pixel layout (chartArea) and apply those exact
-// pixel widths to the raw-data table's columns — no guessing, always matches.
-const NP_SIDEBAR_W=100, RAW_CARD_PAD=11;
+// 표-그래프 정렬: 하드코딩된 폭 상수 대신, 지금 이 순간 실제로 화면에 그려진
+// 좌표(getBoundingClientRect / chart.js의 실제 눈금 좌표)를 그대로 재서 사용합니다.
+// → 창 크기, 좌측 패널 폭, 브라우저 확대/축소(%) 등 무엇이 바뀌어도 항상 정확히 일치합니다.
 function syncTableColsToChart(){
-  const chart=xChart||rChart;if(!chart||!chart.chartArea)return;
+  const chart=xChart||rChart;
+  if(!chart||!chart.chartArea||!chart.scales||!chart.scales.x)return;
   const table=document.getElementById('rawTable');if(!table)return;
-  const ca=chart.chartArea;
+  const rawCard=table.closest('.raw-card');if(!rawCard)return;
   const N=(chart.data.labels||[]).length;if(!N)return;
-  // Chart.js line charts place category points edge-to-edge (offset:false):
-  // point 0 sits exactly at ca.left, point N-1 sits exactly at ca.right.
-  // So each point's pixel = ca.left + i*step, step=(ca.right-ca.left)/(N-1).
-  // To center each table column UNDER its point, each column must span
-  // half a step on either side of the point — including a half-step
-  // overhang before the first point and after the last point.
-  const step=N>1?(ca.right-ca.left)/(N-1):(ca.right-ca.left);
+
+  const xScale=chart.scales.x;
+  // 첫 번째/마지막 데이터 포인트의 실제 픽셀 좌표를 chart.js에 직접 물어봄
+  // (edge-flush 같은 내부 배치 가정에 의존하지 않음 — 항상 정확)
+  const p0=xScale.getPixelForValue(0);
+  const pLast=N>1?xScale.getPixelForValue(N-1):p0;
+  const step=N>1?(pLast-p0)/(N-1):(chart.chartArea.right-chart.chartArea.left);
   const half=step/2;
-  const labelW=Math.max(20,Math.round(ca.left-half));
-  table.style.marginLeft=Math.max(0,NP_SIDEBAR_W-RAW_CARD_PAD)+'px';
-  table.style.width=Math.round(labelW+N*step)+'px';
+
+  const canvasRect=chart.canvas.getBoundingClientRect();
+  const cardRect=rawCard.getBoundingClientRect();
+  const cardPadLeft=parseFloat(getComputedStyle(rawCard).paddingLeft)||0;
+  // 첫 데이터 열이 시작되는 실제 화면 x좌표 (뷰포트 기준)
+  const firstColStartAbs=canvasRect.left+p0-half;
+  // 표 카드 안에서, 그 지점까지의 거리 = 라벨 칸이 차지해야 할 폭
+  const startOffset=Math.max(20,Math.round(firstColStartAbs-(cardRect.left+cardPadLeft)));
+
+  table.style.marginLeft='0px';
+  table.style.width=Math.round(startOffset+N*step)+'px';
   const headCells=table.querySelectorAll('thead th');
-  if(headCells[0])headCells[0].style.width=labelW+'px';
+  if(headCells[0])headCells[0].style.width=startOffset+'px';
   for(let i=1;i<headCells.length;i++)headCells[i].style.width=Math.round(step)+'px';
 }
+// resize/브라우저 확대·축소 시 항상 재계산 (chart.js 자체 onResize 훅과 별개의 보조 안전장치)
+window.addEventListener('resize',()=>{if(xChart||rChart)syncTableColsToChart();});
+if(window.visualViewport){window.visualViewport.addEventListener('resize',()=>{if(xChart||rChart)syncTableColsToChart();});}
 
 // ═══ PASSWORD ═══
 const PW='1111';let pwBuf='';
