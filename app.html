@@ -155,10 +155,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .md-sel option{background:#1a2030}
 
 /* Stats table in dashboard */
-.stat-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:3px}
+.stat-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:3px}
 .stat-tbl td{padding:3px 6px;border:1px solid var(--bdr);white-space:nowrap}
-.stat-tbl .st-lbl{color:var(--tx3);background:var(--sur3);font-size:11px;text-align:right;font-weight:700;width:50%}
-.stat-tbl .st-v{font-family:var(--mono);font-weight:700;font-size:13px;text-align:center}
+.stat-tbl .st-lbl{color:var(--tx3);background:var(--sur3);font-size:12px;text-align:right;font-weight:700;width:50%}
+.stat-tbl .st-v{font-family:var(--mono);font-weight:700;font-size:14px;text-align:center}
 .sv-ucl{color:var(--ucl)}.sv-cl{color:var(--cl)}.sv-lcl{color:var(--lcl)}.sv-spec{color:#e879f9}.sv-n{color:var(--acc)}.sv-warn{color:var(--red)!important}
 
 .md-btns{display:flex;gap:4px;margin-top:2px}
@@ -217,6 +217,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 
 /* RAW TABLE */
 .raw-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 11px}
+.raw-card:hover{border-color:var(--acc)}
+.rt-popup{table-layout:auto;font-size:14px}
+.rt-popup th{font-size:14px;padding:6px 10px}
+.rt-popup td{font-size:14px;padding:5px 10px}
 .raw-hdr{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tx3);margin-bottom:6px;display:flex;justify-content:space-between}
 .raw-hdr span{color:var(--tx2);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0}
 .ts{overflow-x:auto}
@@ -235,6 +239,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .pw-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center}
 .pw-overlay.open{display:flex}
 .pw-box{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;padding:28px 30px;width:280px;text-align:center}
+.pw-box.wide{width:400px}
 .pw-box h2{font-size:16px;margin-bottom:5px;color:var(--tx)}
 .pw-box p{font-size:13px;color:var(--tx3);margin-bottom:16px}
 .pw-dots{display:flex;justify-content:center;gap:10px;margin-bottom:18px}
@@ -253,8 +258,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .analysis-modal{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;width:97vw;height:94vh;display:flex;flex-direction:column}
 .analysis-body{flex:1;display:flex;overflow:hidden;padding:14px 20px 20px;gap:14px}
 .analysis-left{width:336px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;overflow:hidden}
-.ana-range-row{display:flex;align-items:center;gap:6px;margin:0}
-.ana-range-row>label{font-size:12px;color:var(--tx3);font-weight:600;white-space:nowrap;flex:0 0 auto}
+.ana-range-row{display:flex;align-items:center;gap:5px;margin:0}
+.ana-range-row>label{font-size:12px;color:var(--tx3);font-weight:600;white-space:nowrap;flex:0 0 auto;min-width:32px}
 .ana-range-fields{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
 .ana-range-fields input[type=date]{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:3px 1px;font-size:11px;color-scheme:dark;flex:1 1 60px;min-width:60px}
 .ana-empty-btn{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx3);font-size:11px;padding:4px 9px;cursor:pointer;white-space:nowrap;text-align:center;font-weight:600;flex:0 0 auto}
@@ -329,7 +334,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .msel{position:relative;display:inline-block}
 .msel-btn{display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;width:100%}
 .dsel-arrow{display:inline-block;width:7px;height:7px;border-right:1.5px solid var(--tx3);border-bottom:1.5px solid var(--tx3);transform:rotate(45deg) translateY(-2px);flex:0 0 auto}
-.msel-panel{position:absolute;top:calc(100% + 2px);left:0;z-index:80;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;max-height:390px;overflow-y:auto;width:max-content;min-width:120px;max-width:260px;padding:4px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.msel-panel{position:absolute;top:calc(100% + 2px);left:0;z-index:80;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;max-height:390px;overflow-y:auto;width:max-content;min-width:120px;padding:4px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
 .msel-panel label{display:flex;align-items:center;gap:6px;padding:4px 6px;font-size:13px;color:var(--tx);cursor:pointer;border-radius:3px;white-space:nowrap}
 .msel-panel label:hover{background:var(--sur3)}
 
@@ -343,9 +348,9 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .smt thead th{position:sticky;top:0;z-index:4}
 .smt th:nth-child(1),.smt td:nth-child(1){position:sticky;left:0;z-index:3;isolation:isolate;will-change:transform;transform:translateZ(0)}
 .smt th:nth-child(2),.smt td:nth-child(2){position:sticky;left:133px;z-index:3;isolation:isolate;will-change:transform;transform:translateZ(0)}
-.smt th:nth-child(3),.smt td:nth-child(3){position:sticky;left:265px;z-index:3;isolation:isolate;will-change:transform;transform:translateZ(0)}
+.smt th:nth-child(3),.smt td:nth-child(3){position:sticky;left:277px;z-index:3;isolation:isolate;will-change:transform;transform:translateZ(0)}
 .smt thead th:nth-child(1),.smt thead th:nth-child(2),.smt thead th:nth-child(3){z-index:5}
-.smt th:nth-child(n+4),.smt td:nth-child(n+4){border-left:2px solid var(--bdr2)}
+.smt th:nth-child(n+4),.smt td:nth-child(n+4){border-left:2px solid var(--bdr2);padding-left:4px;padding-right:4px}
 .smt input{background:transparent;border:none;color:var(--tx);font-size:13px;width:70px;text-align:center;padding:2px}
 .smt input:focus{outline:1px solid var(--acc);border-radius:3px}
 .spec-line-select{position:sticky;top:0;z-index:6;background:#161b22;padding-bottom:8px}
@@ -354,15 +359,15 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .spec-pbtn.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
 .msel-panel .msel-opt{display:block;padding:5px 8px;font-size:12.5px;color:var(--tx);cursor:pointer;border-radius:3px;white-space:nowrap;text-align:left}
 .msel-panel .msel-opt:hover{background:var(--sur3)}
-.spec-cell{display:grid;grid-template-columns:1fr 1fr auto;gap:2px 5px;align-items:center;width:170px;margin:0 auto}
-.spec-cell input{width:100%;text-align:center}
-.sc-date{font-size:9px;color:var(--tx3);text-align:center;line-height:1.3}
+.spec-cell{display:grid;grid-template-columns:50px 40px 22px;column-gap:3px;row-gap:2px;align-items:center;width:119px;margin:0 auto}
+.spec-cell input{width:100%;text-align:center;font-size:11px;padding:2px 1px}
+.sc-date{font-size:10px;color:var(--tx3);text-align:center;line-height:1.25;margin-left:-2px}
 
 /* DATE RANGE */
 .gs-tier{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--bdr)}
 .gs-tier:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
 .gs-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;row-gap:6px}
-.gs-info-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--sur3);color:var(--tx3);font-size:12px;font-weight:700;cursor:help;flex:0 0 auto;margin-left:2px}
+.gs-info-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--sur3);color:var(--tx3);font-size:12px;font-weight:700;cursor:default;flex:0 0 auto;margin-left:2px}
 .gs-info-icon.warn{background:var(--red);color:#fff}
 .gs-title{flex:0 0 118px;font-weight:700;font-size:13.5px;color:var(--tx)}
 .gs-tabs{display:flex;gap:3px;flex:0 0 auto}
@@ -435,12 +440,9 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
       </div>
       <div id="measGrid"></div>
       <datalist id="dl_insp"></datalist>
-      <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0"></div></div>
-      <div class="prog-lbl" id="progLbl">0 / 3 입력됨</div>
       <div class="pend-note" id="pendNote">⚠ 군 크기 미달 — 백업 저장</div>
-      
     </div>
-    <div class="cnt-box" style="font-size:11px;line-height:1.7;color:var(--sur3)">설정 군수 : <strong id="cnt-view">0</strong>군<br>로데이터 중 설정 만족 군수 : <strong id="cnt-all">0</strong>군<br>로데이터 중 설정 불만족 군수 : <strong id="cnt-pend">0</strong>군</div>
+    <button class="md-btn" style="width:100%;height:56px;margin-top:8px" onclick="openDashStdPdfPopup()">📄 검사구 사용표준</button>
   </div>
 </div>
 <div class="right">
@@ -459,7 +461,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
         <div class="cw"><canvas id="cR"></canvas></div>
       </div>
     </div>
-    <div class="raw-card">
+    <div class="raw-card" style="cursor:pointer" onclick="openRawDataPopup()">
       <div class="raw-hdr">측정 데이터</div>
       <div class="ts"><table class="rt" id="rawTable"><thead id="rtHead"></thead><tbody id="rtBody"></tbody></table></div>
     </div>
@@ -480,6 +482,22 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
       <button class="pw-key" onclick="closePwModal()" style="font-size:12px;color:var(--tx3)">취소</button>
     </div>
     <div class="pw-err" id="pwErr"></div>
+  </div>
+</div>
+<!-- MASTER PASSWORD (치수 목록 추가 전용) -->
+<div class="pw-overlay" id="masterPwModal">
+  <div class="pw-box wide">
+    <h2>⚙ 치수 추가</h2>
+    <p style="line-height:1.7">치수 리스트 추가는 현재 마스터만 등록 가능합니다.<br>추가를 원하실 경우 마스터에 연락 주세요.<br>김다영 / dayeong.kim@ctr.co.kr / 010-5108-4196</p>
+    <div class="pw-dots"><div class="pw-dot" id="mpd0"></div><div class="pw-dot" id="mpd1"></div><div class="pw-dot" id="mpd2"></div><div class="pw-dot" id="mpd3"></div></div>
+    <div class="pw-pad">
+      <button class="pw-key" onclick="masterPwKey('1')">1</button><button class="pw-key" onclick="masterPwKey('2')">2</button><button class="pw-key" onclick="masterPwKey('3')">3</button>
+      <button class="pw-key" onclick="masterPwKey('4')">4</button><button class="pw-key" onclick="masterPwKey('5')">5</button><button class="pw-key" onclick="masterPwKey('6')">6</button>
+      <button class="pw-key" onclick="masterPwKey('7')">7</button><button class="pw-key" onclick="masterPwKey('8')">8</button><button class="pw-key" onclick="masterPwKey('9')">9</button>
+      <button class="pw-key del" onclick="masterPwDel()">⌫</button><button class="pw-key" onclick="masterPwKey('0')">0</button>
+      <button class="pw-key" onclick="closeMasterPwModal()" style="font-size:12px;color:var(--tx3)">취소</button>
+    </div>
+    <div class="pw-err" id="masterPwErr"></div>
   </div>
 </div>
 <!-- SETTINGS -->
@@ -525,6 +543,26 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
   </div>
 </div>
 </div>
+<div class="cfg-overlay" id="rawDataModal">
+<div class="cfg-modal" style="width:auto;max-width:95vw">
+  <div class="cfg-head"><h2>측정 데이터</h2><button class="cfg-close" onclick="closeRawDataPopup()">✕</button></div>
+  <div style="padding:12px 16px;max-height:75vh;overflow:auto">
+    <table class="rt rt-popup" id="rawTablePopup"><thead id="rtHeadPopup"></thead><tbody id="rtBodyPopup"></tbody></table>
+  </div>
+</div>
+</div>
+<div class="cfg-overlay" id="dashStdPdfModal">
+<div class="cfg-modal" style="width:900px;max-width:92vw;height:85vh;display:flex;flex-direction:column">
+  <div class="cfg-head"><h2>📄 검사구 사용표준</h2><button class="cfg-close" onclick="closeDashStdPdfPopup()">✕</button></div>
+  <div style="padding:10px 16px 0">
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:8px">조회하실 검사구 사용표준을 선택하세요.</div>
+    <div id="dashStdPdfBtns" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
+  </div>
+  <div style="flex:1;padding:0 16px 16px;min-height:0">
+    <iframe id="dashStdPdfFrame" style="width:100%;height:100%;border:1px solid var(--bdr2);border-radius:4px;background:#fff"></iframe>
+  </div>
+</div>
+</div>
 <script>
 // ═══ CONSTANTS ═══
 const CC={2:{A2:1.880,D3:0,D4:3.267},3:{A2:1.023,D3:0,D4:2.574},4:{A2:0.729,D3:0,D4:2.282},5:{A2:0.577,D3:0,D4:2.114},6:{A2:0.483,D3:0,D4:2.004},7:{A2:0.419,D3:0.076,D4:1.924},8:{A2:0.373,D3:0.136,D4:1.864},9:{A2:0.337,D3:0.184,D4:1.816},10:{A2:0.308,D3:0.223,D4:1.777}};
@@ -558,6 +596,7 @@ function ensureCfgDefaults(){
   if(!cfg.imr)cfg.imr={k:25,drMode:0,drDate:null};
   if(!cfg.cap)cfg.cap={k:125,drMode:0,drDate:null};
   if(!cfg.prodSettings)cfg.prodSettings={};
+  if(!cfg.stdPdfs)cfg.stdPdfs={};
 }
 // 제품(라인+품번) 단위 설정 — 치수와 무관하게 그 제품 전체에 적용됨 (관리도 종류/룰레벨/검사강화)
 function getProdSettings(line,prod){
@@ -879,10 +918,6 @@ function onMIn(i){
       if(!nEl||nEl.value.trim()==='')missingInsp=true;
     }
   }
-  const pf=document.getElementById('progFill');
-  pf.style.width=Math.min(100,(cnt/need)*100)+'%';
-  pf.classList.toggle('warn',missingInsp);
-  document.getElementById('progLbl').textContent=`${cnt} / ${need} 입력됨${cnt>=need?' ✓':''}`;
   document.getElementById('pendNote').style.display=(cnt>0&&cnt<need)?'block':'none';
   // 값을 막 입력한 칸의 측정자란이 비어있으면, 마지막으로 쓰던 측정자 이름을 자동으로 채워줌
   // (자동으로 채워진 값도 클릭해서 바로 고칠 수 있음)
@@ -1173,9 +1208,6 @@ function updateDash(stats,pd,vg,spec,isIMR){
     setLbl('lbl-c2','군 크기');
     const c2=document.getElementById('di-c2');c2.textContent=cfg.n;c2.classList.remove('sv-warn');
   }
-  document.getElementById('cnt-all').textContent=pd.complete.length;
-  document.getElementById('cnt-view').textContent=vg.length;
-  document.getElementById('cnt-pend').textContent=pd.pending.length;
 }
 
 // ═══ CHARTS ═══
@@ -1293,6 +1325,20 @@ if(window.visualViewport){window.visualViewport.addEventListener('resize',()=>{i
 
 // ═══ PASSWORD ═══
 const PW='1111';let pwBuf='';
+const MASTER_PW='2483';/* 치수 목록 추가용 마스터 비번 — 실제 값으로 변경해서 사용하세요 */
+let masterPwBuf='';let masterPwCallback=null;
+function openMasterPwModal(cb){masterPwBuf='';masterPwCallback=cb;updateMasterPwDots();document.getElementById('masterPwErr').textContent='';document.getElementById('masterPwModal').classList.add('open');}
+function closeMasterPwModal(){document.getElementById('masterPwModal').classList.remove('open');masterPwBuf='';masterPwCallback=null;}
+function masterPwKey(k){
+  if(masterPwBuf.length>=4)return;
+  masterPwBuf+=k;updateMasterPwDots();
+  if(masterPwBuf.length===4){
+    if(masterPwBuf===MASTER_PW){const cb=masterPwCallback;closeMasterPwModal();if(cb)cb();}
+    else{document.getElementById('masterPwErr').textContent='비밀번호가 틀렸습니다';setTimeout(()=>{masterPwBuf='';updateMasterPwDots();document.getElementById('masterPwErr').textContent='';},900);}
+  }
+}
+function masterPwDel(){if(masterPwBuf.length){masterPwBuf=masterPwBuf.slice(0,-1);updateMasterPwDots();}}
+function updateMasterPwDots(){for(let i=0;i<4;i++)document.getElementById(`mpd${i}`).classList.toggle('filled',i<masterPwBuf.length);}
 function openPwModal(){pwBuf='';updatePwDots();document.getElementById('pwErr').textContent='';document.getElementById('pwModal').classList.add('open');}
 function closePwModal(){document.getElementById('pwModal').classList.remove('open');pwBuf='';}
 function pwKey(k){if(pwBuf.length>=4)return;pwBuf+=k;updatePwDots();if(pwBuf.length===4){if(pwBuf===PW){closePwModal();openCfg();}else{document.getElementById('pwErr').textContent='비밀번호가 틀렸습니다';setTimeout(()=>{pwBuf='';updatePwDots();document.getElementById('pwErr').textContent='';},900);}}}
@@ -1420,8 +1466,8 @@ function anaContainerDrop(e){
   if(!dragKey||!inner)return;
   const rect=inner.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
-  const col=Math.max(0,Math.round(x/(anaCardW+ANA_GAP)));
-  const row=Math.max(0,Math.round(y/(anaCardH+ANA_GAP)));
+  const col=Math.max(0,Math.floor(x/(anaCardW+ANA_GAP)));
+  const row=Math.max(0,Math.floor(y/(anaCardH+ANA_GAP)));
   const occupant=Object.keys(anaPos).find(k=>k!==dragKey&&anaPos[k]&&anaPos[k].col===col&&anaPos[k].row===row);
   const oldPos=anaPos[dragKey];
   anaPos[dragKey]={col,row};
@@ -1628,15 +1674,15 @@ function positionAllTierDatePicks(){
 }
 function tierNoteInfo(tier,k,n){
   if(tier==='imr')return{warn:k<=19,text:'I-MR 관리도는 군 개수 20~25 에서 산출되는 UCL/LCL 로 적용하는 것이 가장 적절합니다.\n초중종으로(군당) 1개씩 검사해서는 X bar R 관리도를 적용할 수 없으므로 I-MR 관리도가 적합합니다.'};
-  if(tier==='xbarr')return{warn:k<=19||n<=2,text:'X bar R 관리도는 군 개수 20~25 군 크기 3~5 에서 산출되는 UCL/LCL 로 적용하는 것이 가장 적절합니다.'};
+  if(tier==='xbarr')return{warn:k<=19||n<=2,text:'X bar R 관리도는 군 개수 20~25, 군 크기 3~5 에서 산출되는 UCL/LCL 로 적용하는 것이 가장 적절합니다.'};
   return{warn:k<125,text:'초중종(군당) 1개씩 검사하는 것으로는 Cp, Cpk 분석이 부적절하며 125개 군 이상으로 Pp, Ppk 분석하는 것이 적절합니다.'};
 }
 function tierCaptionText(tier,mode,dateVal,k,n){
   const nLabel=tier==='xbarr'?`군 크기 ${n||'-'} 이상의 군으로 `:'';
   const d=dateVal||'선택 안 함';
-  if(mode===0)return `가장 최신 날짜로부터 그 전으로 ${nLabel}${k}개를 조회할 수 있습니다.`;
-  if(mode===1)return `선택한 날짜(${d})에서부터 그 후로 ${nLabel}${k}개를 조회할 수 있습니다.`;
-  return `선택한 날짜(${d})로부터 그 전으로 ${nLabel}${k}개를 조회할 수 있습니다.`;
+  if(mode===0)return `현재 설정은, 가장 최신 날짜로부터 그 전으로 ${nLabel}${k}개를 조회할 수 있습니다.`;
+  if(mode===1)return `현재 설정은, 선택한 날짜(${d})에서부터 그 후로 ${nLabel}${k}개를 조회할 수 있습니다.`;
+  return `현재 설정은, 선택한 날짜(${d})로부터 그 전으로 ${nLabel}${k}개를 조회할 수 있습니다.`;
 }
 function renderGeneral(ov){
   ov=ov||{};
@@ -1790,13 +1836,13 @@ function renderLM(){
   return `<div class="lm-grid">
 <div class="col-section">
   <div class="col-h">라인 목록</div>
-  <div class="item-list" id="ilLine">${cfg.lines.map((l,i)=>`<div class="item-row" data-type="line" data-idx="${i}"><input class="item-edit-inp" style="flex:1" value="${esc(l)}" onblur="commitLineEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('line',${i})">✕</button></div>`).join('')}</div>
-  <div class="add-row" style="margin-bottom:12px"><input id="addLineInp" placeholder="새 라인명"><button class="add-btn" onclick="addItem('line')">+ 추가</button></div>
+  <div class="item-list" id="ilLine">${cfg.lines.map((l,i)=>`<div class="item-row" data-type="line" data-idx="${i}"><span class="item-name">${esc(l)}</span><button class="ibtn-sm" onclick="renameLine(${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('line',${i})">✕</button></div>`).join('')}</div>
+  <div class="add-row" style="margin-bottom:40px"><input id="addLineInp" placeholder="새 라인명"><button class="add-btn" onclick="addItem('line')">+ 추가</button></div>
   <div class="col-h" style="display:flex;align-items:center;gap:8px">
     <span style="flex:0 0 auto;white-space:nowrap">품번/품명 목록</span>
     <select id="lmLS" class="dsel" onchange="lmCL()" style="flex:1;min-width:0;font-weight:400;font-size:12.5px;padding:4px 8px">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===al?' selected':''}>${esc(l)}</option>`).join('')}</select>
   </div>
-  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" data-type="prod" data-idx="${i}"><input class="item-edit-inp" style="flex:0 0 90px" value="${esc(p)}" onblur="commitProdCodeEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><input class="item-edit-inp" style="flex:1" value="${esc(cfg.prodNames[p]||'')}" onblur="commitProdNameEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
+  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" data-type="prod" data-idx="${i}"><span class="item-name" style="flex:0 0 90px">${esc(p)}</span><button class="ibtn-sm" onclick="renameProdCode(${i})">수정</button><input class="item-edit-inp" style="flex:1" value="${esc(cfg.prodNames[p]||'')}" onblur="commitProdNameEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
   <div class="add-row"><input id="addProdInp" placeholder="새 품번" style="max-width:120px"><input id="addProdNameInp" placeholder="새 품명"><button class="add-btn" onclick="addProd()">+ 추가</button></div>
 </div>
 <div class="col-section">
@@ -1814,9 +1860,13 @@ function addItem(type){
   if(lmDropdown)lmLineSel=lmDropdown.value;
   const inp=document.getElementById(map[type]);if(!inp||!inp.value.trim())return;
   const val=inp.value.trim();
-  if(type==='line'){if(!cfg.lines.includes(val)){cfg.lines.push(val);cfg.lineProds[val]=[];}}
-  else{if(!cfg.dims)cfg.dims=[];if(!cfg.dims.includes(val))cfg.dims.push(val);}
-  document.getElementById('cfgBody').innerHTML=renderLM();
+  const doAdd=()=>{
+    if(type==='line'){if(!cfg.lines.includes(val)){cfg.lines.push(val);cfg.lineProds[val]=[];}}
+    else{if(!cfg.dims)cfg.dims=[];if(!cfg.dims.includes(val))cfg.dims.push(val);}
+    document.getElementById('cfgBody').innerHTML=renderLM();
+  };
+  if(type==='dim'){openMasterPwModal(doAdd);return;}
+  doAdd();
 }
 function isValidProdCode(code){return /^[A-Z]{3}\d{4}[A-Z]$/.test(code);}
 const PROD_CODE_ERR='품번 입력 형식에 맞지 않습니다.\n올바른 예: CLC0829B (리비전 번호 포함할 것)';
@@ -1854,7 +1904,7 @@ function removeItem(type,idx){
   const label=type==='line'?'라인':type==='prod'?'품번':'치수';
   showConfirmPopup(`해당 ${label}에 저장된 모든 데이터가 사라집니다.\n그래도 정말 삭제하시겠습니까?`,()=>{
     if(type==='line'){if(cfg.lines.length<=1){showToast('라인 최소 1개','warn');return;}const r=cfg.lines.splice(idx,1)[0];if(lmLineSel===r)lmLineSel=cfg.lines[0];}
-    else if(type==='prod'){const removed=(cfg.lineProds[al]||[]).splice(idx,1)[0];if(removed!==undefined)delete cfg.prodNames[removed];}
+    else if(type==='prod'){const removed=(cfg.lineProds[al]||[]).splice(idx,1)[0];if(removed!==undefined){delete cfg.prodNames[removed];if(cfg.stdPdfs)delete cfg.stdPdfs[`${al}__${removed}`];}}
     else{(cfg.dims||[]).splice(idx,1);}
     document.getElementById('cfgBody').innerHTML=renderLM();
   });
@@ -1907,28 +1957,47 @@ function showConfirmPopup(message,onConfirm,confirmLabel='삭제합니다',cance
   overlay.querySelector('.confirm-popup-cancel').onclick=()=>{overlay.remove();onCancel&&onCancel();};
   overlay.addEventListener('click',(e)=>{if(e.target===overlay){overlay.remove();onCancel&&onCancel();}});
 }
+// 라인 목록도 치수 목록과 같은 방식: "수정" 버튼을 눌러야 입력칸으로 바뀜
+function renameLine(idx){
+  const cur=cfg.lines[idx];if(cur===undefined)return;
+  const row=document.querySelector(`#ilLine .item-row[data-idx="${idx}"]`);
+  if(!row)return;
+  row.innerHTML=`<input class="item-edit-inp" style="flex:1" id="lineEditInp${idx}" onkeydown="if(event.key==='Enter')this.blur();" onblur="commitLineEdit(${idx},this)"><button class="ibtn-sm del-sm" onclick="removeItem('line',${idx})">✕</button>`;
+  const inp=document.getElementById(`lineEditInp${idx}`);inp.value=cur;inp.focus();inp.select();
+}
 function commitLineEdit(idx,el){
   const lmDropdown=document.getElementById('lmLS');
   if(lmDropdown)lmLineSel=lmDropdown.value;
   const old=cfg.lines[idx];if(old===undefined)return;
   const newVal=el.value.trim();
-  if(!newVal){el.value=old;return;}
-  if(newVal===old)return;
-  if(cfg.lines.includes(newVal)){showToast('이미 존재하는 라인명입니다.','warn');el.value=old;return;}
+  const redraw=()=>{document.getElementById('cfgBody').innerHTML=renderLM();};
+  if(!newVal||newVal===old){redraw();return;}
+  if(cfg.lines.includes(newVal)){showToast('이미 존재하는 라인명입니다.','warn');redraw();return;}
   cfg.lines[idx]=newVal;
   cfg.lineProds[newVal]=cfg.lineProds[old]||[];
   delete cfg.lineProds[old];
   if(lmLineSel===old)lmLineSel=newVal;
-  document.getElementById('cfgBody').innerHTML=renderLM();
+  redraw();
+}
+// 품번도 라인과 동일하게 "수정" 버튼을 눌러야 입력칸으로 바뀜 (품명은 즉시수정 유지)
+function renameProdCode(idx){
+  const al=getAL();
+  const cur=(cfg.lineProds[al]||[])[idx];if(cur===undefined)return;
+  const row=document.querySelector(`#ilProd .item-row[data-idx="${idx}"]`);
+  if(!row)return;
+  const nameVal=cfg.prodNames[cur]||'';
+  row.innerHTML=`<input class="item-edit-inp" style="flex:0 0 90px" id="prodEditInp${idx}" onkeydown="if(event.key==='Enter')this.blur();" onblur="commitProdCodeEdit(${idx},this)"><input class="item-edit-inp" style="flex:1" value="${esc(nameVal)}" onblur="commitProdNameEdit(${idx},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('prod',${idx})">✕</button>`;
+  const inp=document.getElementById(`prodEditInp${idx}`);inp.value=cur;inp.focus();inp.select();
 }
 function commitProdCodeEdit(idx,el){
   const al=getAL();
   const oldCode=(cfg.lineProds[al]||[])[idx];if(oldCode===undefined)return;
   const newCode=el.value.trim().toUpperCase();
-  if(!newCode||newCode===oldCode){el.value=oldCode;return;}
-  if(!isValidProdCode(newCode)){alert(PROD_CODE_ERR);el.value=oldCode;return;}
+  const redraw=()=>{document.getElementById('cfgBody').innerHTML=renderLM();};
+  if(!newCode||newCode===oldCode){redraw();return;}
+  if(!isValidProdCode(newCode)){alert(PROD_CODE_ERR);redraw();return;}
   const dupLine=findLineOfProd(newCode,al,idx);
-  if(dupLine){alert(`이미 ${dupLine} 라인에 등록된 품번입니다.`);el.value=oldCode;return;}
+  if(dupLine){alert(`이미 ${dupLine} 라인에 등록된 품번입니다.`);redraw();return;}
   if(cfg.prodNames[oldCode]!==undefined){cfg.prodNames[newCode]=cfg.prodNames[oldCode];delete cfg.prodNames[oldCode];}
   cfg.lineProds[al][idx]=newCode;
   Object.keys(cfg.specs).forEach(k=>{
@@ -1939,8 +2008,9 @@ function commitProdCodeEdit(idx,el){
     const parts=k.split('__');
     if(parts[0]===al&&parts[1]===oldCode){allData[`${al}__${newCode}__${parts[2]}`]=allData[k];delete allData[k];}
   });
+  if(cfg.stdPdfs&&cfg.stdPdfs[`${al}__${oldCode}`]!==undefined){cfg.stdPdfs[`${al}__${newCode}`]=cfg.stdPdfs[`${al}__${oldCode}`];delete cfg.stdPdfs[`${al}__${oldCode}`];}
   if(curLine===al&&curProd===oldCode)curProd=newCode;
-  document.getElementById('cfgBody').innerHTML=renderLM();
+  redraw();
 }
 function commitProdNameEdit(idx,el){
   const al=getAL();
@@ -1998,7 +2068,7 @@ function saveLM(){
   // Sort alphabetically
   cfg.lines.sort((a,b)=>a.localeCompare(b,'ko'));
   Object.keys(cfg.lineProds).forEach(l=>{(cfg.lineProds[l]||[]).sort((a,b)=>a.localeCompare(b,'ko'));});
-  // dims keep drag order
+  if(cfg.dims)cfg.dims.sort((a,b)=>a.localeCompare(b,'ko'));
   saveStore();
   buildSelDrops();
   if(!cfg.lines.includes(curLine)){curLine=cfg.lines[0];curProd=(cfg.lineProds[curLine]||[])[0]||'';buildSelDrops();ensureData(curKey());}
@@ -2011,29 +2081,53 @@ function renderSpec(){
   const sl=specLineSel2||cfg.lines[0];const prods=cfg.lineProds[sl]||[];const dims=cfg.dims||[];
   let tbl='';
   if(prods.length&&dims.length){
-    tbl=`<div style="overflow:auto;max-height:520px"><table class="smt"><thead><tr><th style="min-width:133px">구분</th><th style="min-width:132px">설정</th><th style="min-width:90px">관리자</th>${dims.map(d=>`<th style="min-width:150px">${esc(d)}</th>`).join('')}</tr></thead><tbody>`;
+    tbl=`<div style="overflow:auto;max-height:520px"><table class="smt"><thead><tr><th style="min-width:133px">구분</th><th style="min-width:144px">설정</th><th style="min-width:61px">관리자</th>${dims.map(d=>`<th style="min-width:127px">${esc(d)}</th>`).join('')}</tr></thead><tbody>`;
     prods.forEach(p=>{
-      tbl+=`<tr><th style="min-width:133px">${esc(p)}<br>${esc(cfg.prodNames[p]||'')}</th>
-      <td><div class="spec-btn-grid">${cloneBtnHtml(sl,p)}${enhancedBtnHtml(sl,p)}${modeBtnHtml(sl,p)}${ruleBtnHtml(sl,p)}</div></td>
+      tbl+=`<tr><th style="min-width:133px">${esc(p)}<br><span style="font-weight:400">${esc(cfg.prodNames[p]||'')}</span></th>
+      <td><div class="spec-btn-grid">${stdBtnHtml(sl,p)}${enhancedBtnHtml(sl,p)}${modeBtnHtml(sl,p)}${ruleBtnHtml(sl,p)}</div></td>
       <td>${adminMselHtml(sl,p)}</td>
       ${dims.map(d=>specCellHtml(sl,p,d)).join('')}</tr>`;
     });
     tbl+='</tbody></table></div>';
   }else tbl='<div style="color:var(--tx3);padding:10px">이 라인에 품번 또는 치수가 없습니다</div>';
-  return `<div class="spec-line-select"><div class="mf" style="margin-bottom:0;display:flex;align-items:center;gap:6px"><label style="margin:0">라인 선택</label><select id="specLS" class="dsel" style="flex:1" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select><span class="gs-info-icon" onmouseenter="showSimpleTip(event,'가장 마지막으로 수정한 날짜가 규격 아래에 나타납니다')" onmousemove="moveTip(event)" onmouseleave="hideGsTip()">ⓘ</span></div></div>${tbl}`;
+  return `<div class="spec-line-select"><div class="mf" style="margin-bottom:0;display:flex;align-items:center;gap:6px"><label style="margin:0">라인 선택</label><select id="specLS" class="dsel" style="flex:1" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select><span class="gs-info-icon" onmouseenter="showSimpleTip(event,'가장 마지막으로 수정한 날짜가 규격 아래에 나타납니다')" onmousemove="moveTip(event)" onmouseleave="hideGsTip()">ⓘ</span><button type="button" class="add-btn" style="flex:0 0 auto" onclick="openCloneMatrixPopup()">복제하기</button></div></div>${tbl}`;
 }
-// ─── 제품별 설정 4버튼 (복제하기 / 검사강화 / 관리도 / 룰적용) ───
-function cloneOptsHtml(sl,destProd){
-  const opts=[];
-  (cfg.lineProds[sl]||[]).forEach(pc=>{
-    if(pc===destProd)return;
-    opts.push(`<div class="msel-opt" onclick="cloneSpecRow('${esc(sl)}','${esc(destProd)}','${esc(sl)}','${esc(pc)}')">${esc(pc)}${cfg.prodNames[pc]?' ('+esc(cfg.prodNames[pc])+')':''}</div>`);
-  });
-  return opts.join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">복제할 제품 없음</div>';
+// ─── 규격 일괄 복제 (라인 선택 옆 "복제하기" 버튼) — 선택 란 a → 선택 란 b 로 규격을 복사 ───
+function openCloneMatrixPopup(){
+  const overlay=document.createElement('div');
+  overlay.className='confirm-popup-overlay';
+  overlay.id='cloneMatrixOverlay';
+  overlay.innerHTML=`<div class="confirm-popup-box" style="text-align:left;width:340px;max-width:90vw">
+    <div class="confirm-popup-msg" style="text-align:left">'선택 란(가칭 a)'의 규격을 복사하여 일괄<br>'선택 란(가칭 b)'의 규격으로 적용합니다.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0">
+      <div><label style="display:block;font-size:12px;color:var(--tx3);margin-bottom:4px">선택 란 a</label><select id="cloneMatA" class="dsel" style="width:100%" onchange="renderCloneMatrixSelects()"></select></div>
+      <div><label style="display:block;font-size:12px;color:var(--tx3);margin-bottom:4px">선택 란 b</label><select id="cloneMatB" class="dsel" style="width:100%" onchange="renderCloneMatrixSelects()"></select></div>
+    </div>
+    <div class="confirm-popup-btns"><button class="confirm-popup-btn confirm-popup-cancel" onclick="closeCloneMatrixPopup()">취소</button><button class="confirm-popup-btn confirm-popup-danger" id="cloneMatApplyBtn" onclick="applyCloneMatrix()" disabled>적용</button></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',(e)=>{if(e.target===overlay)closeCloneMatrixPopup();});
+  renderCloneMatrixSelects();
 }
-function cloneBtnHtml(line,prod){
-  const uid=`cln_${safeId(line)}_${safeId(prod)}`;
-  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn" onclick="toggleMsel('${uid}')">복제하기</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${cloneOptsHtml(line,prod)}</div></div>`;
+function closeCloneMatrixPopup(){const o=document.getElementById('cloneMatrixOverlay');if(o)o.remove();}
+function renderCloneMatrixSelects(){
+  const sl=specLineSel2||cfg.lines[0];
+  const aSel=document.getElementById('cloneMatA'),bSel=document.getElementById('cloneMatB');
+  if(!aSel||!bSel)return;
+  const aVal=aSel.value,bVal=bSel.value;
+  const prods=cfg.lineProds[sl]||[];
+  const optHtml=(excludeVal,curVal)=>`<option value="">선택...</option>`+prods.filter(p=>p!==excludeVal).map(p=>`<option value="${esc(p)}"${p===curVal?' selected':''}>${esc(p)}${cfg.prodNames[p]?' ( '+esc(cfg.prodNames[p])+' )':''}</option>`).join('');
+  aSel.innerHTML=optHtml(bVal,aVal);
+  bSel.innerHTML=optHtml(aVal,bVal);
+  const btn=document.getElementById('cloneMatApplyBtn');
+  if(btn)btn.disabled=!(aSel.value&&bSel.value);
+}
+function applyCloneMatrix(){
+  const sl=specLineSel2||cfg.lines[0];
+  const aVal=document.getElementById('cloneMatA').value,bVal=document.getElementById('cloneMatB').value;
+  if(!aVal||!bVal)return;
+  closeCloneMatrixPopup();
+  cloneSpecRow(sl,bVal,sl,aVal);
 }
 function cloneSpecRow(destLine,destProd,srcLine,srcProd){
   const uid=`cln_${safeId(destLine)}_${safeId(destProd)}`;
@@ -2047,6 +2141,120 @@ function cloneSpecRow(destLine,destProd,srcLine,srcProd){
     saveStore();render();document.getElementById('cfgBody').innerHTML=renderSpec();showToast(`${srcProd} 규격 복제됨`,'ok');
   },'복제합니다','취소');
 }
+// ─── 검사구 사용표준 (PDF) — 제품별로 업로드/조회/삭제. Firebase Storage는 2026.2월부터 유료(Blaze) 요금제가 필요해져,
+// Realtime Database(무료 Spark 요금제로도 계속 사용 가능)에 base64 문자열로 직접 저장하는 방식을 사용함 ───
+function stdPdfKey(line,prod){return `${line}__${prod}`;}
+function stdPdfList(line,prod){return (cfg.stdPdfs&&cfg.stdPdfs[stdPdfKey(line,prod)])||[];}
+// 같은 날짜에 여러 개 업로드된 경우 업로드날짜_1, 업로드날짜_2 ... 형태로, 하나뿐이면 날짜만
+function stdPdfLabels(list){
+  const byDate={};
+  list.forEach(it=>{(byDate[it.date]=byDate[it.date]||[]).push(it);});
+  const labelOf={};
+  Object.keys(byDate).forEach(date=>{
+    const arr=byDate[date];
+    if(arr.length===1){labelOf[arr[0].id]=ymdShort(date);}
+    else{arr.forEach((it,i)=>{labelOf[it.id]=`${ymdShort(date)}_${i+1}`;});}
+  });
+  return labelOf;
+}
+function stdBtnHtml(line,prod){
+  const uid=`std_${safeId(line)}_${safeId(prod)}`;
+  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn" onclick="openStdPdfManager('${esc(line)}','${esc(prod)}')">사용표준</button></div>`;
+}
+function openStdPdfManager(line,prod){
+  const overlay=document.createElement('div');
+  overlay.className='confirm-popup-overlay';
+  overlay.id='stdPdfMgrOverlay';
+  overlay.dataset.line=line;overlay.dataset.prod=prod;
+  overlay.innerHTML=`<div class="confirm-popup-box" style="text-align:left;width:420px;max-width:92vw">
+    <div class="confirm-popup-msg" style="text-align:left;margin-bottom:10px">검사구 사용표준 (PDF) — ${esc(line)} / ${esc(prod)}${cfg.prodNames[prod]?' ( '+esc(cfg.prodNames[prod])+' )':''}</div>
+    <div id="stdPdfMgrList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+    <div class="add-row"><input type="file" id="stdPdfFileInp" accept="application/pdf" style="flex:1"><button class="add-btn" onclick="uploadStdPdf()">업로드</button></div>
+    <div class="confirm-popup-btns"><button class="confirm-popup-btn confirm-popup-cancel" onclick="closeStdPdfManager()">닫기</button></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',(e)=>{if(e.target===overlay)closeStdPdfManager();});
+  renderStdPdfMgrList(line,prod);
+}
+function closeStdPdfManager(){const o=document.getElementById('stdPdfMgrOverlay');if(o)o.remove();}
+function renderStdPdfMgrList(line,prod){
+  const wrap=document.getElementById('stdPdfMgrList');if(!wrap)return;
+  const list=stdPdfList(line,prod);
+  if(!list.length){wrap.innerHTML='<div style="color:var(--tx3);font-size:13px">업로드된 PDF가 없습니다</div>';return;}
+  const labels=stdPdfLabels(list);
+  wrap.innerHTML=list.map(it=>`<div style="display:flex;align-items:center;gap:4px;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;padding:4px 8px">
+    <button type="button" class="ibtn-sm" onclick="viewStdPdf('${esc(line)}','${esc(prod)}','${it.id}')">${esc(labels[it.id])}</button>
+    <button type="button" class="ibtn-sm del-sm" onclick="deleteStdPdf('${esc(line)}','${esc(prod)}','${it.id}')">✕</button>
+  </div>`).join('');
+}
+function uploadStdPdf(){
+  const ov=document.getElementById('stdPdfMgrOverlay');if(!ov)return;
+  const line=ov.dataset.line,prod=ov.dataset.prod;
+  const inp=document.getElementById('stdPdfFileInp');
+  const file=inp&&inp.files&&inp.files[0];
+  if(!file){showToast('업로드할 PDF를 선택하세요','warn');return;}
+  if(file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){showToast('PDF 파일만 업로드할 수 있습니다','warn');return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    if(!cfg.stdPdfs)cfg.stdPdfs={};
+    const key=stdPdfKey(line,prod);
+    if(!cfg.stdPdfs[key])cfg.stdPdfs[key]=[];
+    const today=getTodayKey();
+    cfg.stdPdfs[key].push({id:'p'+Date.now()+Math.random().toString(36).slice(2,7),date:today,dataUrl:reader.result,fileName:file.name});
+    saveCfgToFirebase();
+    inp.value='';
+    renderStdPdfMgrList(line,prod);
+    showToast('PDF 업로드됨','ok');
+  };
+  reader.onerror=()=>showToast('PDF 읽기 실패','warn');
+  reader.readAsDataURL(file);
+}
+function deleteStdPdf(line,prod,id){
+  showConfirmPopup('이 PDF를 삭제하시겠습니까?',()=>{
+    const key=stdPdfKey(line,prod);
+    if(cfg.stdPdfs&&cfg.stdPdfs[key]){cfg.stdPdfs[key]=cfg.stdPdfs[key].filter(it=>it.id!==id);}
+    saveCfgToFirebase();
+    renderStdPdfMgrList(line,prod);
+  },'삭제합니다','취소');
+}
+function viewStdPdf(line,prod,id){
+  const list=stdPdfList(line,prod);
+  const it=list.find(x=>x.id===id);if(!it)return;
+  const w=window.open(it.dataUrl,'_blank');
+  if(!w)showToast('팝업이 차단되었습니다. 브라우저에서 팝업을 허용해주세요','warn');
+}
+// ─── 대시보드의 "검사구 사용표준" 버튼 — 현재 선택된 라인/제품의 PDF를 팝업으로 조회 ───
+let dashStdPdfSel=null;
+function openDashStdPdfPopup(){
+  const list=stdPdfList(curLine,curProd);
+  if(!list.length){showToast('업로드된 검사구 사용표준이 없습니다 (규격 설정 > 사용표준 에서 업로드)','warn');return;}
+  const sorted=[...list].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  dashStdPdfSel=sorted[0].id;
+  renderDashStdPdfBtns();
+  document.getElementById('dashStdPdfModal').classList.add('open');
+}
+function closeDashStdPdfPopup(){document.getElementById('dashStdPdfModal').classList.remove('open');}
+function renderDashStdPdfBtns(){
+  const wrap=document.getElementById('dashStdPdfBtns');if(!wrap)return;
+  const list=stdPdfList(curLine,curProd);
+  const sorted=[...list].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  const labels=stdPdfLabels(sorted);
+  wrap.innerHTML=sorted.map(it=>`<button type="button" class="ibtn-sm" style="${it.id===dashStdPdfSel?'border-color:var(--acc);color:var(--acc)':''}" onclick="selectDashStdPdf('${it.id}')">${esc(labels[it.id])}</button>`).join('');
+  const cur=sorted.find(x=>x.id===dashStdPdfSel)||sorted[0];
+  const frame=document.getElementById('dashStdPdfFrame');
+  if(frame&&cur)frame.src=cur.dataUrl;
+}
+function selectDashStdPdf(id){dashStdPdfSel=id;renderDashStdPdfBtns();}
+// ─── 대시보드 "측정 데이터" 표 팝업 — 같은 표 내용을 훨씬 큰 글자로 보여줌 ───
+function openRawDataPopup(){
+  const head=document.getElementById('rtHead'),body=document.getElementById('rtBody');
+  if(!head||!body)return;
+  document.getElementById('rtHeadPopup').innerHTML=head.innerHTML;
+  document.getElementById('rtBodyPopup').innerHTML=body.innerHTML;
+  document.getElementById('rawDataModal').classList.add('open');
+}
+function closeRawDataPopup(){document.getElementById('rawDataModal').classList.remove('open');}
+document.getElementById('rawDataModal').addEventListener('click',(e)=>{if(e.target.id==='rawDataModal')closeRawDataPopup();});
 function enhancedBtnHtml(line,prod){
   const ps=getProdSettings(line,prod);
   const uid=`ei_${safeId(line)}_${safeId(prod)}`;
@@ -2076,7 +2284,7 @@ function modeBtnHtml(line,prod){
     return `<label class="msel-opt" style="display:block"><input type="checkbox" value="${esc(d)}" ${checked?'checked':''} onchange="onDimModeCheck('${esc(line)}','${esc(prod)}',this)" style="margin-right:6px">${esc(d)}</label>`;
   }).join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">USL 또는 LSL이 입력된 치수가 없습니다</div>';
   const panel=`<div style="padding:5px 8px;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--bdr);margin-bottom:4px;line-height:1.4">선택한 치수들은 X bar R 관리도가 적용됩니다</div>${checks}`;
-  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn${anyXbarr?' on':''}" onclick="toggleMsel('${uid}')">${esc(btnText)}</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${panel}</div></div>`;
+  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn${anyXbarr?' on':''}" style="text-align:left;padding-left:8px" onclick="toggleMsel('${uid}')">${esc(btnText)}</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${panel}</div></div>`;
 }
 // 치수 하나의 실측 데이터를, 그 치수에 지금 적용된 관리도 종류(I-MR/X bar R) 기준으로 완성/미완성 재분류
 function reclassifyDim(line,prod,dim){
@@ -2122,7 +2330,7 @@ function setProdRule(line,prod,rule){
 // 배정 인원 수 대신 이름을 직접 보여줌 — 2명 이상이면 "첫번째이름 외"
 function adminAssignLabel(line,prod){
   const names=cfg.assignments.filter(x=>x.line===line&&x.prod===prod).map(x=>x.admin);
-  if(!names.length)return '관리자 선택...';
+  if(!names.length)return '선택...';
   if(names.length===1)return names[0];
   return `${names[0]} 외`;
 }
@@ -2133,7 +2341,7 @@ function adminMselHtml(line,prod){
     const checked=cfg.assignments.some(x=>x.admin===a.name&&x.line===line&&x.prod===prod);
     return `<label><input type="checkbox" value="${esc(a.name)}" ${checked?'checked':''} onchange="onSpecAdminCheck('${esc(line)}','${esc(prod)}',this)"> ${esc(a.name)}</label>`;
   }).join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">등록된 관리자 없음</div>';
-  return `<div class="msel" id="msel_wrap_${uid}" style="width:100%"><button type="button" class="spec-pbtn" style="width:100%" onclick="toggleMsel('${uid}')"><span id="msel_label_${uid}">${esc(label)}</span></button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${checks}</div></div>`;
+  return `<div class="msel" id="msel_wrap_${uid}" style="width:100%"><button type="button" class="spec-pbtn" style="width:100%;text-align:left;padding-left:6px;overflow:hidden;text-overflow:ellipsis" onclick="toggleMsel('${uid}')"><span id="msel_label_${uid}">${esc(label)}</span></button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${checks}</div></div>`;
 }
 function onSpecAdminCheck(line,prod,checkboxEl){
   const adminName=checkboxEl.value;
@@ -2178,13 +2386,24 @@ function specCellHtml(sl,p,d){
   const ids=`'${esc(sl)}','${esc(p)}','${esc(d)}'`;
   const nav=slot=>`onkeydown="specArrowNav(event,${ids},'${slot}')"`;
   return `<td><div class="spec-cell">
-    <input id="spu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${uslVal}" placeholder="USL" oninput="onUslLslInput(${ids})" ${nav('u')}>
+    <input id="spu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${uslVal}" placeholder="USL" oninput="onUslLslInput(${ids})" onfocus="this.dataset.prevVal=this.value" onblur="validateUslLsl(${ids},this)" ${nav('u')}>
     <input id="scu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${uclVal}" placeholder="UCL"${uclDisabled?' disabled':''} ${nav('cu')}>
     <div class="sc-date">${uclDateTxt}</div>
-    <input id="spl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${lslVal}" placeholder="LSL" oninput="onUslLslInput(${ids})" ${nav('l')}>
+    <input id="spl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${lslVal}" placeholder="LSL" oninput="onUslLslInput(${ids})" onfocus="this.dataset.prevVal=this.value" onblur="validateUslLsl(${ids},this)" ${nav('l')}>
     <input id="scl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${lclVal}" placeholder="LCL"${lclDisabled?' disabled':''} ${nav('cl')}>
     <div class="sc-date">${lclDateTxt}</div>
   </div></td>`;
+}
+// USL 이 LSL 보다 작게 입력되지 않도록 방지 (헷갈려서 반대로 입력하는 것을 방지)
+function validateUslLsl(sl,p,d,el){
+  const uslEl=document.getElementById(`spu_${sl}_${p}_${d}`),lslEl=document.getElementById(`spl_${sl}_${p}_${d}`);
+  if(!uslEl||!lslEl)return;
+  const usl=uslEl.value.trim()!==''?parseFloat(uslEl.value):null;
+  const lsl=lslEl.value.trim()!==''?parseFloat(lslEl.value):null;
+  if(usl!=null&&lsl!=null&&!isNaN(usl)&&!isNaN(lsl)&&usl<lsl){
+    alert('USL 은 LSL 보다 작을 수 없습니다');
+    if(el){el.value=el.dataset.prevVal||'';onUslLslInput(sl,p,d);}
+  }
 }
 // USL/UCL/LSL/LCL 칸: 방향키로 다른 제품(행)·다른 치수(열)로 이동(엑셀 스타일),
 // Tab키는 화면 배치(USL·UCL 위, LSL·LCL 아래)와 상관없이 USL→LSL→UCL→LCL 순서로 이동
@@ -2414,7 +2633,7 @@ function renderAlerts(){
     const mySet=new Set(cfg.assignments.filter(x=>x.admin===a.name).map(x=>`${x.line}__${x.prod}`));
     const items=allProdItemsSorted(mySet);
     const label=mySet.size?`${mySet.size}개 제품 배정됨`:'제품 선택...';
-    const checks=items.map(it=>`<label><input type="checkbox" value="${esc(it.key)}" ${mySet.has(it.key)?'checked':''} onchange="onAdminProdCheck(${i},this)"> ${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?'('+esc(cfg.prodNames[it.prod])+')':''}</label>`).join('');
+    const checks=items.map(it=>`<label><input type="checkbox" value="${esc(it.key)}" ${mySet.has(it.key)?'checked':''} onchange="onAdminProdCheck(${i},this)"> ${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?' ( '+esc(cfg.prodNames[it.prod])+' )':''}</label>`).join('');
     return `<div class="item-row" style="align-items:center;cursor:default">
       <button class="ibtn-sm" onclick="renameAdminName(${i})">수정</button>
       <span class="item-name" style="flex:0 0 74px">${esc(a.name)}</span>
@@ -2434,7 +2653,7 @@ function renderAlerts(){
     <input id="addAdmEmail" placeholder="이메일 (예: name@company.com)">
     <button class="add-btn" onclick="addAdmin()">+ 추가</button>
   </div>
-  <div class="col-h" style="margin-top:14px">미배정 제품 확인</div>
+  <div class="col-h" style="margin-top:40px">미배정 제품 확인</div>
   ${renderUnassignedList()}`;
 }
 function safeId(s){return String(s).replace(/[^a-zA-Z0-9]/g,'_');}
