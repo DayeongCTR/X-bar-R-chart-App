@@ -1,4 +1,116 @@
 <!DOCTYPE html>
+<!--
+리비전 이력
+r2 (설정-라인/제품/치수 목록 UI 정리, 1단계):
+  - 라인/품번/치수 리스트의 드래그 핸들(⠿) 및 수동 순서변경 기능 제거
+  - X 삭제 버튼 클릭 시 즉시 삭제 대신 커스텀 확인 팝업("삭제합니다"/"취소") 표시
+  - 라인 목록, 품번/품명 목록: "수정" 버튼 방식 → 칸을 직접 클릭해 바로 수정하는 방식으로 변경
+  - 치수 목록: "수정" 버튼은 유지하되, 이름 변경 시 안내 문구 변경 + 기존 규격/측정데이터를 새 이름으로 실제 이전(migration)하도록 수정
+  - 설정창(⚙) 바깥을 클릭해도 더 이상 닫히지 않도록 변경 (✕/닫기 버튼으로만 닫힘)
+  - 알림 발송 관리자 목록: [수정/이름/수정/메일주소/배정제품] 순서로 재배치, 이름 칸 폭 축소(약 18%) → 배정제품 선택란 확장
+  - 로데이터 편집 삭제(휴지통) 아이콘 색상을 빨간색 → 일반 텍스트 색상으로 변경
+rev3 (측정칸 이름 변경 + 측정자란, 2단계):
+  - 측정값 입력 칸 라벨 x1~x6 → 주간 초품/중품/종품, 야간 초품/중품/종품 으로 변경
+    (대시보드 입력 그리드, 대시보드 하단 요약표, 로데이터 편집, Excel 내보내기 전부 반영 — 저장되는 값 자체의 구조는 그대로라 기존 데이터와 호환됨)
+  - 대시보드 왼쪽 패널 폭 280px → 330px 로 확장 (긴 라벨 + 측정자란 공간 확보)
+  - 측정값 입력칸마다 옆에 "측정자" 입력란 추가
+    · 빈 칸일 땐 "측정자" 안내문구 표시, 클릭하면 문구가 사라짐, 입력한 값만 남음
+    · 값(수치)을 입력하는 순간 측정자란이 비어있으면 "마지막으로 쓰던 측정자 이름"이 자동으로 채워짐 (그 칸을 클릭해 바로 수정 가능)
+    · 콤보(입력 가능한 드롭다운): 같은 라인에서 지금까지 입력된 적 있는 모든 이름이 목록으로 뜨고, 골라도 되고 새로 입력해도 됨 (새 이름은 다음부터 자동으로 목록에 추가)
+  - 로데이터 편집: 6개 측정값 열 뒤에 6개 측정자 열 추가 (날짜 / 값6개 / 측정자6개 순서), 칸 너비는 그대로 두고 가로 스크롤만 생기도록 처리
+  ※ 표시 군→군 개수 명칭 변경, Pp/Ppk, I-MR 전환 시 좌측 표 I/R 표기, 일반설정 전면개편, 규격설정 4버튼, 하루 2회 다이제스트 메일, 분석 멀티차트 화면 등은
+    3~5단계에서 순차 진행 예정 (자세한 내용은 대화 내용 참고)
+rev4 (일반설정 3단 구성 + Pp/Ppk + 데이터부족 팝업, 3단계):
+  - 일반설정을 I-MR 관리도 / X bar R 관리도 / 공정능력 분석 3단으로 재구성, 각 단마다 표시날짜범위(가장 최신 날짜 기준/첫 번째 날짜 기준/마지막 날짜 기준) + 군 개수(+X̄-R만 군 크기)를 한 줄에 배치
+    · 각 단 아래에 권장 조건 안내문구 표시, 조건 미달 시(I-MR·X̄-R: 군개수 19이하 또는 군크기 2이하 / 공정능력: 군개수 125미만) 안내문구가 흐린 색→일반 텍스트색으로 눈에 띄게 바뀜
+    · "선택한 날짜(...)에서부터/로부터 군 크기 n 이상의 군으로 k개를 조회할 수 있습니다" 형태의 설명 문구가 입력값 변경과 동시에 실시간으로 갱신됨
+    · 기본값: I-MR 군개수 25 / X̄-R 군개수 25·군크기 3 / 공정능력 군개수 125
+  - 대시보드 좌측 표에 Pp, Ppk 행 추가 (공정능력 설정의 군 개수·날짜범위 조건에 따라 개별 실측값을 모아 산출)
+  - 라인/품번/치수를 선택하는 즉시, 그리고 설정 저장 후 창을 닫는 순간 데이터가 부족하면 자동 소멸(10초)되는 안내 팝업 표시 (X̄-R 관리도 및 Pp/Ppk 대상, 닫기 버튼 있음, 여러 조건 미달 시 한 팝업에 같이 표시)
+  - "표시 군" → "군 개수"로 명칭 통일, "가장 최신 날짜" → "가장 최신 날짜 기준"으로 통일
+  ※ I-MR 계산엔진 자체(개별값·이동범위 기반 관리도), 제품별 관리도 종류·룰레벨·검사강화 저장구조, 규격설정 4버튼, UCL/LCL 수동입력,
+    하루 2회 다이제스트 메일, p-value, 분석 멀티차트 화면은 4~5단계에서 진행 예정
+rev5 (규격설정 4버튼 + I-MR 엔진 + 룰레벨/UCL·LCL, 4단계):
+  - 제품(라인+품번) 단위 설정 구조 신설(cfg.prodSettings) — 관리도 종류(I-MR/X̄-R)·룰레벨(1/8)·검사강화 여부를 치수와 무관하게 제품 전체에 적용
+  - 규격설정 표: "복제" 칸을 2x2 버튼(복제하기/검사강화/관리도/룰적용)으로 확장, 오른쪽에 관리자 배정 칸 추가
+    · 관리자 배정은 알림발송 탭의 cfg.assignments를 그대로 공유 — 어느 쪽에서 선택해도 서로 자동 반영
+    · 검사강화 "초중종마다 2개" 선택 시 측정칸 6→12개로 전환 (주간초품#1/#2... 형태), 대시보드/로데이터/Excel 전부 연동
+    · 관리도 버튼으로 제품별 I-MR ↔ X bar R 전환 (신규 제품 기본값은 항상 I-MR)
+    · 룰적용 버튼으로 제품별 룰1만/룰8까지 전환
+  - 치수별 USL/LSL 칸에 UCL/LCL 입력 + 마지막 설정일 자동표시 추가. USL 없으면 UCL 입력 자체가 막히고(LSL/LCL도 동일), 룰1 적용 + 해당 값이 있을 때만 UCL/LCL을 관리한계로 사용 (그 외엔 항상 통계 산출값)
+  - I-MR 계산엔진 신설 — 개별값(I)·이동범위(MR) 기반 UCL/LCL 산출, 대시보드가 제품 설정에 따라 X̄-R/I-MR 계산·표시를 자동 전환
+    · 좌측 표 라벨이 I-MR일 때 X̄̄→I̅, UCL(X̄)→UCL(I) 등으로 자동 전환, 군 크기 자리엔 "개별값" 표시
+    · 하단 표도 I-MR일 때 [날짜/입력된 것/I/R] 형태의 목록형으로 전환 (첫 날은 이전 데이터가 없어 R 비어있음)
+    · I-MR 제품은 하루 1개 값만 있어도 "완성"으로 처리 (X̄-R 군크기 설정과 무관) — 관리도 전환 시 기존 데이터도 새 기준으로 재분류됨
+  - index.js도 동일한 로직(I-MR 계산·룰레벨 필터·UCL/LCL 수동override)을 반영해서 이메일 내용이 화면과 항상 일치하도록 갱신
+  ※ 아직 남은 것: 20분 임시설정(PC별), Pp/Ppk·p-value 미달 시 하루 2회(10시/15시) 다이제스트 메일, 분석 화면(멀티라인 카드형 차트), p-value(정규성 검정) 산출
+  ※ 알려진 제한사항: 제품의 관리도 종류를 변경하면(예: X̄-R→I-MR) 그 시점에 완성/미완성 데이터 재분류가 일어나는데, 이 재분류로 인해
+    아주 드물게(그 제품에 미완성 데이터가 남아있던 상태에서 전환한 경우) 실제 새 값 입력 없이도 다음 저장 시점에 메일이 한 번 더 나갈 수 있음
+rev6 (20분 임시설정 + Pp/Ppk·p-value 다이제스트 + 분석 화면, 5단계):
+  - 일반설정(군크기/군개수/표시날짜범위)이 기본값(군개수25·군크기3 등)과 다르게 저장되면, 이 브라우저에서만 20분간 적용되고 자동으로
+    기본값으로 되돌아감. Firebase에는 항상 기본값만 저장되어 다른 PC나 새로고침에는 전혀 영향 없음
+  - Anderson-Darling 정규성 검정으로 p-value 산출, 대시보드 좌측 표에 Pp/Ppk 아래 한 줄 추가 (Pp·Ppk 1.33 미만, p-value 0.05 미만이면 빨간색 강조)
+  - index.js에 하루 2회(오전 10시·오후 3시, 한국시간) 다이제스트 메일 함수(dailyDigest) 신설 — 그 시점 기준으로 룰 위반·Pp 부족·Ppk 부족·p-value 부족 중
+    하나라도 있는 라인/제품/치수를 관리자별로 모아 표 형태 메일 한 통으로 발송 (기존 실시간 룰위반 메일과는 별개로 동작)
+  - 대시보드에 "분석" 버튼 추가(설정 버튼보다 좁게) — 전체화면 팝업에서 라인/제품/치수를 각각 전체/특정 선택해 조건에 맞는 조합을 체크박스 목록으로 인출하고,
+    여러 개를 동시에 선택하면 오른쪽에 카드 형태로 각 조합의 관리도가 동시에 표시됨 (X̄-R/I-MR 제품 섞여도 각자 방식대로 표시)
+  ※ 분석 화면의 카드 차트는 대시보드 메인 차트보다 단순화된 버전입니다 (넬슨 룰 위반 강조·존 음영 없이 UCL/CL/LCL 참조선 + 데이터만 표시) — 여러 개를 한 화면에
+    띄우면서 무거워지는 것을 막기 위한 절충입니다. 상세 분석은 기존처럼 메인 대시보드에서 확인해주세요.
+rev7 (대시보드/분석/설정 전면 개선, 6단계):
+  - 대시보드: 측정 라벨 세로줄바꿈 방지, 날짜입력 폭을 측정값+측정자 폭에 맞춤, 입력칸 ✕버튼/날짜옆 저장버튼 제거(부분입력도 자동저장되도록 보강),
+    측정자 미입력 상태로 값만 있으면 진행바 빨간색, 이전(과거) 날짜 조회 시 값은 보이되 수정은 잠김, 설정/분석 버튼 폭 통일
+  - I-MR 하단 표를 X̄-R 표와 완전히 같은 레이아웃(날짜=열, 관리도 x축과 정렬)으로 전환 — 행만 [구분/I/R]로 다름
+  - 분석(다중 카드) 화면: 차트가 무한히 세로로 늘어나던 버그 수정, 좌측 패널 폭 확대 및 라인/제품/치수 인라인 배치, Ppk 표시, 카드 드래그로 순서 변경,
+    기간 설정 + "미생성 날짜 포함" 옵션 추가
+  - 일반설정: 첫번째/마지막 날짜기준 탭이 넘쳐서 안 눌리던 버그 수정, 안내문구를 호버 툴팁(ⓘ)으로 정리
+  - 라인/제품/치수 목록: 치수 "수정" 버튼이 브라우저 prompt() 차단으로 안 먹던 문제를 인라인 입력+자체 확인팝업으로 교체
+  - 규격설정: 틀고정 열 폭/오프셋 정밀화, 열 사이 세로 구분선, 머릿말까지 틀고정, 드롭다운이 다른 행 뒤에 숨던 z-index 버그 수정, USL/UCL/LSL/LCL 방향키로 다른 제품·치수 이동
+  - 로데이터 편집: 측정자 열 머릿말 축약("주간 초품 측정자"→"주초 작업자")
+  - 알림발송: 관리자 이메일이 특정 도메인(@ctr.co.kr)으로만 제한되어 있던 것을 일반 이메일 형식이면 허용하도록 완화, 미배정 목록 표기/스크롤 정리
+rev8 (버그 수정 + 로데이터 엑셀 양식/업로드, 7단계):
+  - 일반설정: 첫번째/마지막 날짜기준을 눌러도 즉시 원래 값으로 되돌아가던 버그 수정(화면을 다시 그릴 때마다 상태가 초기화되고 있었음),
+    그 캘린더 선택란을 해당 날짜기준 버튼 바로 아래에 그 버튼과 같은 폭으로 배치
+  - 측정값 입력칸/측정 데이터 표/관리도 이탈 규칙 버튼 등에 쓰이던 글꼴이 한글에서 굴림체로 깨지던 문제 수정
+  - I-MR모드일 때 차트 제목 표시(I 관리도), 하단표 "주간/초품" 두 줄 표시, "개별값 1" 표시 제거(군개수만 표시), R 관리도 y축 음수 제거
+  - 좌측 통계표 p-value 값 위치를 USL/Ppk와 같은 열로 정렬, 룰 1만 적용 시 룰2~8 버튼을 거의 안 보이게 처리
+  - 데이터부족 안내 팝업 문구의 불필요한 빈 줄 제거, 폭 확대·자동소멸 시간 단축·반투명 어두운 붉은톤으로 스타일 변경
+  - 대시보드에서 부분 입력(완성 기준 미달)이 자동저장되지 않던 버그 수정
+  - 분석 화면: 라인/제품/치수/기간 줄간격 축소, "미생성 날짜 포함"을 기간 옆 "모든 날짜" 토글 버튼으로 변경, USL/LSL 참조선 추가,
+    카드 캔버스 id가 한글 치수명 충돌로 서로 다른 카드가 뒤섞이던 버그 수정, 4×4 그리드로 조정, 축 라벨 글꼴/회전 개선
+  - 로데이터 편집: 엑셀 양식/업로드 버튼 추가(양식 2시트: shift당 3개/6개), 검사강화(#1/#2) 시 측정자 입력을 페어당 1칸으로 통합(대시보드·로데이터·엑셀 공통)
+rev9 (치수 단위 X bar R 선택 + 세부 버그, 8단계):
+  - 관리자 배정 표시를 "N명 배정됨" 대신 이름으로 직접 표시(2명 이상이면 "OOO 외") — 규격설정/미배정 제품확인 공통
+  - 규격설정 틀고정 열이 스크롤 시 미세하게 흔들리던 현상 완화(GPU 합성 레이어 강제)
+  - 로데이터 저장 엑셀: USL/UCL/X̄̄/R̄/LCL/LSL/n/군개수를 A열 1행부터 배치, 표(머릿말+실제 데이터)는 그 아래 10행부터 시작
+  - 대시보드 좌측 통계표: I-MR은 군개수·p-value를 Pp/Ppk처럼 한 줄에(군개수 먼저) 표시, X̄-R은 p-value를 별도 줄(3·4번째 칸)에 표시하고 마지막 줄을 군개수·군크기 순서로 변경
+  - 라인/제품/치수 설정: "선택 라인"을 "품번/품명 목록" 제목 줄로 이동, 새 라인 추가 줄과 목록 사이 여백 확보
+  - 규격설정: 제품 전체가 아니라 치수 단위로 I-MR/X bar R을 선택할 수 있도록 변경 — "X bar R 관리도..." 클릭 시 그 제품의 USL/LSL이 있는 치수 목록이 체크박스로 뜨고, 체크한 치수만 X bar R로 전환(cfg.specs[key].mode로 치수별 override 저장, 없으면 제품 기본값 사용)
+  - 검사강화를 나중에 꺼도 로데이터 표가 과거 12칸(#1/#2) 실적을 자동 감지해 계속 넓게 보여주도록 수정(실적 손실 없음)
+  - 분석 화면: 라인/제품/치수 줄간격을 대시보드 좌측과 동일하게(5px) 통일, 기간(날짜~날짜+모든날짜) 총 너비를 위 드롭박스 너비와 맞춤, 카드 우하단 손잡이로 크기 조절 시 전체 카드가 같이 바뀌도록 추가, 드래그로 순서 바꿀 때만 격자 테두리가 옅게 표시되도록 추가
+  ※ 알림 발송(실시간 룰위반 메일, 다이제스트 메일)의 실제 발송 로직은 이 app.html이 아니라 별도의 Firebase Cloud Functions 파일(index.js)에 있으며, 이번 대화에는 포함되어 있지 않음
+rev10 (세부 UI 다듬기 + 분석 카드 자유배치, 9단계):
+  - 라인/제품/치수 설정: "품번/품명 목록" 옆에 라벨 없이 라인 선택 드롭박스만 붙이고 남는 폭 전부 사용(괄호 표기 제거)
+  - 규격설정: USL/UCL/LSL/LCL 입력 시 Tab 순서를 USL→LSL→UCL→LCL(다음 치수 USL…)로 변경(칸 배치도 스펙 한계/관리 한계로 재정렬)
+  - 규격설정 관리자 선택 버튼을 복제하기 버튼과 같은 스타일(spec-pbtn)로 통일
+  - 규격설정 관리도 버튼: 관리자 선택처럼 드롭다운 안에 체크박스로 치수별 X bar R 전환(안내문구 포함), 하나라도 X bar R이면 버튼 이름이 "일부 X bar R"로 표시
+  - 알림발송 미배정 제품확인 목록을 줄 구분선 대신 치수 목록과 같은 카드형(item-row) 레이아웃으로 변경
+  - 알림발송 관리자 추가 줄: 이름 입력칸 폭을 윗줄 이메일 수정 버튼 왼쪽까지 맞추고, 이메일란 폭 10% 확대
+  - 분석 화면: 라인/제품/치수 줄 간격이 안 좁혀지던 원인(부모 컨테이너의 별도 gap)을 찾아 대시보드 좌측과 동일하게 수정, 기간(날짜~날짜+버튼) 총 너비를 위 드롭박스 너비에 맞춤, "미생성 날짜 포함" 버튼을 "미생성일 포함"으로 이름 변경
+  - 분석 카드를 격자 기반 자유배치로 전면 개편 — 카드를 원하는 칸(예: 4사분면, 3사분면)에 직접 끌어놓을 수 있고, 우하단 손잡이로 가로·세로(대각선) 동시 크기 조절 시 전체 카드가 같이 바뀜, 기본 크기를 기존의 1.8배로 확대, 카드 제목을 "라인 / 품번 (품명) / 치수" 세 줄로 표시(왼쪽 선택 목록은 한 줄 그대로)
+rev11 (분석 카드 스크롤 버그 수정 + 규격설정 세부 조정, 8단계):
+  - 분석 카드 확대 시 스크롤바가 카드 뒤로 숨던 진짜 원인 발견: 카드를 담는 요소와 스크롤 뷰포트 요소가 같은 DOM 노드였음 — 뷰포트(#analysisCards)와 카드 콘텐츠(#analysisCardsInner)를 분리해서 스크롤바가 항상 화면 안에 보이도록 수정
+  - 분석 카드 크기 조절 손잡이 히트 영역을 14px→32px로 확대하고 반투명 아이콘으로 변경
+  - 분석 화면 라인/제품/치수 드롭박스의 줄간격·글자크기·패딩을 대시보드 좌측과 완전히 동일하게(너비만 다름)
+  - 규격설정 USL/UCL/LSL/LCL: 지난 턴에 화면 배치까지 바꿔버린 것을 원래 배치(USL·UCL 위, LSL·LCL 아래)로 되돌리고, Tab 키 이동 순서만 USL→LSL→UCL→LCL이 되도록 키보드 이벤트로 직접 처리
+  - 규격설정 표: border-collapse를 separate 방식으로 바꿔서 스크롤 시 틀고정 열이 미세하게 흔들리거나 열 사이로 뒷 레이어가 비치던 문제를 근본적으로 수정
+  - 규격설정 관리자 선택 드롭다운 폭을 이름 길이에 맞게(고정 240px→내용 기반), 체크박스-이름 간격을 flex로 정리
+  - 규격설정 USL/LSL 설정일 표시를 "설정일 2026-09-11"에서 "26.09.11"만 남기고 UCL/LCL 옆(오른쪽)으로 이동, 라인 선택 옆에 안내 아이콘(ⓘ) 추가
+  - 로데이터 편집 "엑셀 양식" 버튼을 초록색(엑셀 업로드/저장)이 아닌 "행 추가" 버튼과 같은 스타일로 변경
+  - 알림발송 드롭다운 화살표를 역삼각형에서 얇은 화살표(체브론)로 변경, 이메일란 폭 5% 추가 확대
+rev12 (분석 카드 미표시 버그 + 규격설정 관리자열 미세 흔들림, 2단계):
+  - 분석 화면 다중 선택 시 그래프가 안 뜨던(하나만 보이던) 원인: 카드 목록을 그릴 때 뷰포트 요소(#analysisCards)에 직접 innerHTML을 써서 그 안의 콘텐츠 요소(#analysisCardsInner)째로 지워버리고 있었음 — 카드는 반드시 #analysisCardsInner 쪽에 그리도록 수정, 이제 위치 계산(layoutAnaCards)도 정상 동작
+  - 규격설정 관리자열만 스크롤할 때 미세하게 흔들리던 원인: 틀고정 열 폭(133px/132px/90px)이 CSS 기본값(content-box)이라 패딩·테두리만큼 실제 렌더링 폭이 더 넓어져 있었음(구분·설정열은 우연히 덜 두드러졌던 것) — box-sizing:border-box로 통일해서 지정한 폭과 실제 폭이 정확히 일치하도록 수정
+-->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -26,7 +138,8 @@ const FB_DB_URL = firebaseConfig.databaseURL;
   --acc:#58a6ff;--red:#f85149;--grn:#3fb950;--yel:#d29922;
   --tx:#ffffff;--tx2:#dddddd;--tx3:#aaaaaa;
   --ucl:#ff6b6b;--cl:#4ade80;--lcl:#60a5fa;
-  --r:6px;--font:system-ui,-apple-system,sans-serif;--mono:'Courier New',monospace;
+  --r:6px;--font:system-ui,-apple-system,sans-serif;--mono:'Courier New',Consolas,'Malgun Gothic',system-ui,monospace;
+  --lblw:64px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -34,7 +147,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .outer{flex:1;display:flex;overflow:hidden;min-height:0}
 
 /* LEFT */
-.left{width:280px;min-width:260px;flex-shrink:0;background:var(--sur);border-right:2px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden}
+.left{width:330px;min-width:310px;flex-shrink:0;background:var(--sur);border-right:2px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden}
 .mini-dash{background:#0a0e14;border-bottom:2px solid var(--bdr);padding:8px 10px;display:flex;flex-direction:column;gap:5px;flex-shrink:0}
 .md-row{display:flex;gap:5px;align-items:center}
 .md-lbl{font-size:12px;color:var(--tx3);font-weight:700;white-space:nowrap;min-width:32px}
@@ -46,7 +159,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .stat-tbl td{padding:3px 6px;border:1px solid var(--bdr);white-space:nowrap}
 .stat-tbl .st-lbl{color:var(--tx3);background:var(--sur3);font-size:11px;text-align:right;font-weight:700;width:50%}
 .stat-tbl .st-v{font-family:var(--mono);font-weight:700;font-size:13px;text-align:center}
-.sv-ucl{color:var(--ucl)}.sv-cl{color:var(--cl)}.sv-lcl{color:var(--lcl)}.sv-spec{color:#e879f9}.sv-n{color:var(--acc)}
+.sv-ucl{color:var(--ucl)}.sv-cl{color:var(--cl)}.sv-lcl{color:var(--lcl)}.sv-spec{color:#e879f9}.sv-n{color:var(--acc)}.sv-warn{color:var(--red)!important}
 
 .md-btns{display:flex;gap:4px;margin-top:2px}
 .md-btn{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx2);cursor:pointer;font-size:14px;font-weight:600;padding:5px 10px;white-space:nowrap}
@@ -62,15 +175,16 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .today-btn{background:#334155;border:1px solid #556;border-radius:4px;color:#fff;cursor:pointer;font-size:11px;padding:4px 7px;white-space:nowrap}
 .today-btn:hover{background:#475569}
 
-.mrow{display:grid;grid-template-columns:26px 1fr 44px;gap:4px;align-items:center;margin-bottom:4px}
-.mlbl{font-size:13px;color:#aaa;font-weight:700;text-align:right;font-family:var(--mono)}
+.mrow{display:grid;grid-template-columns:var(--lblw) 1fr 1fr;gap:3px;align-items:center;margin-bottom:4px}
+.mrow-pair{grid-template-columns:var(--lblw) 1fr 1fr 1fr}
+.mlbl{font-size:11px;color:#aaa;font-weight:700;text-align:right;font-family:var(--mono);line-height:1.15;white-space:nowrap;overflow:hidden}
 .mrow input{background:#fff;border:1.5px solid #888;border-radius:4px;color:#111;padding:5px 7px;font-size:14px;font-family:var(--mono);width:100%;-moz-appearance:textfield}
 .mrow input::-webkit-inner-spin-button,.mrow input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .mrow input:focus{outline:none;border-color:#3b82f6}
-.clrb{background:transparent;border:none;color:#888;cursor:pointer;font-size:13px;padding:0}
-.clrb:hover{color:var(--red)}
+.mrow input.ro-locked{background:#e2e5ea;color:#666;cursor:not-allowed}
 .prog-wrap{background:var(--sur3);border-radius:3px;height:4px;margin-top:8px;overflow:hidden}
-.prog-fill{height:100%;border-radius:3px;background:var(--grn);transition:width .3s}
+.prog-fill{height:100%;border-radius:3px;background:var(--grn);transition:width .3s,background .2s}
+.prog-fill.warn{background:var(--red)}
 .prog-lbl{font-size:12px;color:var(--tx3);margin-top:3px}
 .pend-note{background:#1c180a;border:1px solid var(--yel);border-radius:4px;color:var(--yel);font-size:11px;padding:6px 8px;margin-top:6px;display:none;line-height:1.4}
 .act-row{display:flex;gap:5px;margin-top:8px}
@@ -89,6 +203,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .nb:hover{border-color:var(--acc)}.nb .nn{font-size:13px;font-weight:800}.nb .ns{font-size:10px;letter-spacing:.3px;text-align:center}
 .nb.ok{background:#0d2818;border-color:var(--grn);color:var(--grn)}
 .nb.viol{background:#2d0a09;border-color:var(--red);color:var(--red);animation:pb 1.5s infinite}
+.nb.off{background:transparent;border-color:var(--bdr);color:var(--tx3);opacity:.28}
+.nb.off:hover{opacity:.55}
 .nb.hl{box-shadow:0 0 0 2px #fff,0 0 8px rgba(255,255,255,.4)!important}
 @keyframes pb{0%,100%{box-shadow:0 0 0 0 rgba(248,81,73,.6)}50%{box-shadow:0 0 0 5px rgba(248,81,73,0)}}
 .ci{flex:1;display:flex;flex-direction:column;padding:9px 11px;min-width:0}
@@ -106,6 +222,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .ts{overflow-x:auto}
 .rt{border-collapse:collapse;font-size:11px;font-family:var(--mono);table-layout:fixed}
 .rt th{background:var(--sur3);color:var(--tx);font-size:11px;font-weight:700;padding:3px 8px;text-align:center;border:1px solid var(--bdr);white-space:nowrap}
+.rt th.rl{white-space:normal;line-height:1.15;font-size:10px;padding:3px 2px;word-break:keep-all}
 .rt td{padding:2px 8px;text-align:center;border:1px solid var(--bdr);color:var(--tx);white-space:nowrap}
 .rt tr:hover td{background:var(--sur2)}
 .rl{background:var(--sur3)!important;color:var(--tx2);font-weight:700}
@@ -133,6 +250,28 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .cfg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
 .cfg-overlay.open{display:flex}
 .cfg-modal{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;width:800px;max-width:97vw;max-height:92vh;display:flex;flex-direction:column}
+.analysis-modal{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;width:97vw;height:94vh;display:flex;flex-direction:column}
+.analysis-body{flex:1;display:flex;overflow:hidden;padding:14px 20px 20px;gap:14px}
+.analysis-left{width:336px;flex-shrink:0;display:flex;flex-direction:column;gap:5px;overflow:hidden}
+.ana-range-row{display:flex;align-items:center;gap:6px;margin:0}
+.ana-range-row>label{font-size:12px;color:var(--tx3);font-weight:600;white-space:nowrap;flex:0 0 auto}
+.ana-range-fields{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+.ana-range-fields input[type=date]{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:3px 1px;font-size:11px;color-scheme:dark;flex:1 1 60px;min-width:60px}
+.ana-empty-btn{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx3);font-size:11px;padding:4px 9px;cursor:pointer;white-space:nowrap;text-align:center;font-weight:600;flex:0 0 auto}
+.ana-empty-btn.on{background:var(--acc);border-color:var(--acc);color:#0d1117}
+.analysis-list{flex:1;overflow-y:auto;border:1px solid var(--bdr);border-radius:var(--r);padding:4px;background:var(--bg)}
+.ana-item{display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:12.5px;color:var(--tx);cursor:pointer;border-radius:4px}
+.ana-item:hover{background:var(--sur2)}
+.analysis-right{flex:1;overflow:auto;position:relative}
+#analysisCardsInner{position:relative}
+#analysisCardsInner.dragging{background-image:linear-gradient(rgba(88,166,255,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(88,166,255,.28) 1px,transparent 1px);background-size:var(--ana-cell-w,300px) var(--ana-cell-h,270px)}
+.ana-card{position:absolute;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:10px;cursor:grab;box-sizing:border-box;overflow:hidden}
+.ana-card:active{cursor:grabbing}
+.ana-resize-handle{position:absolute;right:0;bottom:0;width:32px;height:32px;cursor:nwse-resize;color:rgba(255,255,255,.35);font-size:20px;display:flex;align-items:flex-end;justify-content:flex-end;padding:2px 4px;user-select:none;z-index:2;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.06) 50%)}
+.ana-resize-handle:hover{color:rgba(255,255,255,.75)}
+.ana-card-title{font-size:12.5px;font-weight:700;color:var(--tx2);margin-bottom:6px;line-height:1.35}
+.ana-drag-handle{color:var(--tx3);margin-right:4px;font-size:12px}
+.ana-card canvas{width:100%!important}
 .cfg-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--bdr)}
 .cfg-head h2{font-size:16px;font-weight:700;color:var(--tx)}
 .cfg-close{background:transparent;border:none;color:var(--tx3);cursor:pointer;font-size:20px;padding:0}
@@ -155,9 +294,25 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .col-section{display:flex;flex-direction:column;gap:6px}
 .col-h{font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:2px}
 .item-list{display:flex;flex-direction:column;gap:3px;border:1px solid var(--bdr);border-radius:4px;padding:4px;min-height:60px;max-height:170px;overflow-y:auto;background:var(--bg)}.item-list.dim-list{max-height:420px}
-.item-row{display:flex;align-items:center;gap:5px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:4px 8px;cursor:grab;user-select:none}
+.item-row{display:flex;align-items:center;gap:5px;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;padding:3px 6px;user-select:none}
 .item-row:active{opacity:.7}
 .item-drag{color:var(--tx3);font-size:15px;flex-shrink:0}
+.item-edit-inp{background:transparent;border:1px solid transparent;border-radius:4px;color:var(--tx);padding:2px 4px;font-size:13px;min-width:0}
+.item-edit-inp:hover{border-color:var(--bdr2)}
+.item-edit-inp:focus{outline:none;background:var(--sur3);border-color:var(--acc)}
+.confirm-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:500}
+.confirm-popup-box{background:#161b22;border:1px solid var(--bdr2);border-radius:10px;padding:20px 22px;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.confirm-popup-msg{color:var(--tx);font-size:14px;line-height:1.6;margin-bottom:16px;white-space:pre-line}
+.confirm-popup-btns{display:flex;gap:8px;justify-content:flex-end}
+.confirm-popup-btn{border:none;border-radius:6px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.confirm-popup-danger{background:var(--red);color:#fff}
+.confirm-popup-cancel{background:var(--sur3);color:var(--tx)}
+.auto-popup-overlay{position:fixed;top:16px;right:16px;z-index:600;display:flex;flex-direction:column;gap:8px;max-width:440px}
+.auto-popup-box{background:rgba(35,14,14,.6);backdrop-filter:blur(3px);border:1px solid #7a2b2b;border-radius:8px;padding:14px 34px 14px 14px;box-shadow:0 8px 30px rgba(0,0,0,.5);position:relative}
+.auto-popup-msg{color:var(--tx);font-size:12.5px;line-height:1.6;white-space:pre-line}
+.auto-popup-msg+.auto-popup-msg{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr)}
+.auto-popup-close{position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--tx3);cursor:pointer;font-size:14px;padding:2px}
+.auto-popup-close:hover{color:var(--tx)}
 .item-name{flex:1;font-size:13px;color:var(--tx)}
 .ibtn-sm{background:transparent;border:1px solid var(--bdr2);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 7px;color:var(--tx2)}
 .ibtn-sm:hover{border-color:var(--acc);color:var(--acc)}
@@ -166,33 +321,61 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .add-row{display:flex;gap:5px;margin-top:4px}
 .add-row input{flex:1;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:5px 9px;font-size:13px}
 .add-btn{background:var(--grn);border:none;border-radius:4px;color:#0d1117;cursor:pointer;font-size:13px;font-weight:700;padding:5px 12px;white-space:nowrap}
-.line-sel-row{display:flex;align-items:center;gap:8px;margin:8px 0 4px}
-.line-sel-row label{font-size:12px;color:var(--tx3);font-weight:600;white-space:nowrap}
-.line-sel-row select{flex:1;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:4px 8px;font-size:13px}
+.line-sel-row{display:flex;align-items:center;gap:5px;margin:0}
+.line-sel-row label{font-size:12px;color:var(--tx3);font-weight:700;white-space:nowrap;min-width:32px}
+.line-sel-row select{flex:1;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:4px 7px;font-size:14px;cursor:pointer;min-width:0}
 .dsel{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:6px 10px;font-size:14px}
 .dsel option{background:#1a2030}
 .msel{position:relative;display:inline-block}
 .msel-btn{display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;width:100%}
-.msel-panel{position:absolute;top:calc(100% + 2px);left:0;z-index:80;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;max-height:390px;overflow-y:auto;width:240px;padding:4px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
-.msel-panel label{display:block;padding:4px 6px;font-size:13px;color:var(--tx);cursor:pointer;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsel-arrow{display:inline-block;width:7px;height:7px;border-right:1.5px solid var(--tx3);border-bottom:1.5px solid var(--tx3);transform:rotate(45deg) translateY(-2px);flex:0 0 auto}
+.msel-panel{position:absolute;top:calc(100% + 2px);left:0;z-index:80;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;max-height:390px;overflow-y:auto;width:max-content;min-width:120px;max-width:260px;padding:4px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.msel-panel label{display:flex;align-items:center;gap:6px;padding:4px 6px;font-size:13px;color:var(--tx);cursor:pointer;border-radius:3px;white-space:nowrap}
 .msel-panel label:hover{background:var(--sur3)}
-.msel-panel input[type=checkbox]{margin-right:6px}
 
 /* SPEC MATRIX */
-.smt{border-collapse:collapse;min-width:100%}
-.smt th,.smt td{border:1px solid var(--bdr);padding:4px 10px;text-align:center;font-size:13px}
+.smt{border-collapse:separate;border-spacing:0;min-width:100%}
+.smt th,.smt td{border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:4px 10px;text-align:center;font-size:13px;box-sizing:border-box}
+.smt tr>*:first-child{border-left:1px solid var(--bdr)}
+.smt thead tr:first-child>*{border-top:1px solid var(--bdr)}
 .smt th{background:var(--sur3);color:var(--tx);font-weight:700}
 .smt td{background:var(--sur2)}
-.smt th:nth-child(1),.smt td:nth-child(1){position:sticky;left:0;z-index:2}
-.smt th:nth-child(2),.smt td:nth-child(2){position:sticky;left:205px;z-index:2}
+.smt thead th{position:sticky;top:0;z-index:4}
+.smt th:nth-child(1),.smt td:nth-child(1){position:sticky;left:0;z-index:3;isolation:isolate;will-change:transform;transform:translateZ(0)}
+.smt th:nth-child(2),.smt td:nth-child(2){position:sticky;left:133px;z-index:3;isolation:isolate;will-change:transform;transform:translateZ(0)}
+.smt th:nth-child(3),.smt td:nth-child(3){position:sticky;left:265px;z-index:3;isolation:isolate;will-change:transform;transform:translateZ(0)}
+.smt thead th:nth-child(1),.smt thead th:nth-child(2),.smt thead th:nth-child(3){z-index:5}
+.smt th:nth-child(n+4),.smt td:nth-child(n+4){border-left:2px solid var(--bdr2)}
 .smt input{background:transparent;border:none;color:var(--tx);font-size:13px;width:70px;text-align:center;padding:2px}
 .smt input:focus{outline:1px solid var(--acc);border-radius:3px}
+.spec-line-select{position:sticky;top:0;z-index:6;background:#161b22;padding-bottom:8px}
+.spec-btn-grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:3px;width:124px;margin:0 auto}
+.spec-pbtn{width:100%;height:100%;background:var(--sur3);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);font-size:10.5px;padding:5px 2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spec-pbtn.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+.msel-panel .msel-opt{display:block;padding:5px 8px;font-size:12.5px;color:var(--tx);cursor:pointer;border-radius:3px;white-space:nowrap;text-align:left}
+.msel-panel .msel-opt:hover{background:var(--sur3)}
+.spec-cell{display:grid;grid-template-columns:1fr 1fr auto;gap:2px 5px;align-items:center;width:170px;margin:0 auto}
+.spec-cell input{width:100%;text-align:center}
+.sc-date{font-size:9px;color:var(--tx3);text-align:center;line-height:1.3}
 
 /* DATE RANGE */
-.dr-box{background:#0e1420;border:1px solid var(--bdr);border-radius:var(--r);padding:12px;margin-top:4px}
-.dr-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
-.dr-tab{background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--tx3);cursor:pointer;font-size:13px;padding:5px 12px}
-.dr-tab.on{background:var(--acc);border-color:var(--acc);color:#0d1117;font-weight:700}
+.gs-tier{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--bdr)}
+.gs-tier:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.gs-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;row-gap:6px}
+.gs-info-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--sur3);color:var(--tx3);font-size:12px;font-weight:700;cursor:help;flex:0 0 auto;margin-left:2px}
+.gs-info-icon.warn{background:var(--red);color:#fff}
+.gs-title{flex:0 0 118px;font-weight:700;font-size:13.5px;color:var(--tx)}
+.gs-tabs{display:flex;gap:3px;flex:0 0 auto}
+.gs-tab{background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--tx3);cursor:pointer;font-size:11px;padding:4px 8px;white-space:nowrap}
+.gs-tab.on{background:var(--acc);border-color:var(--acc);color:#0d1117;font-weight:700}
+.gs-num{display:flex;align-items:center;gap:4px;flex:0 0 auto;white-space:nowrap}
+.gs-num label{font-size:12px;color:var(--tx2)}
+.gs-num input{width:54px;background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:4px 6px;font-size:13px}
+.gs-note{font-size:11.5px;color:var(--tx3);margin:6px 0 2px 0;line-height:1.55}
+.gs-note.warn{color:var(--tx)}
+.gs-caption{font-size:11.5px;color:var(--tx3);margin:2px 0 0 0;line-height:1.5}
+.gs-datepick{margin:6px 0 0 0}
+.gs-datepick input{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);padding:4px 7px;font-size:13px;box-sizing:border-box}
 
 /* RDE */
 .rde-top-bar{display:flex;align-items:flex-end;gap:8px;margin-bottom:10px;flex-wrap:nowrap}
@@ -207,12 +390,14 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .add-row-btn:hover{border-color:var(--acc);color:var(--acc)}
 .rde-hint{font-size:12px;color:var(--tx3);margin-bottom:8px}
 .rdt{border-collapse:collapse;width:100%;font-size:13px;font-family:var(--mono)}
-.rdt th{background:var(--sur3);color:var(--tx);font-size:12px;padding:5px 8px;border:1px solid var(--bdr);white-space:nowrap;text-align:center}
+.rdt th{background:var(--sur3);color:var(--tx);font-size:11.5px;padding:5px 4px;border:1px solid var(--bdr);white-space:normal;word-break:keep-all;line-height:1.25;text-align:center}
 .rdt td{padding:3px 4px;border:1px solid var(--bdr);text-align:center}
 .rdt input[type="date"]{background:#fff;border:1px solid #888;border-radius:3px;color:#111;font-size:11px;padding:2px 3px;width:115px;color-scheme:light}
 .rdt input[type="number"]{background:#fff;border:1px solid #888;border-radius:3px;color:#111;font-size:12px;width:76px;padding:2px 4px;-moz-appearance:textfield}
+.rdt input[type="text"]{background:#fff;border:1px solid #888;border-radius:3px;color:#111;font-size:12px;width:76px;padding:2px 4px}
 .rdt input[type="number"]::-webkit-inner-spin-button,.rdt input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.rdel{color:var(--red);cursor:pointer;font-size:15px;background:transparent;border:none;padding:0 4px}
+.rdel{color:var(--tx3);cursor:pointer;font-size:15px;background:transparent;border:none;padding:0 4px}
+.rdel:hover{color:var(--tx)}
 .rdel:hover{color:#fca5a5}
 .cp-row{background:#1c180a}
 
@@ -228,26 +413,28 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
     <div class="md-row"><span class="md-lbl">제품</span><select class="md-sel" id="selProd" onchange="onSelProd()"></select></div>
     <div class="md-row"><span class="md-lbl">치수</span><select class="md-sel" id="selDim"  onchange="onSelDim()"></select></div>
     <table class="stat-tbl" id="statTbl">
-      <tr><td class="st-lbl">USL(X̄)</td><td class="st-v sv-spec" id="di-usl">—</td><td class="st-lbl">USL(R)</td><td class="st-v sv-spec">—</td></tr>
-      <tr><td class="st-lbl">UCL(X̄)</td><td class="st-v sv-ucl" id="di-ucl">—</td><td class="st-lbl">UCL(R)</td><td class="st-v sv-ucl" id="di-uclr">—</td></tr>
-      <tr><td class="st-lbl">X̄̄</td><td class="st-v sv-cl" id="di-xbb">—</td><td class="st-lbl">R̄</td><td class="st-v sv-cl" id="di-rb">—</td></tr>
-      <tr><td class="st-lbl">LCL(X̄)</td><td class="st-v sv-lcl" id="di-lcl">—</td><td class="st-lbl">LCL(R)</td><td class="st-v sv-lcl" id="di-lclr">—</td></tr>
-      <tr><td class="st-lbl">LSL(X̄)</td><td class="st-v sv-spec" id="di-lsl">—</td><td class="st-lbl">LSL(R)</td><td class="st-v sv-spec">—</td></tr>
-      <tr><td class="st-lbl">군 크기</td><td class="st-v sv-n" id="di-n">3</td><td class="st-lbl">표시 군</td><td class="st-v sv-n" id="di-k">0</td></tr>
+      <tr><td class="st-lbl" id="lbl-usl-x">USL(X̄)</td><td class="st-v sv-spec" id="di-usl">—</td><td class="st-lbl">USL(R)</td><td class="st-v sv-spec">—</td></tr>
+      <tr><td class="st-lbl" id="lbl-ucl-x">UCL(X̄)</td><td class="st-v sv-ucl" id="di-ucl">—</td><td class="st-lbl">UCL(R)</td><td class="st-v sv-ucl" id="di-uclr">—</td></tr>
+      <tr><td class="st-lbl" id="lbl-xbb">X̄̄</td><td class="st-v sv-cl" id="di-xbb">—</td><td class="st-lbl">R̄</td><td class="st-v sv-cl" id="di-rb">—</td></tr>
+      <tr><td class="st-lbl" id="lbl-lcl-x">LCL(X̄)</td><td class="st-v sv-lcl" id="di-lcl">—</td><td class="st-lbl">LCL(R)</td><td class="st-v sv-lcl" id="di-lclr">—</td></tr>
+      <tr><td class="st-lbl" id="lbl-lsl-x">LSL(X̄)</td><td class="st-v sv-spec" id="di-lsl">—</td><td class="st-lbl">LSL(R)</td><td class="st-v sv-spec">—</td></tr>
+      <tr><td class="st-lbl">Pp</td><td class="st-v sv-cl" id="di-pp">—</td><td class="st-lbl">Ppk</td><td class="st-v sv-cl" id="di-ppk">—</td></tr>
+      <tr id="row-pval"><td class="st-lbl"></td><td class="st-v"></td><td class="st-lbl">p-value</td><td class="st-v sv-cl" id="di-pval">—</td></tr>
+      <tr><td class="st-lbl" id="lbl-c1">군 개수</td><td class="st-v sv-n" id="di-c1">0</td><td class="st-lbl" id="lbl-c2">군 크기</td><td class="st-v sv-n" id="di-c2">3</td></tr>
     </table>
-    <div class="md-btns"><button class="md-btn" style="flex:1" onclick="openPwModal()">⚙ 설정</button></div>
+    <div class="md-btns"><button class="md-btn" style="flex:1" onclick="openPwModal()">⚙ 설정</button><button class="md-btn" style="flex:1" onclick="openAnalysis()">📊 분석</button></div>
   </div>
   <div class="inp-wrap">
     <div class="sec-h">측정값 입력</div>
     <div class="input-area">
-      <div class="date-row" style="display:grid;grid-template-columns:26px 1fr 44px;gap:4px;align-items:center;margin-bottom:8px">
-        <label class="mlbl" style="font-size:10px;white-space:nowrap">날짜</label>
-        <div class="date-inp-wrap">
+      <div class="date-row" style="display:grid;grid-template-columns:var(--lblw) 1fr 1fr;gap:3px;align-items:center;margin-bottom:8px">
+        <label class="mlbl">날짜</label>
+        <div class="date-inp-wrap" style="grid-column:2/4">
           <input type="date" id="inDate" onchange="onDateChange()" oninput="onDateRaw(event)" style="width:100%">
         </div>
-        <button class="today-btn" onclick="saveEntry()" style="padding:5px 2px;font-size:11px;width:100%">저장</button>
       </div>
       <div id="measGrid"></div>
+      <datalist id="dl_insp"></datalist>
       <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0"></div></div>
       <div class="prog-lbl" id="progLbl">0 / 3 입력됨</div>
       <div class="pend-note" id="pendNote">⚠ 군 크기 미달 — 백업 저장</div>
@@ -261,7 +448,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
     <div class="chart-row">
       <div class="np"><div class="np-t">X̄ 규칙</div><div class="np-g" id="nbX"></div></div>
       <div class="ci">
-        <div class="ch"><span class="ct">X̄ 관리도</span><div class="cl-leg" id="legX"></div></div>
+        <div class="ch"><span class="ct" id="ctX">X̄ 관리도</span><div class="cl-leg" id="legX"></div></div>
         <div class="cw"><canvas id="cXbar"></canvas></div>
       </div>
     </div>
@@ -314,6 +501,30 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<div class="cfg-overlay" id="analysisModal">
+<div class="analysis-modal">
+  <div class="cfg-head"><h2>📊 분석</h2><button class="cfg-close" onclick="closeAnalysis()">✕</button></div>
+  <div class="analysis-body">
+    <div class="analysis-left">
+      <div class="line-sel-row"><label>라인</label><select id="anaLine" onchange="renderAnalysisList()"></select></div>
+      <div class="line-sel-row"><label>제품</label><select id="anaProd" onchange="renderAnalysisList()"></select></div>
+      <div class="line-sel-row"><label>치수</label><select id="anaDim" onchange="renderAnalysisList()"></select></div>
+      <div class="ana-range-row">
+        <label>기간</label>
+        <div class="ana-range-fields">
+          <input type="date" id="anaRangeStart" onchange="onAnaRangeChange()">
+          <span style="color:var(--tx3)">~</span>
+          <input type="date" id="anaRangeEnd" onchange="onAnaRangeChange()">
+          <button type="button" class="ana-empty-btn" id="anaEmptyBtn" onclick="toggleAnaIncludeEmpty()">미생성일 포함</button>
+        </div>
+      </div>
+      <div class="analysis-list" id="analysisList"></div>
+    </div>
+    <div class="analysis-right" id="analysisCards"><div id="analysisCardsInner"></div></div>
+  </div>
+</div>
+</div>
 <script>
 // ═══ CONSTANTS ═══
 const CC={2:{A2:1.880,D3:0,D4:3.267},3:{A2:1.023,D3:0,D4:2.574},4:{A2:0.729,D3:0,D4:2.282},5:{A2:0.577,D3:0,D4:2.114},6:{A2:0.483,D3:0,D4:2.004},7:{A2:0.419,D3:0.076,D4:1.924},8:{A2:0.373,D3:0.136,D4:1.864},9:{A2:0.337,D3:0.184,D4:1.816},10:{A2:0.308,D3:0.223,D4:1.777}};
@@ -321,9 +532,22 @@ const NX=[{id:'X1',lbl:'R1',desc:'이탈',det:'1점이 UCL 또는 LCL을 벗어�
 const NR=[{id:'R1',lbl:'R1',desc:'UCL이탈',det:'R: 1점이 UCL 초과 (변동 급증)'},{id:'R2',lbl:'R2',desc:'하편향',det:'R: 연속 9점이 CL 아래 (변동 감소·개선 또는 층화)'},{id:'R3',lbl:'R3',desc:'증가추세',det:'R: 연속 6점 단조증가 (공구 마모·재료 열화)'},{id:'R4',lbl:'R4',desc:'진동',det:'R: 연속 14점이 교대 상하 반복'},{id:'R5',lbl:'R5',desc:'2σ↑',det:'R: 연속 3점 중 2점이 2σ 초과 (상향만)'},{id:'R6',lbl:'R6',desc:'1σ↑',det:'R: 연속 5점 중 4점이 1σ 초과 (상향만)'},{id:'R7',lbl:'R7',desc:'층화',det:'R: 연속 15점이 1σ 이내 (분해능 불량)'},{id:'R8',lbl:'R8',desc:'혼합',det:'R: 연속 8점이 1σ 바깥 (2개 이상 공정 혼합)'}];
 const PRELOAD_C=[{date:'3/2',values:[44.83,45.42,44.95]},{date:'3/3',values:[44.18,44.84,44.76]},{date:'3/11',values:[44.55,44.68,44.44]},{date:'3/12',values:[44.69,44.58,44.61]},{date:'3/13',values:[44.58,44.44,44.38]},{date:'3/16',values:[44.38,44.64,44.77]},{date:'3/17',values:[44.29,44.53,44.37]},{date:'3/18',values:[44.98,44.37,44.64]},{date:'3/19',values:[44.87,44.76,44.55]},{date:'3/20',values:[44.66,44.84,44.46]},{date:'3/23',values:[44.91,45.12,44.32]},{date:'3/24',values:[44.83,45.21,45.11]},{date:'4/6',values:[44.27,44.58,44.45]},{date:'4/8',values:[45.15,45.24,44.91]},{date:'4/9',values:[44.68,45.04,45.20]},{date:'4/10',values:[44.87,45.22,44.69]},{date:'4/13',values:[45.21,44.84,44.98]},{date:'4/14',values:[44.35,44.72,44.88]},{date:'4/15',values:[44.56,44.84,44.93]},{date:'4/16',values:[44.58,44.77,44.67]}];
 const PRELOAD_P=[{date:'3/10',values:[null,44.67,null,44.58]},{date:'3/25',values:[44.91]},{date:'4/1',values:[44.62]},{date:'4/17',values:[44.65]}];
+// 측정 슬롯 이름 (기존 x1~x6 대체) — 순서 고정: 주간 초/중/종품 → 야간 초/중/종품
+const MEAS_LABELS=['주간 초품','주간 중품','주간 종품','야간 초품','야간 중품','야간 종품'];
+// 검사강화(초중종마다 2개)가 켜진 제품은 각 라벨이 #1/#2 로 갈라져 12칸이 됨
+function measLabels(line,prod){
+  if(!getProdSettings(line,prod).enhanced)return MEAS_LABELS.slice();
+  const out=[];MEAS_LABELS.forEach(l=>{out.push(l+' #1');out.push(l+' #2');});return out;
+}
+// 검사강화(#1/#2) 모드에서는 같은 순간에 잰 두 값이라 측정자가 같으므로,
+// 측정자 입력칸/열은 #1 슬롯 것 하나만 쓰고 #2는 저장 시 그 값을 그대로 복사해 씀.
+// 이 함수는 슬롯 번호(i, 1-based)를 "실제 측정자 입력칸이 있는" 슬롯 번호로 바꿔줌.
+function mnSlot(i,enhanced){return enhanced?(i%2===1?i:i-1):i;}
+let lastInspector=''; // 현재 콤보에서 마지막으로 저장된 측정자 이름 (자동 이어쓰기용)
 
 // ═══ STATE ═══
-const DEF={lines:['L1'],lineProds:{L1:['A','B','C','D']},dims:['ㄱ','ㄴ','ㄷ'],n:3,k:20,drMode:0,drDate:null,specs:{}};
+const DEF={lines:['L1'],lineProds:{L1:['A','B','C','D']},dims:['ㄱ','ㄴ','ㄷ'],n:3,k:25,drMode:0,drDate:null,specs:{},
+  imr:{k:25,drMode:0,drDate:null},cap:{k:125,drMode:0,drDate:null},prodSettings:{}};
 let cfg=JSON.parse(localStorage.getItem('xrr6_cfg')||'null')||JSON.parse(JSON.stringify(DEF));
 function ensureCfgDefaults(){
   if(!cfg.lines)cfg.lines=DEF.lines; if(!cfg.lineProds)cfg.lineProds=DEF.lineProds;
@@ -331,12 +555,38 @@ function ensureCfgDefaults(){
   if(!cfg.prodNames)cfg.prodNames={};
   if(!cfg.admins)cfg.admins=[];
   if(!cfg.assignments)cfg.assignments=[];
+  if(!cfg.imr)cfg.imr={k:25,drMode:0,drDate:null};
+  if(!cfg.cap)cfg.cap={k:125,drMode:0,drDate:null};
+  if(!cfg.prodSettings)cfg.prodSettings={};
+}
+// 제품(라인+품번) 단위 설정 — 치수와 무관하게 그 제품 전체에 적용됨 (관리도 종류/룰레벨/검사강화)
+function getProdSettings(line,prod){
+  const key=`${line}__${prod}`;
+  if(!cfg.prodSettings[key])cfg.prodSettings[key]={mode:'imr',rule:1,enhanced:false};
+  const ps=cfg.prodSettings[key];
+  if(!ps.mode)ps.mode='imr'; if(!ps.rule)ps.rule=1; if(ps.enhanced===undefined)ps.enhanced=false;
+  return ps;
+}
+function slotCount(line,prod){return getProdSettings(line,prod).enhanced?12:6;}
+// I-MR 제품은 하루 1개 값만 있어도 "완성된 개별값"으로 취급 (X̄-R 군 크기와 무관)
+// dim이 주어지면 그 치수 자체에 설정된 관리도 종류(getDimMode)를 우선 따름 — 없으면 제품 기본값
+function completionThreshold(line,prod,dim){
+  const mode=dim!=null?getDimMode(line,prod,dim):getProdSettings(line,prod).mode;
+  return mode==='imr'?1:cfg.n;
+}
+// 치수 하나에만 X bar R을 적용할 수 있도록, 그 치수의 규격(cfg.specs[key].mode)에
+// 개별적으로 관리도 종류를 얹어둘 수 있게 함. 지정 안 하면 제품 기본값을 따름.
+function getDimMode(line,prod,dim){
+  const sp=cfg.specs[getKey(line,prod,dim)];
+  if(sp&&sp.mode)return sp.mode;
+  return getProdSettings(line,prod).mode;
 }
 ensureCfgDefaults();
 let allData={};
 let curLine=cfg.lines[0]||'L1',curProd=(cfg.lineProds[curLine]||[])[0]||'A',curDim=(cfg.dims||[])[0]||'ㄱ';
 let hlX=null,hlR=null,xChart=null,rChart=null,gAX=null,gAR=null;
-let cfgTabIdx=0,lmLineSel=null,rdeSelLine=null,rdeSelProd=null,rdeSelDim=null,drTabMode=0;
+let cfgTabIdx=0,lmLineSel=null,rdeSelLine=null,rdeSelProd=null,rdeSelDim=null;
+let gsUI={imr:{mode:0,date:null},xbarr:{mode:0,date:null},cap:{mode:0,date:null}};
 let specLineSel2=null;
 
 // ═══ HELPERS ═══
@@ -408,19 +658,23 @@ function autoSavePendingInputs(){
   const dInp=document.getElementById('inDate');
   if(!dInp)return;
   const dateVal=dInp.value;
-  const slots=[];let hasAny=false;
-  for(let i=1;i<=6;i++){
+  const ps=getProdSettings(curLine,curProd);
+  const slotN=measLabels(curLine,curProd).length;
+  const slots=[],names=[];let hasAny=false;
+  for(let i=1;i<=slotN;i++){
     const el=document.getElementById(`m${i}`);
+    const nEl=document.getElementById(`mn${mnSlot(i,ps.enhanced)}`);
     const v=el&&el.value.trim()!==''?el.value:null;
     slots[i-1]=v;
+    names[i-1]=nEl&&nEl.value.trim()!==''?nEl.value.trim():null;
     if(v!==null)hasAny=true;
   }
-  if(hasAny||dateVal)inputCache[cacheKey()]={date:dateVal,slots};
+  if(hasAny||dateVal)inputCache[cacheKey()]={date:dateVal,slots,names};
   // Also actually save entered values to allData/Firebase before switching combo
   const dv=fromDateInput(dateVal);
   if(!dv||!hasAny)return; // nothing entered — nothing to persist
-  const vals=new Array(6).fill(null);let hasVal=false;
-  for(let i=1;i<=6;i++){
+  const vals=new Array(slotN).fill(null);let hasVal=false;
+  for(let i=1;i<=slotN;i++){
     if(slots[i-1]!=null){
       const v=parseFloat(slots[i-1]);
       if(!isNaN(v)){vals[i-1]=v;hasVal=true;}
@@ -428,17 +682,18 @@ function autoSavePendingInputs(){
   }
   if(!hasVal)return;
   const trimmed=sparseValues(vals);
+  const trimmedNames=names.slice(0,trimmed.length);
   const cnt=countVals(trimmed);
   const key=curKey();ensureData(key);const pd=allData[key];
   const ci=pd.complete.findIndex(d=>d.date===dv),pi=pd.pending.findIndex(d=>d.date===dv);
-  if(cnt>=cfg.n){
-    if(ci>=0)pd.complete[ci].values=trimmed;
-    else{if(pi>=0)pd.pending.splice(pi,1);pd.complete.push({date:dv,values:trimmed});}
+  if(cnt>=completionThreshold(curLine,curProd,curDim)){
+    if(ci>=0){pd.complete[ci].values=trimmed;pd.complete[ci].names=trimmedNames;}
+    else{if(pi>=0)pd.pending.splice(pi,1);pd.complete.push({date:dv,values:trimmed,names:trimmedNames});}
     sortD(pd.complete);
   }else{
-    if(pi>=0)pd.pending[pi].values=trimmed;
-    else if(ci>=0){pd.complete.splice(ci,1);pd.pending.push({date:dv,values:trimmed});}
-    else pd.pending.push({date:dv,values:trimmed});
+    if(pi>=0){pd.pending[pi].values=trimmed;pd.pending[pi].names=trimmedNames;}
+    else if(ci>=0){pd.complete.splice(ci,1);pd.pending.push({date:dv,values:trimmed,names:trimmedNames});}
+    else pd.pending.push({date:dv,values:trimmed,names:trimmedNames});
     sortD(pd.pending);
   }
   saveStore();
@@ -448,21 +703,59 @@ function restorePendingInputs(){
   const cached=inputCache[cacheKey()];
   // Determine today's date key for auto-fill
   const todayStr=getTodayKey();
+  const slotN=measLabels(curLine,curProd).length;
   if(cached){
     const el=document.getElementById('inDate');
     if(el)el.value=cached.date||todayStr;
-    for(let i=1;i<=6;i++){
+    for(let i=1;i<=slotN;i++){
       const m=document.getElementById(`m${i}`);
       if(m)m.value=cached.slots[i-1]??'';
+      const nEl=document.getElementById(`mn${i}`);
+      if(nEl){
+        const nv=(cached.names&&cached.names[i-1])||'';
+        nEl.value=nv;
+        nEl.placeholder='측정자';
+      }
     }
   }else{
     // Set date to today, clear slots
     const el=document.getElementById('inDate');
     if(el)el.value=todayStr;
-    for(let i=1;i<=6;i++){const m=document.getElementById(`m${i}`);if(m)m.value='';}
+    for(let i=1;i<=slotN;i++){
+      const m=document.getElementById(`m${i}`);if(m)m.value='';
+      const nEl=document.getElementById(`mn${i}`);if(nEl){nEl.value='';nEl.placeholder='측정자';}
+    }
   }
+  refreshLastInspector();
   onMIn();
 }
+// 이 콤보(라인/품번/치수)에서 가장 최근에 저장된 측정자 이름을 찾아서
+// "값 입력 시 자동으로 이어쓰기"의 기본값으로 삼습니다.
+function refreshLastInspector(){
+  const key=curKey();ensureData(key);const pd=allData[key];
+  const all=[...pd.complete,...pd.pending];sortD(all);
+  for(let gi=all.length-1;gi>=0;gi--){
+    const names=all[gi].names||[];
+    for(let ni=names.length-1;ni>=0;ni--){
+      if(names[ni]){lastInspector=names[ni];return;}
+    }
+  }
+  lastInspector='';
+}
+// 측정자 자동완성 목록 — 같은 라인에서 지금까지 입력된 적 있는 모든 이름을 모음
+function buildInspectorDatalistInto(line,elId){
+  const dl=document.getElementById(elId);if(!dl)return;
+  const names=new Set();
+  Object.keys(allData).forEach(k=>{
+    if(!k.startsWith(line+'__'))return;
+    const pd=allData[k];
+    [...(pd.complete||[]),...(pd.pending||[])].forEach(g=>{
+      (g.names||[]).forEach(n=>{if(n)names.add(n);});
+    });
+  });
+  dl.innerHTML=[...names].sort((a,b)=>a.localeCompare(b,'ko')).map(n=>`<option value="${esc(n)}">`).join('');
+}
+function buildInspectorDatalist(){buildInspectorDatalistInto(curLine,'dl_insp');}
 
 // ═══ INIT ═══
 function init(){
@@ -470,8 +763,11 @@ function init(){
   buildSelDrops();
   buildMeasGrid();
   buildNelsonBtns();
+  buildInspectorDatalist();
+  refreshLastInspector();
   setToday();
   render();
+  checkDataSufficiency();
 }
 
 // ═══ DROPDOWNS ═══
@@ -480,13 +776,40 @@ function buildSelDrops(){
   document.getElementById('selProd').innerHTML=(cfg.lineProds[curLine]||[]).map(p=>`<option value="${esc(p)}"${p===curProd?' selected':''}>${esc(p)} | ${esc(cfg.prodNames[p]||'')}</option>`).join('');
   document.getElementById('selDim').innerHTML=(cfg.dims||[]).map(d=>`<option value="${esc(d)}"${d===curDim?' selected':''}>${esc(d)}</option>`).join('');
 }
-function onSelLine(){autoSavePendingInputs();curLine=document.getElementById('selLine').value;curProd=(cfg.lineProds[curLine]||[])[0]||'';buildSelDrops();loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
-function onSelProd(){autoSavePendingInputs();curProd=document.getElementById('selProd').value;loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
-function onSelDim(){autoSavePendingInputs();curDim=document.getElementById('selDim').value;loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;restorePendingInputs();render();});}
+function onSelLine(){autoSavePendingInputs();curLine=document.getElementById('selLine').value;curProd=(cfg.lineProds[curLine]||[])[0]||'';buildSelDrops();loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;buildInspectorDatalist();buildMeasGrid();restorePendingInputs();render();checkDataSufficiency();});}
+function onSelProd(){autoSavePendingInputs();curProd=document.getElementById('selProd').value;loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;buildInspectorDatalist();buildMeasGrid();restorePendingInputs();render();checkDataSufficiency();});}
+function onSelDim(){autoSavePendingInputs();curDim=document.getElementById('selDim').value;loadDataFromFirebase(()=>{ensureData(curKey());hlX=null;hlR=null;buildInspectorDatalist();restorePendingInputs();render();checkDataSufficiency();});}
 
 // ═══ DATE INPUT ═══
 function setToday(){const v=getTodayKey();document.getElementById('inDate').value=v;}
-function onDateChange(){}
+// 이전(과거) 날짜를 선택하면: 그 날짜에 이미 저장된 값이 있는 경우 값/측정자를 보여주되 읽기전용으로 잠금.
+// 오늘 날짜이거나 아직 저장된 값이 없는 날짜는 계속 입력 가능.
+function onDateChange(){
+  const dInp=document.getElementById('inDate');if(!dInp)return;
+  const dv=fromDateInput(dInp.value);if(!dv)return;
+  const today=getTodayKey();
+  const key=curKey();ensureData(key);const pd=allData[key];
+  const found=pd.complete.find(d=>d.date===dv)||pd.pending.find(d=>d.date===dv);
+  const locked=!!found&&dv!==today;
+  const slotN=measLabels(curLine,curProd).length;
+  const ps=getProdSettings(curLine,curProd);
+  for(let i=1;i<=slotN;i++){
+    const el=document.getElementById(`m${i}`),nEl=document.getElementById(`mn${mnSlot(i,ps.enhanced)}`);
+    if(!el)continue;
+    if(found){
+      el.value=(found.values[i-1]!=null)?found.values[i-1]:'';
+      if(nEl){nEl.value=(found.names&&found.names[i-1])?found.names[i-1]:'';nEl.placeholder='측정자';}
+    }else{
+      const cached=inputCache[cacheKey()];
+      if(cached&&cached.date===dv){el.value=cached.slots[i-1]??'';if(nEl)nEl.value=(cached.names&&cached.names[i-1])||'';}
+      else{el.value='';if(nEl)nEl.value='';}
+      if(nEl)nEl.placeholder='측정자';
+    }
+    el.readOnly=locked;el.classList.toggle('ro-locked',locked);
+    if(nEl){nEl.readOnly=locked;nEl.classList.toggle('ro-locked',locked);}
+  }
+  onMIn();
+}
 function onDateRaw(e){
   // Allow yymmdd shorthand: if user types 6 digits interpret as MMDDYY or YYMMDD
   // We'll handle via blur
@@ -504,7 +827,7 @@ function handleDateShorthand(){
     if(mm>=1&&mm<=12&&dd>=1&&dd<=31){
       const yyyy=2000+yy;
       inp.value=`${yyyy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
-      return;
+      onDateChange();return;
     }
     // Try MMDDYY fallback
     const mm2=parseInt(raw.slice(0,2)),dd2=parseInt(raw.slice(2,4)),yy2=parseInt(raw.slice(4,6));
@@ -513,27 +836,73 @@ function handleDateShorthand(){
       inp.value=`${yyyy2}-${String(mm2).padStart(2,'0')}-${String(dd2).padStart(2,'0')}`;
     }
   }
+  onDateChange();
 }
 
-// ═══ MEAS GRID (sparse — x1..x6 with individual slots) ═══
+// ═══ MEAS GRID (sparse — 슬롯별 개별 입력, 검사강화 시 #1/#2는 측정자 하나 공유) ═══
 function buildMeasGrid(){
   const g=document.getElementById('measGrid');g.innerHTML='';
-  for(let i=1;i<=6;i++){
-    const r=document.createElement('div');r.className='mrow';
-    r.innerHTML=`<span class="mlbl">x${i}</span><input type="number" step="0.001" id="m${i}" placeholder="—" oninput="onMIn()" onkeydown="onMK(event,${i})"><button class="clrb" onclick="clrM(${i})">✕</button>`;
-    g.appendChild(r);
+  const ps=getProdSettings(curLine,curProd);
+  if(!ps.enhanced){
+    MEAS_LABELS.forEach((lbl,li)=>{
+      const i=li+1;
+      const r=document.createElement('div');r.className='mrow';
+      r.innerHTML=`<span class="mlbl">${esc(lbl)}</span><input type="number" step="0.001" id="m${i}" placeholder="측정값 입력" oninput="onMIn(${i})" onkeydown="onMK(event,${i})"><input type="text" id="mn${i}" class="insp-inp" list="dl_insp" placeholder="측정자" autocomplete="off" onfocus="onNameFocus(this)" onblur="onNameBlur(this,${i})" oninput="onNameTyped(${i})">`;
+      g.appendChild(r);
+    });
+  }else{
+    MEAS_LABELS.forEach((lbl,li)=>{
+      const i1=li*2+1,i2=li*2+2;
+      const r=document.createElement('div');r.className='mrow mrow-pair';
+      r.innerHTML=`<span class="mlbl">${esc(lbl)}</span><input type="number" step="0.001" id="m${i1}" placeholder="#1" oninput="onMIn(${i1})" onkeydown="onMK(event,${i1})"><input type="number" step="0.001" id="m${i2}" placeholder="#2" oninput="onMIn(${i2})" onkeydown="onMK(event,${i2})"><input type="text" id="mn${i1}" class="insp-inp" list="dl_insp" placeholder="측정자" autocomplete="off" onfocus="onNameFocus(this)" onblur="onNameBlur(this,${i1})" oninput="onNameTyped(${i1})">`;
+      g.appendChild(r);
+    });
   }
 }
 function onMK(e,i){if(e.key==='Enter'){const nx=document.getElementById(`m${i+1}`);if(nx)nx.focus();else saveEntry();}}
-function clrM(i){const el=document.getElementById(`m${i}`);if(el){el.value='';onMIn();}}
+function clrM(i){
+  const el=document.getElementById(`m${i}`);if(el)el.value='';
+  const nEl=document.getElementById(`mn${i}`);if(nEl){nEl.value='';nEl.placeholder='측정자';}
+  onMIn();
+}
 let autoSaveTimer=null;
-function onMIn(){
-  let cnt=0;for(let i=1;i<=6;i++){const el=document.getElementById(`m${i}`);if(el&&el.value.trim()!=='')cnt++;}
-  document.getElementById('progFill').style.width=Math.min(100,(cnt/cfg.n)*100)+'%';
-  document.getElementById('progLbl').textContent=`${cnt} / ${cfg.n} 입력됨${cnt>=cfg.n?' ✓':''}`;
-  document.getElementById('pendNote').style.display=(cnt>0&&cnt<cfg.n)?'block':'none';
+function onMIn(i){
+  const ps=getProdSettings(curLine,curProd);
+  const slots=measLabels(curLine,curProd).length;
+  const need=completionThreshold(curLine,curProd,curDim);
+  let cnt=0,missingInsp=false;
+  for(let j=1;j<=slots;j++){
+    const el=document.getElementById(`m${j}`);
+    const nEl=document.getElementById(`mn${mnSlot(j,ps.enhanced)}`);
+    if(el&&el.value.trim()!==''){
+      cnt++;
+      if(!nEl||nEl.value.trim()==='')missingInsp=true;
+    }
+  }
+  const pf=document.getElementById('progFill');
+  pf.style.width=Math.min(100,(cnt/need)*100)+'%';
+  pf.classList.toggle('warn',missingInsp);
+  document.getElementById('progLbl').textContent=`${cnt} / ${need} 입력됨${cnt>=need?' ✓':''}`;
+  document.getElementById('pendNote').style.display=(cnt>0&&cnt<need)?'block':'none';
+  // 값을 막 입력한 칸의 측정자란이 비어있으면, 마지막으로 쓰던 측정자 이름을 자동으로 채워줌
+  // (자동으로 채워진 값도 클릭해서 바로 고칠 수 있음)
+  if(i){
+    const vEl=document.getElementById(`m${i}`);
+    const nEl=document.getElementById(`mn${mnSlot(i,ps.enhanced)}`);
+    if(vEl&&nEl&&vEl.value.trim()!==''&&nEl.value.trim()===''&&lastInspector){
+      nEl.value=lastInspector;
+    }
+  }
   if(autoSaveTimer)clearTimeout(autoSaveTimer);
-  if(cnt>=cfg.n)autoSaveTimer=setTimeout(saveEntry,900);
+  if(cnt>0)autoSaveTimer=setTimeout(saveEntry,cnt>=need?900:1600);
+}
+// 측정자란 포커스 시 placeholder 문구를 잠시 지웠다가, 비어있는 채로 벗어나면 되돌림
+function onNameFocus(el){el.placeholder='';}
+function onNameBlur(el,i){if(!el.value.trim())el.placeholder='측정자';onNameTyped(i);}
+function onNameTyped(i){
+  const nEl=document.getElementById(`mn${i}`);
+  if(nEl&&nEl.value.trim())lastInspector=nEl.value.trim();
+  onMIn();
 }
 
 // ═══ SAVE ENTRY (sparse values preserved) ═══
@@ -543,44 +912,60 @@ function saveEntry(){
   handleDateShorthand();
   const dv=fromDateInput(dInp.value);
   if(!dv){showToast('날짜 입력 필요','warn');return;}
-  // Build sparse array: index 0..5 = x1..x6, null if empty — preserve slot positions
-  const vals=new Array(6).fill(null);let hasVal=false;
-  for(let i=1;i<=6;i++){
+  // Build sparse array: index 0..slotN-1, null if empty — preserve slot positions
+  const labels=measLabels(curLine,curProd);const slotN=labels.length;
+  const ps=getProdSettings(curLine,curProd);
+  const vals=new Array(slotN).fill(null);const names=new Array(slotN).fill(null);let hasVal=false;
+  for(let i=1;i<=slotN;i++){
     const el=document.getElementById(`m${i}`);
+    const nEl=document.getElementById(`mn${mnSlot(i,ps.enhanced)}`);
     if(el&&el.value.trim()!==''){
-      const v=parseFloat(el.value);if(isNaN(v)){showToast(`x${i} 오류`,'warn');return;}
+      const v=parseFloat(el.value);if(isNaN(v)){showToast(`${labels[i-1]} 오류`,'warn');return;}
       vals[i-1]=v;hasVal=true;
+      if(nEl&&nEl.value.trim()!=='')names[i-1]=nEl.value.trim();
     }
   }
   if(!hasVal){showToast('값 입력 필요','warn');return;}
   const trimmed=sparseValues(vals);
+  const trimmedNames=names.slice(0,trimmed.length);
   const cnt=countVals(trimmed);
+  const need=completionThreshold(curLine,curProd,curDim);
   const key=curKey();ensureData(key);const pd=allData[key];
   const ci=pd.complete.findIndex(d=>d.date===dv),pi=pd.pending.findIndex(d=>d.date===dv);
-  if(cnt>=cfg.n){
-    if(ci>=0)pd.complete[ci].values=trimmed;
-    else{if(pi>=0)pd.pending.splice(pi,1);pd.complete.push({date:dv,values:trimmed});}
+  if(cnt>=need){
+    if(ci>=0){pd.complete[ci].values=trimmed;pd.complete[ci].names=trimmedNames;}
+    else{if(pi>=0)pd.pending.splice(pi,1);pd.complete.push({date:dv,values:trimmed,names:trimmedNames});}
     sortD(pd.complete);showToast(`${dv} 저장`,'ok');
   }else{
-    if(pi>=0)pd.pending[pi].values=trimmed;
-    else if(ci>=0){pd.complete.splice(ci,1);pd.pending.push({date:dv,values:trimmed});}
-    else pd.pending.push({date:dv,values:trimmed});
-    sortD(pd.pending);showToast(`${dv} 백업 (${cnt}/${cfg.n})`,'warn');
+    if(pi>=0){pd.pending[pi].values=trimmed;pd.pending[pi].names=trimmedNames;}
+    else if(ci>=0){pd.complete.splice(ci,1);pd.pending.push({date:dv,values:trimmed,names:trimmedNames});}
+    else pd.pending.push({date:dv,values:trimmed,names:trimmedNames});
+    sortD(pd.pending);showToast(`${dv} 백업 (${cnt}/${need})`,'warn');
   }
   saveStore();
+  buildInspectorDatalist();
   hlX=null;hlR=null;render();
 }
 
 // ═══ VIEW WINDOW ═══
+function windowGroups(all,k,drMode,drDate){
+  if(!all.length)return[];
+  if(drMode===1&&drDate){const dn=dateNum(drDate);const si=Math.max(0,all.findIndex(d=>dateNum(d.date)>=dn));return all.slice(si,si+k);}
+  if(drMode===2&&drDate){const dn=dateNum(drDate);const filtered=all.filter(d=>dateNum(d.date)<=dn);return filtered.slice(Math.max(0,filtered.length-k));}
+  return all.slice(Math.max(0,all.length-k));
+}
 function getViewData(){
   const key=curKey();ensureData(key);
   const all=[...allData[key].complete];sortD(all);
   if(!all.length)return[];
-  const k=cfg.k||20,mode=cfg.drMode??0;
-  if(mode===0)return all.slice(Math.max(0,all.length-k));
-  if(mode===1&&cfg.drDate){const dn=dateNum(cfg.drDate);const si=Math.max(0,all.findIndex(d=>dateNum(d.date)>=dn));return all.slice(si,si+k);}
-  if(mode===2&&cfg.drDate){const dn=dateNum(cfg.drDate);const filtered=all.filter(d=>dateNum(d.date)<=dn);return filtered.slice(Math.max(0,filtered.length-k));}
-  return all.slice(Math.max(0,all.length-k));
+  return windowGroups(all,cfg.k||20,cfg.drMode??0,cfg.drDate);
+}
+function getViewDataIMR(){
+  const key=curKey();ensureData(key);
+  const all=[...allData[key].complete];sortD(all);
+  if(!all.length)return[];
+  const imrCfg=cfg.imr||DEF.imr;
+  return windowGroups(all,imrCfg.k||25,imrCfg.drMode??0,imrCfg.drDate);
 }
 
 // ═══ STATS ═══
@@ -598,8 +983,87 @@ function calcStats(groups){
   const sx=Math.max((UCLx-xbb)/3,0.0001),sr=Math.max((UCLr-Rb)/3,0.0001);
   return{groups:g2,xbb,Rb,UCLx,LCLx,UCLr,LCLr,sx,sr};
 }
+// I-MR: 군 평균이 아니라 그날 입력된 개별값(I) 하나, R은 전날과의 이동범위(MR).
+// 하루에 값이 여러 개 들어와도(정상 사용법은 아니지만) 첫 번째 값을 개별값으로 사용.
+// 이동범위 상수는 n=2 고정: d2=1.128(개별값 시그마용), D4=3.267·D3=0(CC[2]와 동일한 MR차트 상수).
+function calcStatsIMR(groups,line,prod){
+  if(!groups||groups.length<2)return null;
+  const D2=1.128,D4=3.267,D3=0;
+  const labels=measLabels(line,prod);
+  const g2=groups.map(d=>{
+    const v=validVals(d.values);
+    const idx=d.values.findIndex(x=>x!=null&&!isNaN(x));
+    const xb=v.length?v[0]:0;
+    const label=idx>=0?(labels[idx]||''):'';
+    return{date:d.date,v,xb,label};
+  });
+  for(let i=0;i<g2.length;i++)g2[i].R=i===0?0:Math.abs(g2[i].xb-g2[i-1].xb);
+  const xbb=g2.reduce((s,g)=>s+g.xb,0)/g2.length;
+  const mrVals=g2.slice(1).map(g=>g.R);
+  const Rb=mrVals.length?mrVals.reduce((s,v)=>s+v,0)/mrVals.length:0;
+  const UCLx=xbb+2.66*Rb,LCLx=xbb-2.66*Rb,UCLr=D4*Rb,LCLr=D3*Rb;
+  const sx=Math.max(Rb/D2,0.0001),sr=Math.max((UCLr-Rb)/3,0.0001);
+  return{groups:g2,xbb,Rb,UCLx,LCLx,UCLr,LCLr,sx,sr,isIMR:true};
+}
 
-// ═══ NELSON ═══
+// 표준정규분포 누적확률(CDF) — Abramowitz-Stegun 근사
+function stdNormalCDF(z){
+  const t=1/(1+0.2316419*Math.abs(z));
+  const d=0.3989423*Math.exp(-z*z/2);
+  const p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  return z>0?1-p:p;
+}
+// Anderson-Darling 정규성 검정 p-value (D'Agostino-Stephens 근사식) — 표본 8개 미만이면 신뢰도가
+// 낮아 계산하지 않음
+function andersonDarlingPValue(vals){
+  const n=vals.length;
+  if(n<8)return null;
+  const sorted=[...vals].sort((a,b)=>a-b);
+  const mean=sorted.reduce((s,v)=>s+v,0)/n;
+  const sd=Math.sqrt(sorted.reduce((s,v)=>s+(v-mean)*(v-mean),0)/(n-1));
+  if(!sd)return null;
+  let sum=0;
+  for(let i=0;i<n;i++){
+    const zi=(sorted[i]-mean)/sd,zni=(sorted[n-1-i]-mean)/sd;
+    const li=Math.log(Math.max(stdNormalCDF(zi),1e-300));
+    const lni=Math.log(Math.max(1-stdNormalCDF(zni),1e-300));
+    sum+=(2*(i+1)-1)*(li+lni);
+  }
+  const A2=-n-sum/n;
+  const A2s=A2*(1+0.75/n+2.25/(n*n));
+  let p;
+  if(A2s>=0.6)p=Math.exp(1.2937-5.709*A2s+0.0186*A2s*A2s);
+  else if(A2s>=0.34)p=Math.exp(0.9177-4.279*A2s-1.38*A2s*A2s);
+  else if(A2s>=0.2)p=1-Math.exp(-8.318+42.796*A2s-59.938*A2s*A2s);
+  else p=1-Math.exp(-13.436+101.14*A2s-223.73*A2s*A2s);
+  return Math.min(Math.max(p,0),1);
+}
+// ═══ 공정능력 (Pp/Ppk) — 군 평균이 아니라 개별 실측값을 모아 전체 표준편차로 산출 ═══
+function calcCapability(pd,spec){
+  if(spec.usl==null&&spec.lsl==null)return null;
+  const all=[...pd.complete];sortD(all);
+  if(!all.length)return null;
+  const capCfg=cfg.cap||DEF.cap;
+  const win=windowGroups(all,capCfg.k||125,capCfg.drMode??0,capCfg.drDate);
+  if(win.length<2)return null;
+  const vals=[];win.forEach(g=>validVals(g.values).forEach(v=>vals.push(v)));
+  if(vals.length<2)return null;
+  const mean=vals.reduce((s,v)=>s+v,0)/vals.length;
+  const sd=Math.sqrt(vals.reduce((s,v)=>s+(v-mean)*(v-mean),0)/(vals.length-1));
+  if(!sd)return null;
+  let pp=null,ppk;
+  if(spec.usl!=null&&spec.lsl!=null){
+    pp=(spec.usl-spec.lsl)/(6*sd);
+    ppk=Math.min((spec.usl-mean)/(3*sd),(mean-spec.lsl)/(3*sd));
+  }else if(spec.usl!=null){
+    ppk=(spec.usl-mean)/(3*sd);
+  }else{
+    ppk=(mean-spec.lsl)/(3*sd);
+  }
+  const pValue=andersonDarlingPValue(vals);
+  return{pp,ppk,pValue,mean,sd,nVals:vals.length,groups:win.length};
+}
+
 function nelsonCheck(vals,CL,UCL,LCL,sx,isR){
   const n=vals.length,res={};
   res['1']=vals.map((v,i)=>(v>UCL||(LCL>0&&v<LCL))?i:-1).filter(i=>i>=0);
@@ -620,9 +1084,19 @@ function buildNelsonBtns(){
   ['nbX','nbR'].forEach((id,ci)=>{const g=document.getElementById(id);g.innerHTML='';(ci===0?NX:NR).forEach((r,i)=>{const b=document.createElement('button');b.className='nb';b.id=`nb_${r.id}`;b.dataset.chart=ci===0?'X':'R';b.dataset.rule=String(i+1);b.innerHTML=`<span class="nn">${r.lbl}</span><span class="ns">${r.desc}</span>`;b.onclick=()=>toggleHL(ci===0?'X':'R',String(i+1));g.appendChild(b);});});
   setupTip();
 }
-function updateNBtns(vX,vR){
-  NX.forEach((_,i)=>{const b=document.getElementById(`nb_X${i+1}`);if(!b)return;const v=vX[String(i+1)]||[];b.className='nb '+(v.length?'viol':'ok')+(hlX===String(i+1)?' hl':'');});
-  NR.forEach((_,i)=>{const b=document.getElementById(`nb_R${i+1}`);if(!b)return;const v=vR[String(i+1)]||[];b.className='nb '+(v.length?'viol':'ok')+(hlR===String(i+1)?' hl':'');});
+function updateNBtns(vX,vR,ruleLevel){
+  NX.forEach((_,i)=>{
+    const b=document.getElementById(`nb_X${i+1}`);if(!b)return;
+    const rn=i+1;
+    if(ruleLevel===1&&rn>1){b.className='nb off'+(hlX===String(rn)?' hl':'');return;}
+    const v=vX[String(rn)]||[];b.className='nb '+(v.length?'viol':'ok')+(hlX===String(rn)?' hl':'');
+  });
+  NR.forEach((_,i)=>{
+    const b=document.getElementById(`nb_R${i+1}`);if(!b)return;
+    const rn=i+1;
+    if(ruleLevel===1&&rn>1){b.className='nb off'+(hlR===String(rn)?' hl':'');return;}
+    const v=vR[String(rn)]||[];b.className='nb '+(v.length?'viol':'ok')+(hlR===String(rn)?' hl':'');
+  });
 }
 function toggleHL(chart,rn){if(chart==='X')hlX=(hlX===rn)?null:rn;else hlR=(hlR===rn)?null:rn;render();}
 function setupTip(){
@@ -634,14 +1108,38 @@ function moveTip(e){const tip=document.getElementById('tip');let x=e.clientX+14,
 // ═══ RENDER ═══
 function render(){
   const key=curKey();ensureData(key);const pd=allData[key];
-  const vg=getViewData();const stats=calcStats(vg);const spec=getSpec();
+  const ps=getProdSettings(curLine,curProd);
+  const isIMR=getDimMode(curLine,curProd,curDim)==='imr';
+  const vg=isIMR?getViewDataIMR():getViewData();
+  let stats=isIMR?calcStatsIMR(vg,curLine,curProd):calcStats(vg);
+  const spec=getSpec();
+  // 룰1 적용 + 해당 한계값이 실제로 입력되어 있을 때만 수동 UCL/LCL을 사용 (그 외엔 항상 통계 산출값)
+  if(stats&&ps.rule===1){
+    if(spec.usl!=null&&spec.ucl!=null)stats=Object.assign({},stats,{UCLx:spec.ucl});
+    if(spec.lsl!=null&&spec.lcl!=null)stats=Object.assign({},stats,{LCLx:spec.lcl});
+  }
   const vX={},vR={};
-  if(stats&&stats.groups.length>=2){const xv=stats.groups.map(g=>g.xb),rv=stats.groups.map(g=>g.R);Object.assign(vX,nelsonCheck(xv,stats.xbb,stats.UCLx,stats.LCLx,stats.sx,false));Object.assign(vR,nelsonCheck(rv,stats.Rb,stats.UCLr,stats.LCLr,stats.sr,true));}
-  updateDash(stats,pd,vg,spec);updateNBtns(vX,vR);renderCharts(stats,vX,vR);renderTable(pd,vg,stats,vX,vR);
+  if(stats&&stats.groups.length>=2){
+    const xv=stats.groups.map(g=>g.xb),rv=stats.groups.map(g=>g.R);
+    Object.assign(vX,nelsonCheck(xv,stats.xbb,stats.UCLx,stats.LCLx,stats.sx,false));
+    Object.assign(vR,nelsonCheck(rv,stats.Rb,stats.UCLr,stats.LCLr,stats.sr,true));
+    if(ps.rule===1){
+      // 룰 1만 적용: 나머지 규칙(2~8) 결과는 표시/발송 대상에서 제외
+      Object.keys(vX).forEach(k=>{if(k!=='1')delete vX[k];});
+      Object.keys(vR).forEach(k=>{if(k!=='1')delete vR[k];});
+    }
+  }
+  updateDash(stats,pd,vg,spec,isIMR);updateNBtns(vX,vR,ps.rule);renderCharts(stats,vX,vR,isIMR?'I':'X̄');
+  if(isIMR)renderTableIMR(vg,stats,vX,vR);else renderTable(pd,vg,stats,vX,vR);
 }
-function updateDash(stats,pd,vg,spec){
-  document.getElementById('di-n').textContent=cfg.n;
-  document.getElementById('di-k').textContent=vg.length;
+function updateDash(stats,pd,vg,spec,isIMR){
+  const setLbl=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
+  setLbl('lbl-usl-x',isIMR?'USL(I)':'USL(X̄)');
+  setLbl('lbl-ucl-x',isIMR?'UCL(I)':'UCL(X̄)');
+  setLbl('lbl-xbb',isIMR?'I̅':'X̄̄');
+  setLbl('lbl-lcl-x',isIMR?'LCL(I)':'LCL(X̄)');
+  setLbl('lbl-lsl-x',isIMR?'LSL(I)':'LSL(X̄)');
+  setLbl('ctX',isIMR?'I 관리도':'X̄ 관리도');
   document.getElementById('di-lsl').textContent=spec.lsl!=null?spec.lsl:'—';
   document.getElementById('di-usl').textContent=spec.usl!=null?spec.usl:'—';
   if(stats){
@@ -652,13 +1150,37 @@ function updateDash(stats,pd,vg,spec){
     document.getElementById('di-uclr').textContent=stats.UCLr.toFixed(4);
     document.getElementById('di-lclr').textContent=stats.LCLr.toFixed(4);
   }else['di-xbb','di-rb','di-ucl','di-lcl','di-uclr','di-lclr'].forEach(id=>document.getElementById(id).textContent='—');
+  const cap=calcCapability(pd,spec);
+  const ppEl=document.getElementById('di-pp'),ppkEl=document.getElementById('di-ppk');
+  if(cap&&cap.pp!=null){ppEl.textContent=cap.pp.toFixed(2);ppEl.classList.toggle('sv-warn',cap.pp<1.33);}
+  else{ppEl.textContent='—';ppEl.classList.remove('sv-warn');}
+  if(cap){ppkEl.textContent=cap.ppk.toFixed(2);ppkEl.classList.toggle('sv-warn',cap.ppk<1.33);}
+  else{ppkEl.textContent='—';ppkEl.classList.remove('sv-warn');}
+  const pvTxt=(cap&&cap.pValue!=null)?cap.pValue.toFixed(4):'—';
+  const pvWarn=!!(cap&&cap.pValue!=null&&cap.pValue<0.05);
+  // I-MR: 군개수·p-value를 Pp/Ppk처럼 한 줄에 같이 표시 (p-value 전용 줄은 숨김)
+  // X̄-R: p-value는 그 전용 줄(왼쪽 두 칸 비움)에, 마지막 줄은 군개수·군크기 순서로 표시
+  const rowPval=document.getElementById('row-pval');
+  if(isIMR){
+    if(rowPval)rowPval.style.display='none';
+    setLbl('lbl-c1','군 개수');document.getElementById('di-c1').textContent=vg.length;
+    setLbl('lbl-c2','p-value');
+    const c2=document.getElementById('di-c2');c2.textContent=pvTxt;c2.classList.toggle('sv-warn',pvWarn);
+  }else{
+    if(rowPval)rowPval.style.display='';
+    const pvEl=document.getElementById('di-pval');pvEl.textContent=pvTxt;pvEl.classList.toggle('sv-warn',pvWarn);
+    setLbl('lbl-c1','군 개수');document.getElementById('di-c1').textContent=vg.length;
+    setLbl('lbl-c2','군 크기');
+    const c2=document.getElementById('di-c2');c2.textContent=cfg.n;c2.classList.remove('sv-warn');
+  }
   document.getElementById('cnt-all').textContent=pd.complete.length;
   document.getElementById('cnt-view').textContent=vg.length;
   document.getElementById('cnt-pend').textContent=pd.pending.length;
 }
 
 // ═══ CHARTS ═══
-function renderCharts(stats,vX,vR){
+function renderCharts(stats,vX,vR,topLabel){
+  topLabel=topLabel||'X̄';
   if(gAX){cancelAnimationFrame(gAX);gAX=null;}if(gAR){cancelAnimationFrame(gAR);gAR=null;}
   if(xChart){xChart.destroy();xChart=null;}if(rChart){rChart.destroy();rChart=null;}
   if(!stats||!stats.groups.length)return;
@@ -671,13 +1193,14 @@ function renderCharts(stats,vX,vR){
   const yR=(vals,UCL,LCL)=>{const pad=(UCL-LCL)*0.4;return{min:Math.min(...vals,LCL)-pad,max:Math.max(...vals,UCL)+pad};};
   const glow=(hl)=>({id:'glow',afterDatasetsDraw(ch){if(!hl.size)return;const ctx=ch.ctx,meta=ch.getDatasetMeta(0),t=Date.now()/700;hl.forEach(i=>{const pt=meta.data[i];if(!pt)return;const p=0.35+0.45*Math.sin(t);ctx.save();const g=ctx.createRadialGradient(pt.x,pt.y,3,pt.x,pt.y,18);g.addColorStop(0,`rgba(255,20,20,${p})`);g.addColorStop(1,'rgba(255,0,0,0)');ctx.beginPath();ctx.arc(pt.x,pt.y,18,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.restore();});}});
   const zone=(CL,sx,UCL,LCL)=>({id:'zone',beforeDatasetsDraw(ch){const ctx=ch.ctx,ya=ch.scales.y,ca=ch.chartArea;const band=(lo,hi,col)=>{const y1=ya.getPixelForValue(hi),y2=ya.getPixelForValue(lo);ctx.save();ctx.fillStyle=col;ctx.fillRect(ca.left,Math.min(y1,y2),ca.width,Math.abs(y2-y1));ctx.restore();};band(CL-sx,CL+sx,'rgba(63,185,80,.06)');band(CL+sx,CL+2*sx,'rgba(210,153,34,.07)');band(CL-2*sx,CL-sx,'rgba(210,153,34,.07)');band(CL+2*sx,UCL,'rgba(248,81,73,.09)');if(LCL<CL-2*sx)band(LCL,CL-2*sx,'rgba(248,81,73,.09)');}});
-  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},layout:{padding:{left:0,right:28}},onResize:()=>{setTimeout(syncTableColsToChart,0);},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2030',borderColor:'#373e47',borderWidth:1,titleColor:'#fff',bodyColor:'#ccc',padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',maxRotation:45,font:{size:11}},border:{color:'#373e47'}},y:{min:yMin,max:yMax,afterFit:s=>{s.width=50;},grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:'#373e47'}}}});
+  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},layout:{padding:{left:0,right:40}},onResize:()=>{setTimeout(syncTableColsToChart,0);},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2030',borderColor:'#373e47',borderWidth:1,titleColor:'#fff',bodyColor:'#ccc',padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',maxRotation:45,font:{size:11}},border:{color:'#373e47'}},y:{min:yMin,max:yMax,afterFit:s=>{s.width=50;},grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:'#373e47'}}}});
   const xLim=[cL(stats.UCLx,'#ff6b6b',[6,3],'UCL'),cL(stats.xbb+2*stats.sx,'#fbbf24',[4,4],'+2σ'),cL(stats.xbb+stats.sx,'#fde68a',[2,4],'+1σ'),cL(stats.xbb,'#4ade80',[8,4],'CL'),cL(stats.xbb-stats.sx,'#bfdbfe',[2,4],'-1σ'),cL(stats.xbb-2*stats.sx,'#93c5fd',[4,4],'-2σ'),cL(stats.LCLx,'#60a5fa',[6,3],'LCL')];
   const xr=yR(xv,stats.UCLx,stats.LCLx);
-  xChart=new Chart(document.getElementById('cXbar').getContext('2d'),{type:'line',plugins:[zone(stats.xbb,stats.sx,stats.UCLx,stats.LCLx),glow(hlX2)],data:{labels,datasets:[{label:'X̄',data:xv,fill:false,tension:.2,order:1,borderColor:'#58a6ff',borderWidth:2,pointRadius:ptRad(xv,hlX2),pointBackgroundColor:ptC(xv,hlX2,avX),pointBorderColor:ptC(xv,hlX2,avX),pointHoverRadius:9},...xLim]},options:opts(xr.min,xr.max)});
+  xChart=new Chart(document.getElementById('cXbar').getContext('2d'),{type:'line',plugins:[zone(stats.xbb,stats.sx,stats.UCLx,stats.LCLx),glow(hlX2)],data:{labels,datasets:[{label:topLabel,data:xv,fill:false,tension:.2,order:1,borderColor:'#58a6ff',borderWidth:2,pointRadius:ptRad(xv,hlX2),pointBackgroundColor:ptC(xv,hlX2,avX),pointBorderColor:ptC(xv,hlX2,avX),pointHoverRadius:9},...xLim]},options:opts(xr.min,xr.max)});
   const rLim=[cL(stats.UCLr,'#ff6b6b',[6,3],'UCL'),cL(stats.Rb+2*stats.sr,'#fbbf24',[4,4],'+2σ'),cL(stats.Rb+stats.sr,'#fde68a',[2,4],'+1σ'),cL(stats.Rb,'#4ade80',[8,4],'CL')];
   if(stats.LCLr>0){rLim.push(cL(stats.Rb-stats.sr,'#bfdbfe',[2,4],'-1σ'));rLim.push(cL(stats.Rb-2*stats.sr,'#93c5fd',[4,4],'-2σ'));rLim.push(cL(stats.LCLr,'#60a5fa',[6,3],'LCL'));}
   const rr=yR(rv,stats.UCLr,Math.max(0,stats.LCLr));
+  rr.min=Math.max(0,rr.min); // R은 음수가 될 수 없으므로 y축 최소값을 0 이상으로 고정
   rChart=new Chart(document.getElementById('cR').getContext('2d'),{type:'line',plugins:[zone(stats.Rb,stats.sr,stats.UCLr,Math.max(0,stats.LCLr)),glow(hlR2)],data:{labels,datasets:[{label:'R',data:rv,fill:false,tension:.2,order:1,borderColor:'#34d399',borderWidth:2,pointRadius:ptRad(rv,hlR2),pointBackgroundColor:ptC(rv,hlR2,avR),pointBorderColor:ptC(rv,hlR2,avR),pointHoverRadius:9},...rLim]},options:opts(rr.min,rr.max)});
   const show=['UCL','CL','LCL','+1σ','-1σ','+2σ','-2σ'];
   const mkL=(id,lim)=>{document.getElementById(id).innerHTML=lim.filter(d=>show.includes(d.label)).map(d=>`<div class="cl-item"><div class="cl-line" style="border-color:${d.borderColor};border-top-style:dashed"></div><span style="color:${d.borderColor}">${d.label}</span></div>`).join('');};
@@ -686,13 +1209,14 @@ function renderCharts(stats,vX,vR){
   if(hlX2.size)startG('X');if(hlR2.size)startG('R');
 }
 
-// ═══ TABLE (x1~x6 always shown, sparse) ═══
+// ═══ TABLE (측정 슬롯 6개 또는 검사강화 시 12개, sparse) ═══
 function renderTable(pd,vg,stats,vX,vR){
   const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
   const th=document.getElementById('rtHead'),tb=document.getElementById('rtBody');
   th.innerHTML=`<tr><th class="rl">측정</th>${vg.map(d=>`<th>${shortDate(d.date)}</th>`).join('')}</tr>`;
+  const labels=measLabels(curLine,curProd);
   const rows=[];
-  for(let i=0;i<6;i++)rows.push({lbl:`x${i+1}`,type:'xi',idx:i});
+  for(let i=0;i<labels.length;i++)rows.push({lbl:labels[i],type:'xi',idx:i});
   rows.push({lbl:'X̄',type:'xb'},{lbl:'R',type:'R'});
   tb.innerHTML=rows.map(row=>{
     const tds=vg.map((d,di)=>{
@@ -702,6 +1226,33 @@ function renderTable(pd,vg,stats,vX,vR){
     }).join('');
     return `<tr><th class="rl">${row.lbl}</th>${tds}</tr>`;
   }).join('');
+  syncTableColsToChart();
+}
+// I-MR용 표: X̄-R 표와 완전히 같은 레이아웃(날짜가 열, 위 I/R 관리도 x축과 세로로 정렬) —
+// 다만 행 구성만 [구분/I/R]로 다름 (안에 들어가는 데이터만 다르고 레이아웃은 X̄-R 표와 동일)
+// I-MR 하단 표의 "주간 초품" 같은 구분 라벨을 "주간/초품" 두 줄로 표시
+function splitMeasLabel(l){
+  if(!l)return '—';
+  return esc(l).replace(/^(주간|야간)\s/,'$1<br>');
+}
+function renderTableIMR(vg,stats,vX,vR){
+  const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
+  const th=document.getElementById('rtHead'),tb=document.getElementById('rtBody');
+  const groups=(stats&&stats.groups)||[];
+  th.innerHTML=`<tr><th class="rl">구분</th>${groups.map(g=>`<th>${shortDate(g.date)}</th>`).join('')}</tr>`;
+  if(!groups.length){tb.innerHTML='';}
+  else{
+    const rows=[{lbl:'구분',type:'lbl'},{lbl:'I',type:'I'},{lbl:'R',type:'R'}];
+    tb.innerHTML=rows.map(row=>{
+      const tds=groups.map((g,i)=>{
+        if(row.type==='lbl')return `<td>${splitMeasLabel(g.label)}</td>`;
+        if(row.type==='I')return `<td class="${avX.has(i)?'cv':''}">${fmtV(g.xb)}</td>`;
+        return `<td class="${avR.has(i)?'cv':''}">${i===0?'—':fmtV(g.R)}</td>`;
+      }).join('');
+      return `<tr><th class="rl">${row.lbl}</th>${tds}</tr>`;
+    }).join('');
+  }
+  // X̄-R 표와 동일하게 관리도 x축과 열 폭/위치를 맞춤
   syncTableColsToChart();
 }
 // 표-그래프 정렬: 하드코딩된 폭 상수 대신, 지금 이 순간 실제로 화면에 그려진
@@ -737,7 +1288,7 @@ function syncTableColsToChart(){
   for(let i=1;i<headCells.length;i++)headCells[i].style.width=Math.round(step)+'px';
 }
 // resize/브라우저 확대·축소 시 항상 재계산 (chart.js 자체 onResize 훅과 별개의 보조 안전장치)
-window.addEventListener('resize',()=>{if(xChart||rChart)syncTableColsToChart();});
+window.addEventListener('resize',()=>{if(xChart||rChart)syncTableColsToChart();positionAllTierDatePicks();});
 if(window.visualViewport){window.visualViewport.addEventListener('resize',()=>{if(xChart||rChart)syncTableColsToChart();});}
 
 // ═══ PASSWORD ═══
@@ -754,14 +1305,278 @@ function openCfg(){
   cfgTabIdx=0;
   lmLineSel=cfg.lines[0]||'';
   rdeSelLine=curLine;rdeSelProd=curProd;rdeSelDim=curDim;
-  drTabMode=cfg.drMode??0;
+  gsInitFromCfg();
   specLineSel2=cfg.lines[0]||'';
   document.querySelectorAll('.cfg-tab').forEach((b,i)=>b.classList.toggle('on',i===0));
   renderCfgTab();
   document.getElementById('cfgModal').classList.add('open');
 }
-function closeCfg(){document.getElementById('cfgModal').classList.remove('open');}
-document.getElementById('cfgModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeCfg();});
+function closeCfg(){document.getElementById('cfgModal').classList.remove('open');checkDataSufficiency();}
+
+// ═══ 분석 (다중 선택 멀티차트) ═══
+let analysisSelected=new Set(),analysisCharts={},analysisOrder=[],anaDragKey=null;
+let anaCardW=468,anaCardH=252; // 기존(260x140)의 약 1.8배. 손잡이로 늘리면 전체 카드가 같이 바뀜
+let anaPos={}; // key -> {col,row} — 카드를 자유 격자칸에 배치
+const ANA_GAP=10,ANA_TITLE_H=58;
+function getAllCombos(){
+  const out=[];
+  cfg.lines.forEach(l=>{
+    (cfg.lineProds[l]||[]).forEach(p=>{
+      (cfg.dims||[]).forEach(d=>out.push({line:l,prod:p,dim:d}));
+    });
+  });
+  return out;
+}
+function openAnalysis(){
+  const lineSel=document.getElementById('anaLine'),prodSel=document.getElementById('anaProd'),dimSel=document.getElementById('anaDim');
+  const allProds=new Set();cfg.lines.forEach(l=>(cfg.lineProds[l]||[]).forEach(p=>allProds.add(p)));
+  lineSel.innerHTML='<option value="">전체 라인</option>'+cfg.lines.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+  prodSel.innerHTML='<option value="">전체 제품</option>'+[...allProds].map(p=>`<option value="${esc(p)}">${esc(p)}${cfg.prodNames[p]?' ('+esc(cfg.prodNames[p])+')':''}</option>`).join('');
+  dimSel.innerHTML='<option value="">전체 치수</option>'+(cfg.dims||[]).map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');
+  document.getElementById('analysisModal').classList.add('open');
+  const emptyBtn=document.getElementById('anaEmptyBtn');if(emptyBtn)emptyBtn.classList.toggle('on',anaIncludeEmpty);
+  renderAnalysisList();renderAnalysisCards();
+}
+function closeAnalysis(){
+  document.getElementById('analysisModal').classList.remove('open');
+  Object.values(analysisCharts).forEach(c=>c.destroy());
+  analysisCharts={};
+}
+function renderAnalysisList(){
+  const fl=document.getElementById('anaLine').value,fp=document.getElementById('anaProd').value,fd=document.getElementById('anaDim').value;
+  const combos=getAllCombos().filter(c=>(!fl||c.line===fl)&&(!fp||c.prod===fp)&&(!fd||c.dim===fd));
+  const listEl=document.getElementById('analysisList');
+  listEl.innerHTML=combos.map(c=>{
+    const key=getKey(c.line,c.prod,c.dim);
+    const checked=analysisSelected.has(key)?'checked':'';
+    const pname=cfg.prodNames[c.prod]||'';
+    return `<label class="ana-item"><input type="checkbox" ${checked} onchange="onAnaCheck('${esc(c.line)}','${esc(c.prod)}','${esc(c.dim)}',this.checked)"> ${esc(c.line)} | ${esc(c.prod)}${pname?'('+esc(pname)+')':''} | ${esc(c.dim)}</label>`;
+  }).join('')||'<div style="color:var(--tx3);padding:10px;font-size:12.5px">조건에 맞는 항목이 없습니다</div>';
+}
+function onAnaCheck(line,prod,dim,checked){
+  const key=getKey(line,prod,dim);
+  if(checked){analysisSelected.add(key);if(!analysisOrder.includes(key))analysisOrder.push(key);}
+  else{analysisSelected.delete(key);analysisOrder=analysisOrder.filter(k=>k!==key);}
+  renderAnalysisCards();
+}
+// ─── 카드 자유 배치(격자 스냅) ───
+// 카드마다 (col,row) 위치를 직접 갖고 있어서, 2개만 선택해도 4사분면·3사분면처럼
+// 서로 떨어진 칸에 놓을 수 있음. 드래그로 놓은 칸에 이미 카드가 있으면 서로 자리를 맞바꿈.
+function anaNumCols(){
+  const cont=document.getElementById('analysisCards');
+  const w=(cont&&cont.clientWidth)||800;
+  return Math.max(1,Math.floor((w+ANA_GAP)/(anaCardW+ANA_GAP)));
+}
+function anaAssignPositions(){
+  Object.keys(anaPos).forEach(k=>{if(!analysisOrder.includes(k))delete anaPos[k];});
+  const numCols=anaNumCols();
+  const occupied=new Set(Object.values(anaPos).map(p=>`${p.col},${p.row}`));
+  analysisOrder.forEach(key=>{
+    if(anaPos[key])return;
+    let row=0;
+    while(row<1000){
+      for(let col=0;col<numCols;col++){
+        const ck=`${col},${row}`;
+        if(!occupied.has(ck)){anaPos[key]={col,row};occupied.add(ck);row=1000;col=numCols;return;}
+      }
+      row++;
+    }
+  });
+}
+function layoutAnaCards(){
+  const inner=document.getElementById('analysisCardsInner');if(!inner)return;
+  let maxRow=0;
+  analysisOrder.forEach(key=>{
+    const pos=anaPos[key];if(!pos)return;
+    maxRow=Math.max(maxRow,pos.row);
+    const el=inner.querySelector(`.ana-card[data-anakey="${CSS.escape(key)}"]`);
+    if(!el)return;
+    el.style.left=(pos.col*(anaCardW+ANA_GAP))+'px';
+    el.style.top=(pos.row*(anaCardH+ANA_GAP))+'px';
+    el.style.width=anaCardW+'px';
+    el.style.height=anaCardH+'px';
+    const cw=el.querySelector('.cw');
+    if(cw)cw.style.height=Math.max(60,anaCardH-ANA_TITLE_H)+'px';
+  });
+  // 카드들을 담는 "안쪽" 요소에만 큰 높이를 주고, 바깥(#analysisCards, overflow:auto)은
+  // flex로 정해진 자기 높이를 그대로 유지해야 스크롤바가 항상 화면 안에 보임
+  inner.style.height=((maxRow+1)*(anaCardH+ANA_GAP))+'px';
+  inner.style.setProperty('--ana-cell-w',(anaCardW+ANA_GAP)+'px');
+  inner.style.setProperty('--ana-cell-h',(anaCardH+ANA_GAP)+'px');
+}
+function anaDragStart(e){
+  const card=e.currentTarget;anaDragKey=card.dataset.anakey;e.dataTransfer.effectAllowed='move';
+  const inner=document.getElementById('analysisCardsInner');if(inner)inner.classList.add('dragging');
+}
+function anaDragEnd(){
+  const inner=document.getElementById('analysisCardsInner');if(inner)inner.classList.remove('dragging');
+}
+function anaContainerDragOver(e){e.preventDefault();}
+function anaContainerDrop(e){
+  e.preventDefault();
+  const inner=document.getElementById('analysisCardsInner');
+  if(inner)inner.classList.remove('dragging');
+  const dragKey=anaDragKey;anaDragKey=null;
+  if(!dragKey||!inner)return;
+  const rect=inner.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  const col=Math.max(0,Math.round(x/(anaCardW+ANA_GAP)));
+  const row=Math.max(0,Math.round(y/(anaCardH+ANA_GAP)));
+  const occupant=Object.keys(anaPos).find(k=>k!==dragKey&&anaPos[k]&&anaPos[k].col===col&&anaPos[k].row===row);
+  const oldPos=anaPos[dragKey];
+  anaPos[dragKey]={col,row};
+  if(occupant&&oldPos)anaPos[occupant]=oldPos;
+  layoutAnaCards();
+}
+// 카드 크기 조절(우하단 손잡이를 대각선으로 드래그) — 하나를 바꾸면 전체 카드가 같이 바뀜
+let anaResizing=false,anaResizeStartX=0,anaResizeStartY=0,anaResizeStartW=0,anaResizeStartH=0;
+function anaResizeStart(e){
+  e.preventDefault();e.stopPropagation();
+  anaResizing=true;anaResizeStartX=e.clientX;anaResizeStartY=e.clientY;anaResizeStartW=anaCardW;anaResizeStartH=anaCardH;
+  document.addEventListener('mousemove',anaResizeMove);
+  document.addEventListener('mouseup',anaResizeEnd);
+}
+function anaResizeMove(e){
+  if(!anaResizing)return;
+  const dx=e.clientX-anaResizeStartX,dy=e.clientY-anaResizeStartY;
+  anaCardW=Math.max(200,Math.min(900,anaResizeStartW+dx));
+  anaCardH=Math.max(120,Math.min(700,anaResizeStartH+dy));
+  layoutAnaCards();
+  Object.values(analysisCharts).forEach(c=>{try{c.resize();}catch(err){}});
+}
+function anaResizeEnd(){
+  anaResizing=false;
+  document.removeEventListener('mousemove',anaResizeMove);
+  document.removeEventListener('mouseup',anaResizeEnd);
+}
+let anaIncludeEmpty=false;
+function toggleAnaIncludeEmpty(){
+  anaIncludeEmpty=!anaIncludeEmpty;
+  const btn=document.getElementById('anaEmptyBtn');if(btn)btn.classList.toggle('on',anaIncludeEmpty);
+  renderAnalysisCards();
+}
+function renderAnalysisCards(){
+  const outer=document.getElementById('analysisCards');
+  const inner=document.getElementById('analysisCardsInner');
+  Object.keys(analysisCharts).forEach(k=>{if(!analysisSelected.has(k)){analysisCharts[k].destroy();delete analysisCharts[k];}});
+  if(analysisSelected.size===0){
+    // 바깥(뷰포트, #analysisCards)이 아니라 안쪽 콘텐츠 요소에만 써야 함 —
+    // 바깥에 쓰면 #analysisCardsInner 자체가 지워져서 다음에 다시 선택해도 카드가 안 뜨게 됨
+    if(inner){inner.removeAttribute('style');inner.innerHTML='<div style="color:var(--tx3);padding:20px;text-align:center">왼쪽에서 항목을 선택하면 그래프가 여기 표시됩니다</div>';}
+    return;
+  }
+  anaAssignPositions();
+  // 카드 캔버스 id는 key를 그대로 안전화(safeId)하면 한글 치수명 등에서 서로 다른 key가
+  // 같은 문자열로 뭉개져 충돌할 수 있어(예: 두 글자 한글 치수명끼리) — 대신 항상 고유한
+  // "이 순간의 배열 위치(인덱스)"를 id로 써서 카드-캔버스가 절대 뒤섞이지 않게 함
+  inner.innerHTML=analysisOrder.map((key,idx)=>{
+    const parts=key.split('__');
+    const pd=allData[key]||{complete:[],pending:[]};
+    const cap=calcCapability(pd,cfg.specs[key]||{});
+    const ppTxt=cap&&cap.pp!=null?`Pp ${cap.pp.toFixed(2)} / Ppk ${cap.ppk.toFixed(2)}`:'Pp/Ppk —';
+    const pname=cfg.prodNames[parts[1]]?` (${cfg.prodNames[parts[1]]})`:'';
+    // 오른쪽 카드에서는 "라인 / 품번 (품명) / 치수"를 세 줄로 표시 (왼쪽 목록은 그대로 한 줄)
+    return `<div class="ana-card" draggable="true" data-anakey="${esc(key)}" ondragstart="anaDragStart(event)" ondragend="anaDragEnd()"><div class="ana-card-title"><span class="ana-drag-handle">⠿</span>${esc(parts[0])}<br>${esc(parts[1])}${esc(pname)}<br>${esc(parts[2])}<span style="float:right;font-weight:400;color:var(--tx3);font-size:11px">${ppTxt}</span></div><div class="cw"><canvas id="anaChart_${idx}"></canvas><span class="ana-resize-handle" draggable="false" onmousedown="anaResizeStart(event)">⤡</span></div></div>`;
+  }).join('');
+  layoutAnaCards();
+  outer.ondragover=anaContainerDragOver;
+  outer.ondrop=anaContainerDrop;
+  analysisOrder.forEach((key,idx)=>{
+    const parts=key.split('__');
+    drawAnalysisChart(key,parts[0],parts[1],parts[2],idx);
+  });
+}
+function onAnaRangeChange(){renderAnalysisCards();}
+// "미생성 날짜 포함": 기간 내 모든 날짜(I-MR이면 그 날의 모든 측정 슬롯까지)를 다 늘어놓고,
+// 실제 입력이 없는 자리는 빈 칸(null)인 채로 x축에 그대로 나타냄 — 레이아웃 목적의 표시용 확장이며
+// 대시보드의 실제 관리도 계산 로직(calcStatsIMR/calcStats)에는 영향을 주지 않음
+function buildAnaExpandedSeries(all,line,prod,isIMR,rangeStart,rangeEnd){
+  const dates=all.map(d=>d.date).filter(d=>d&&d.indexOf('-')>=0);
+  let startN,endN;
+  if(rangeStart)startN=dateNum(rangeStart);else startN=dates.length?Math.min(...dates.map(dateNum)):dateNum(getTodayKey());
+  if(rangeEnd)endN=dateNum(rangeEnd);else endN=dates.length?Math.max(...dates.map(dateNum)):startN;
+  const byDate={};all.forEach(d=>{if(d.date)byDate[d.date]=d;});
+  const labels=[],xv=[];
+  let cur=new Date(startN);const endD=new Date(endN);
+  const slotLabels=isIMR?measLabels(line,prod):null;
+  let guard=0;
+  while(cur.getTime()<=endD.getTime()&&guard<3000){
+    guard++;
+    const ds=`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+    const entry=byDate[ds];
+    if(isIMR){
+      slotLabels.forEach((sl,si)=>{
+        labels.push(`${shortDate(ds)} ${sl}`);
+        const v=entry&&entry.values?entry.values[si]:null;
+        xv.push((v!=null&&!isNaN(v))?v:null);
+      });
+    }else{
+      labels.push(shortDate(ds));
+      if(entry){const vv=validVals(entry.values);xv.push(vv.length?vv.reduce((s,v)=>s+v,0)/vv.length:null);}
+      else xv.push(null);
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+  return{labels,xv};
+}
+function drawAnalysisChart(key,line,prod,dim,idx){
+  const canvas=document.getElementById(`anaChart_${idx}`);
+  if(!canvas)return;
+  const pd=allData[key]||{complete:[],pending:[]};
+  const ps=getProdSettings(line,prod);
+  const isIMR=getDimMode(line,prod,dim)==='imr';
+  let all=[...(pd.complete||[])];sortD(all);
+  const rsEl=document.getElementById('anaRangeStart'),reEl=document.getElementById('anaRangeEnd');
+  const rangeStart=rsEl&&rsEl.value?rsEl.value:null,rangeEnd=reEl&&reEl.value?reEl.value:null,includeEmpty=anaIncludeEmpty;
+  if(rangeStart||rangeEnd){
+    all=all.filter(d=>{
+      const dn=dateNum(d.date);
+      if(rangeStart&&dn<dateNum(rangeStart))return false;
+      if(rangeEnd&&dn>dateNum(rangeEnd))return false;
+      return true;
+    });
+  }
+  const tierCfg=isIMR?(cfg.imr||DEF.imr):{k:cfg.k,drMode:cfg.drMode,drDate:cfg.drDate};
+  const vg=(rangeStart||rangeEnd)?all:windowGroups(all,tierCfg.k||(isIMR?25:25),tierCfg.drMode??0,tierCfg.drDate);
+  let stats=isIMR?calcStatsIMR(vg,line,prod):calcStats(vg);
+  if(analysisCharts[key]){analysisCharts[key].destroy();delete analysisCharts[key];}
+  if(!stats||!stats.groups.length){
+    const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.font='12px sans-serif';ctx.fillStyle='#888';ctx.fillText('분석 가능한 데이터가 부족합니다',10,50);
+    return;
+  }
+  const spec=cfg.specs[key]||{};
+  if(ps.rule===1){
+    if(spec.usl!=null&&spec.ucl!=null)stats=Object.assign({},stats,{UCLx:spec.ucl});
+    if(spec.lsl!=null&&spec.lcl!=null)stats=Object.assign({},stats,{LCLx:spec.lcl});
+  }
+  let labels,xv;
+  if(includeEmpty){
+    const built=buildAnaExpandedSeries(all,line,prod,isIMR,rangeStart,rangeEnd);
+    labels=built.labels;xv=built.xv;
+  }else{
+    labels=stats.groups.map(g=>shortDate(g.date));
+    xv=stats.groups.map(g=>g.xb);
+  }
+  const datasets=[
+    {label:isIMR?'I':'X̄',data:xv,borderColor:'#58a6ff',borderWidth:2,pointRadius:2,tension:.2,order:1,spanGaps:false},
+    {label:'UCL',data:labels.map(()=>stats.UCLx),borderColor:'#f85149',borderWidth:1,pointRadius:0,borderDash:[4,4],order:2},
+    {label:'CL',data:labels.map(()=>stats.xbb),borderColor:'#3fb950',borderWidth:1,pointRadius:0,borderDash:[2,2],order:2},
+    {label:'LCL',data:labels.map(()=>stats.LCLx),borderColor:'#f85149',borderWidth:1,pointRadius:0,borderDash:[4,4],order:2},
+  ];
+  // 규격(USL/LSL)도 있으면 관리한계와 구분되는 색으로 같이 표시
+  if(spec.usl!=null)datasets.push({label:'USL',data:labels.map(()=>spec.usl),borderColor:'#e879f9',borderWidth:1,pointRadius:0,borderDash:[1,3],order:3});
+  if(spec.lsl!=null)datasets.push({label:'LSL',data:labels.map(()=>spec.lsl),borderColor:'#e879f9',borderWidth:1,pointRadius:0,borderDash:[1,3],order:3});
+  analysisCharts[key]=new Chart(canvas.getContext('2d'),{
+    type:'line',
+    data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},scales:{
+      x:{ticks:{color:'#ccc',font:{size:10},maxRotation:90,minRotation:labels.some(l=>String(l).length>6)?60:0,autoSkip:true},grid:{color:'rgba(55,62,71,.6)'}},
+      y:{ticks:{color:'#ccc',font:{size:10}},grid:{color:'rgba(55,62,71,.6)'}}
+    }}
+  });
+}
+// 설정창 바깥을 클릭해도 더 이상 닫히지 않음 (실수로 꺼지는 것 방지)
 function cfgTab(idx,btn){
   if(idx===cfgTabIdx){return;}
   saveCfgActive(); // auto-save whichever tab we're leaving before switching
@@ -770,7 +1585,7 @@ function cfgTab(idx,btn){
 function saveCfgActive(){if(cfgTabIdx===0)saveGeneral();else if(cfgTabIdx===1)saveLM();else if(cfgTabIdx===2)saveSpec();else if(cfgTabIdx===3)saveRde();else if(cfgTabIdx===4)saveAlerts();}
 function renderCfgTab(){
   const body=document.getElementById('cfgBody');
-  if(cfgTabIdx===0)body.innerHTML=renderGeneral();
+  if(cfgTabIdx===0){body.innerHTML=renderGeneral();positionAllTierDatePicks();}
   else if(cfgTabIdx===1)body.innerHTML=renderLM();
   else if(cfgTabIdx===2)body.innerHTML=renderSpec();
   else if(cfgTabIdx===3)body.innerHTML=renderRde();
@@ -778,38 +1593,194 @@ function renderCfgTab(){
   document.getElementById('cfgSaveBtn').style.display='';
 }
 
-// ─── TAB 0: GENERAL ───
-function renderGeneral(){
-  return `<div class="mf-row"><div class="mf"><label>군 크기 (n) — n이상 모두 포함</label><input type="number" id="gn" min="2" max="10" value="${cfg.n}"></div><div class="mf"><label>표시 군 개수 (k)</label><input type="number" id="gk" min="2" max="500" value="${cfg.k}"></div></div>
-<div class="mf"><label>표시 날짜 범위</label><div class="dr-box"><div class="dr-tabs"><button class="dr-tab${drTabMode===0?' on':''}" id="drt0" onclick="setDrTab(0)">가장 최신 날짜</button><button class="dr-tab${drTabMode===1?' on':''}" id="drt1" onclick="setDrTab(1)">첫 번째 날짜 기준</button><button class="dr-tab${drTabMode===2?' on':''}" id="drt2" onclick="setDrTab(2)">마지막 날짜 기준</button></div>
-<div id="drDateArea" style="display:${drTabMode>0?'block':'none'}"><div class="mf" style="margin-bottom:0"><label id="drLbl">${drTabMode===1?'첫 번째':'마지막'} 날짜 선택</label><input type="date" id="drPickDate" value="${cfg.drDate?toDateInput(cfg.drDate):''}" style="color-scheme:dark"></div></div></div></div>`;
+// ─── TAB 0: GENERAL (I-MR / X̄-R / 공정능력분석 3단 구성) ───
+function gsInitFromCfg(){
+  gsUI.xbarr={mode:cfg.drMode??0,date:cfg.drDate};
+  gsUI.imr={mode:cfg.imr.drMode??0,date:cfg.imr.drDate};
+  gsUI.cap={mode:cfg.cap.drMode??0,date:cfg.cap.drDate};
 }
-function setDrTab(m){drTabMode=m;[0,1,2].forEach(i=>{const b=document.getElementById(`drt${i}`);if(b)b.classList.toggle('on',i===m);});const da=document.getElementById('drDateArea');if(da)da.style.display=m>0?'block':'none';const lbl=document.getElementById('drLbl');if(lbl)lbl.textContent=(m===1?'첫 번째':'마지막')+' 날짜 선택';}
+function tierDrTabsHtml(tier){
+  const st=gsUI[tier];
+  return `<div class="gs-tabs">
+    <button type="button" class="gs-tab${st.mode===0?' on':''}" onclick="setTierDrMode('${tier}',0)">가장 최신 날짜 기준</button>
+    <button type="button" class="gs-tab${st.mode===1?' on':''}" onclick="setTierDrMode('${tier}',1)">첫 번째 날짜 기준</button>
+    <button type="button" class="gs-tab${st.mode===2?' on':''}" onclick="setTierDrMode('${tier}',2)">마지막 날짜 기준</button>
+  </div>`;
+}
+function tierDatePickHtml(tier){
+  const st=gsUI[tier];
+  if(st.mode===0)return '';
+  return `<div class="gs-datepick" id="${tier}_datepick"><input type="date" id="${tier}_date" value="${st.date?toDateInput(st.date):''}" style="color-scheme:dark;width:100%" oninput="onTierDateInput('${tier}')"></div>`;
+}
+// 첫번째/마지막 날짜 기준 캘린더를, 지금 눌려있는 그 탭 버튼 바로 아래에
+// 그 버튼과 같은 너비로 이어붙임 (버튼 글자 길이가 제각각이라 매번 실측)
+function positionAllTierDatePicks(){
+  ['imr','xbarr','cap'].forEach(tier=>{
+    const st=gsUI[tier];if(!st||st.mode===0)return;
+    const dp=document.getElementById(`${tier}_datepick`);if(!dp)return;
+    const btn=document.querySelector(`.gs-tab[onclick*="setTierDrMode('${tier}',${st.mode})"]`);
+    const row=dp.previousElementSibling;
+    if(!btn||!row)return;
+    const rowRect=row.getBoundingClientRect(),btnRect=btn.getBoundingClientRect();
+    dp.style.marginLeft=Math.round(btnRect.left-rowRect.left)+'px';
+    dp.style.width=Math.round(btnRect.width)+'px';
+  });
+}
+function tierNoteInfo(tier,k,n){
+  if(tier==='imr')return{warn:k<=19,text:'I-MR 관리도는 군 개수 20~25 에서 산출되는 UCL/LCL 로 적용하는 것이 가장 적절합니다.\n초중종으로(군당) 1개씩 검사해서는 X bar R 관리도를 적용할 수 없으므로 I-MR 관리도가 적합합니다.'};
+  if(tier==='xbarr')return{warn:k<=19||n<=2,text:'X bar R 관리도는 군 개수 20~25 군 크기 3~5 에서 산출되는 UCL/LCL 로 적용하는 것이 가장 적절합니다.'};
+  return{warn:k<125,text:'초중종(군당) 1개씩 검사하는 것으로는 Cp, Cpk 분석이 부적절하며 125개 군 이상으로 Pp, Ppk 분석하는 것이 적절합니다.'};
+}
+function tierCaptionText(tier,mode,dateVal,k,n){
+  const nLabel=tier==='xbarr'?`군 크기 ${n||'-'} 이상의 군으로 `:'';
+  const d=dateVal||'선택 안 함';
+  if(mode===0)return `가장 최신 날짜로부터 그 전으로 ${nLabel}${k}개를 조회할 수 있습니다.`;
+  if(mode===1)return `선택한 날짜(${d})에서부터 그 후로 ${nLabel}${k}개를 조회할 수 있습니다.`;
+  return `선택한 날짜(${d})로부터 그 전으로 ${nLabel}${k}개를 조회할 수 있습니다.`;
+}
+function renderGeneral(ov){
+  ov=ov||{};
+  const imrK=ov.imr_k!=null&&ov.imr_k!==''?(parseInt(ov.imr_k)||cfg.imr.k):cfg.imr.k;
+  const xbarrK=ov.xbarr_k!=null&&ov.xbarr_k!==''?(parseInt(ov.xbarr_k)||cfg.k):cfg.k;
+  const xbarrN=ov.xbarr_n!=null&&ov.xbarr_n!==''?(parseInt(ov.xbarr_n)||cfg.n):cfg.n;
+  const capK=ov.cap_k!=null&&ov.cap_k!==''?(parseInt(ov.cap_k)||cfg.cap.k):cfg.cap.k;
+  const mk=(tier,k,n)=>{
+    const info=tierNoteInfo(tier,k,n);
+    const dateVal=gsUI[tier].mode>0&&gsUI[tier].date?toDateInput(gsUI[tier].date):'';
+    const caption=tierCaptionText(tier,gsUI[tier].mode,dateVal,k,n);
+    return `<span class="gs-info-icon${info.warn?' warn':''}" id="${tier}_infoicon" onmouseenter="showGsTip(event,'${tier}')" onmousemove="moveTip(event)" onmouseleave="hideGsTip()">ⓘ</span><div class="gs-note${info.warn?' warn':''}" id="${tier}_note" style="display:none">${esc(info.text).replace(/\n/g,'<br>')}</div><div class="gs-caption" id="${tier}_caption" style="display:none">${esc(caption)}</div>`;
+  };
+  return `
+<div class="gs-tier">
+  <div class="gs-row"><div class="gs-title">I-MR 관리도</div>${tierDrTabsHtml('imr')}<div class="gs-num"><label>군 개수</label><input type="number" id="imr_k" min="2" max="500" value="${imrK}" oninput="refreshTierNote('imr')"></div>${mk('imr',imrK,null)}</div>
+  ${tierDatePickHtml('imr')}
+</div>
+<div class="gs-tier">
+  <div class="gs-row"><div class="gs-title">X bar R 관리도</div>${tierDrTabsHtml('xbarr')}<div class="gs-num"><label>군 개수</label><input type="number" id="xbarr_k" min="2" max="500" value="${xbarrK}" oninput="refreshTierNote('xbarr')"></div><div class="gs-num"><label>군 크기</label><input type="number" id="xbarr_n" min="2" max="10" value="${xbarrN}" oninput="refreshTierNote('xbarr')"></div>${mk('xbarr',xbarrK,xbarrN)}</div>
+  ${tierDatePickHtml('xbarr')}
+</div>
+<div class="gs-tier">
+  <div class="gs-row"><div class="gs-title">공정능력 분석</div>${tierDrTabsHtml('cap')}<div class="gs-num"><label>군 개수</label><input type="number" id="cap_k" min="2" max="1000" value="${capK}" oninput="refreshTierNote('cap')"></div>${mk('cap',capK,null)}</div>
+  ${tierDatePickHtml('cap')}
+</div>`;
+}
+function showGsTip(e,tier){
+  const noteEl=document.getElementById(`${tier}_note`),capEl=document.getElementById(`${tier}_caption`);
+  const tip=document.getElementById('tip');
+  tip.innerHTML=(noteEl?noteEl.innerHTML:'')+(capEl&&capEl.textContent?`<br><br>${esc(capEl.textContent)}`:'');
+  tip.style.display='block';moveTip(e);
+}
+function hideGsTip(){document.getElementById('tip').style.display='none';}
+function showSimpleTip(e,text){
+  const tip=document.getElementById('tip');
+  tip.textContent=text;
+  tip.style.display='block';moveTip(e);
+}
+function refreshTierNote(tier){
+  const kEl=document.getElementById(`${tier}_k`);
+  const k=parseInt(kEl?.value)||0;
+  const n=tier==='xbarr'?(parseInt(document.getElementById('xbarr_n')?.value)||0):null;
+  const info=tierNoteInfo(tier,k,n);
+  const noteEl=document.getElementById(`${tier}_note`);
+  if(noteEl){noteEl.innerHTML=esc(info.text).replace(/\n/g,'<br>');noteEl.classList.toggle('warn',info.warn);}
+  const iconEl=document.getElementById(`${tier}_infoicon`);
+  if(iconEl)iconEl.classList.toggle('warn',info.warn);
+  const dateEl=document.getElementById(`${tier}_date`);
+  const dateVal=gsUI[tier].mode>0?(dateEl?dateEl.value:''):'';
+  const capEl=document.getElementById(`${tier}_caption`);
+  if(capEl)capEl.textContent=tierCaptionText(tier,gsUI[tier].mode,dateVal,k,n);
+}
+function captureGeneralInputs(){
+  return{
+    imr_k:document.getElementById('imr_k')?.value,
+    xbarr_k:document.getElementById('xbarr_k')?.value,
+    xbarr_n:document.getElementById('xbarr_n')?.value,
+    cap_k:document.getElementById('cap_k')?.value,
+  };
+}
+function setTierDrMode(tier,m){
+  // 이 티어의 표시 날짜 범위 모드만 바꾸고, 다른 칸에 입력 중이던(아직 저장 전) 값은 그대로 유지
+  const snapshot=captureGeneralInputs();
+  gsUI[tier].mode=m;
+  document.getElementById('cfgBody').innerHTML=renderGeneral(snapshot);
+  positionAllTierDatePicks();
+}
+function onTierDateInput(tier){
+  const el=document.getElementById(`${tier}_date`);
+  gsUI[tier].date=el&&el.value?fromDateInput(el.value):null;
+  refreshTierNote(tier);
+}
 function reclassifyAllData(){
   Object.keys(allData).forEach(key=>{
     const pd=allData[key];
+    const parts=key.split('__');const line=parts[0],prod=parts[1],dim=parts[2];
+    const need=completionThreshold(line,prod,dim);
     const merged=[...pd.complete,...pd.pending];
     const newC=[],newP=[];
     merged.forEach(d=>{
       const cnt=countVals(d.values);
-      if(cnt>=cfg.n)newC.push(d);else if(cnt>0)newP.push(d);
+      if(cnt>=need)newC.push(d);else if(cnt>0)newP.push(d);
     });
     sortD(newC);sortD(newP);
     pd.complete=newC;pd.pending=newP;
   });
 }
-function saveGeneral(){
-  const n=parseInt(document.getElementById('gn')?.value);if(!CC[n]){showToast('군 크기 2~10만 지원','warn');return;}
-  const nChanged=(cfg.n!==n);
-  cfg.n=n;cfg.k=parseInt(document.getElementById('gk')?.value)||20;cfg.drMode=drTabMode;
-  if(drTabMode>0){
-    const dv=document.getElementById('drPickDate')?.value;
-    cfg.drDate=dv?fromDateInput(dv):null;
-  }else{
-    cfg.drDate=null;
+// 기본값(DEF)과 다르게 저장된 설정은 "이 브라우저에서만" 20분간 유효 — Firebase에는 항상
+// 기본값이 유지되어 다른 PC/새로고침에는 영향을 주지 않음.
+let tempGS={xbarr:null,imr:null,cap:null};
+function isTierDefault(tier,v){
+  if(tier==='xbarr')return v.k===DEF.k&&v.n===DEF.n&&v.drMode===DEF.drMode&&(v.drMode===0||!v.drDate);
+  const d=DEF[tier];
+  return v.k===d.k&&v.drMode===d.drMode&&(v.drMode===0||!v.drDate);
+}
+function applyTierSetting(tier,v,tempTiers){
+  if(tier==='xbarr'){cfg.k=v.k;cfg.n=v.n;cfg.drMode=v.drMode;cfg.drDate=v.drDate;}
+  else{cfg[tier].k=v.k;cfg[tier].drMode=v.drMode;cfg[tier].drDate=v.drDate;}
+  if(tempGS[tier]){clearTimeout(tempGS[tier].timer);tempGS[tier]=null;}
+  if(!isTierDefault(tier,v)){
+    tempTiers.push(tier);
+    const timer=setTimeout(()=>revertTierToDefault(tier),20*60*1000);
+    tempGS[tier]={...v,timer};
   }
+}
+function revertTierToDefault(tier){
+  if(tier==='xbarr'){cfg.k=DEF.k;cfg.n=DEF.n;cfg.drMode=DEF.drMode;cfg.drDate=DEF.drDate;}
+  else{cfg[tier]={...DEF[tier]};}
+  tempGS[tier]=null;
+  hlX=null;hlR=null;render();
+  const modal=document.getElementById('cfgModal');
+  if(modal&&modal.classList.contains('open')&&cfgTabIdx===0){document.getElementById('cfgBody').innerHTML=renderGeneral();positionAllTierDatePicks();}
+  const label=tier==='xbarr'?'X bar R':tier==='imr'?'I-MR':'공정능력 분석';
+  showToast(`${label} 설정이 20분 경과로 기본값으로 돌아갔습니다`,'warn');
+}
+function saveGeneral(){
+  const n=parseInt(document.getElementById('xbarr_n')?.value);if(!CC[n]){showToast('군 크기 2~10만 지원','warn');return;}
+  const nChanged=(cfg.n!==n);
+  const tempTiers=[];
+  applyTierSetting('xbarr',{
+    k:parseInt(document.getElementById('xbarr_k')?.value)||25,
+    n,
+    drMode:gsUI.xbarr.mode,
+    drDate:gsUI.xbarr.mode>0?gsUI.xbarr.date:null,
+  },tempTiers);
+  applyTierSetting('imr',{
+    k:parseInt(document.getElementById('imr_k')?.value)||25,
+    drMode:gsUI.imr.mode,
+    drDate:gsUI.imr.mode>0?gsUI.imr.date:null,
+  },tempTiers);
+  applyTierSetting('cap',{
+    k:parseInt(document.getElementById('cap_k')?.value)||125,
+    drMode:gsUI.cap.mode,
+    drDate:gsUI.cap.mode>0?gsUI.cap.date:null,
+  },tempTiers);
+
   if(nChanged)reclassifyAllData();
-  saveStore();buildMeasGrid();onMIn();hlX=null;hlR=null;render();showToast('일반 설정 저장됨','ok');
+  try{localStorage.setItem('xrr6_cfg',JSON.stringify(cfg));}catch(e){}
+  saveDataToFirebase();
+  saveCfgToFirebase(tempTiers.length?tempTiers:null);
+  buildMeasGrid();onMIn();hlX=null;hlR=null;render();
+  checkDataSufficiency();
+  showToast(tempTiers.length?'저장됨 (기본값과 달라 이 화면에서만 20분간 적용)':'일반 설정 저장됨','ok');
 }
 
 // ─── TAB 1: LINE/PROD/DIM ───
@@ -819,34 +1790,23 @@ function renderLM(){
   return `<div class="lm-grid">
 <div class="col-section">
   <div class="col-h">라인 목록</div>
-  <div class="item-list" id="ilLine">${cfg.lines.map((l,i)=>`<div class="item-row" draggable="true" data-type="line" data-idx="${i}" ondragstart="dndS(event)" ondragover="dndO(event)" ondrop="dndD(event,${i},'line')"><span class="item-drag">⠿</span><span class="item-name">${esc(l)}</span><button class="ibtn-sm" onclick="renameItem('line',${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('line',${i})">✕</button></div>`).join('')}</div>
-  <div class="add-row"><input id="addLineInp" placeholder="새 라인명"><button class="add-btn" onclick="addItem('line')">+ 추가</button></div>
-  <div class="line-sel-row"><label>선택 라인:</label><select id="lmLS" onchange="lmCL()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===al?' selected':''}>${esc(l)}</option>`).join('')}</select></div>
-  <div class="col-h">품번/품명 목록 (${esc(al)})</div>
-  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" draggable="true" data-type="prod" data-idx="${i}" ondragstart="dndS(event)" ondragover="dndO(event)" ondrop="dndD(event,${i},'prod')"><span class="item-drag">⠿</span><span class="item-name" style="flex:0 0 70px">${esc(p)}</span><button class="ibtn-sm" onclick="renameProdCode(${i})">수정</button><span class="item-name" style="flex:1">${esc(cfg.prodNames[p]||'')}</span><button class="ibtn-sm" onclick="renameProdName(${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
+  <div class="item-list" id="ilLine">${cfg.lines.map((l,i)=>`<div class="item-row" data-type="line" data-idx="${i}"><input class="item-edit-inp" style="flex:1" value="${esc(l)}" onblur="commitLineEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('line',${i})">✕</button></div>`).join('')}</div>
+  <div class="add-row" style="margin-bottom:12px"><input id="addLineInp" placeholder="새 라인명"><button class="add-btn" onclick="addItem('line')">+ 추가</button></div>
+  <div class="col-h" style="display:flex;align-items:center;gap:8px">
+    <span style="flex:0 0 auto;white-space:nowrap">품번/품명 목록</span>
+    <select id="lmLS" class="dsel" onchange="lmCL()" style="flex:1;min-width:0;font-weight:400;font-size:12.5px;padding:4px 8px">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===al?' selected':''}>${esc(l)}</option>`).join('')}</select>
+  </div>
+  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" data-type="prod" data-idx="${i}"><input class="item-edit-inp" style="flex:0 0 90px" value="${esc(p)}" onblur="commitProdCodeEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><input class="item-edit-inp" style="flex:1" value="${esc(cfg.prodNames[p]||'')}" onblur="commitProdNameEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
   <div class="add-row"><input id="addProdInp" placeholder="새 품번" style="max-width:120px"><input id="addProdNameInp" placeholder="새 품명"><button class="add-btn" onclick="addProd()">+ 추가</button></div>
 </div>
 <div class="col-section">
   <div class="col-h">치수 목록 (공통)</div>
-  <div class="item-list dim-list" id="ilDim">${dims.map((d,i)=>`<div class="item-row" draggable="true" data-type="dim" data-idx="${i}" ondragstart="dndS(event)" ondragover="dndO(event)" ondrop="dndD(event,${i},'dim')"><span class="item-drag">⠿</span><span class="item-name">${esc(d)}</span><button class="ibtn-sm" onclick="renameItem('dim',${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('dim',${i})">✕</button></div>`).join('')}</div>
+  <div class="item-list dim-list" id="ilDim">${dims.map((d,i)=>`<div class="item-row" data-type="dim" data-idx="${i}"><span class="item-name">${esc(d)}</span><button class="ibtn-sm" onclick="renameDim(${i})">수정</button><button class="ibtn-sm del-sm" onclick="removeItem('dim',${i})">✕</button></div>`).join('')}</div>
   <div class="add-row"><input id="addDimInp" placeholder="새 치수"><button class="add-btn" onclick="addItem('dim')">+ 추가</button></div>
 </div>
 </div>`;
 }
 function lmCL(){lmLineSel=document.getElementById('lmLS').value;document.getElementById('cfgBody').innerHTML=renderLM();}
-let dragSrc2=null;
-function dndS(e){dragSrc2=e.currentTarget;}
-function dndO(e){e.preventDefault();}
-function dndD(e,toIdx,type){
-  e.preventDefault();if(!dragSrc2)return;
-  const fromIdx=parseInt(dragSrc2.dataset.idx);if(fromIdx===toIdx)return;
-  const lmDropdown=document.getElementById('lmLS');
-  if(lmDropdown)lmLineSel=lmDropdown.value;
-  const al=getAL();
-  const arr=type==='line'?cfg.lines:type==='prod'?(cfg.lineProds[al]||[]):(cfg.dims||[]);
-  const[item]=arr.splice(fromIdx,1);arr.splice(toIdx,0,item);
-  document.getElementById('cfgBody').innerHTML=renderLM();
-}
 function addItem(type){
   const map={line:'addLineInp',dim:'addDimInp'};
   // Capture current dropdown selection BEFORE innerHTML wipe
@@ -891,74 +1851,145 @@ function removeItem(type,idx){
   const lmDropdown=document.getElementById('lmLS');
   if(lmDropdown)lmLineSel=lmDropdown.value;
   const al=getAL();
-  if(type==='line'){if(cfg.lines.length<=1){showToast('라인 최소 1개','warn');return;}const r=cfg.lines.splice(idx,1)[0];if(lmLineSel===r)lmLineSel=cfg.lines[0];}
-  else if(type==='prod'){const removed=(cfg.lineProds[al]||[]).splice(idx,1)[0];if(removed!==undefined)delete cfg.prodNames[removed];}
-  else{(cfg.dims||[]).splice(idx,1);}
-  document.getElementById('cfgBody').innerHTML=renderLM();
+  const label=type==='line'?'라인':type==='prod'?'품번':'치수';
+  showConfirmPopup(`해당 ${label}에 저장된 모든 데이터가 사라집니다.\n그래도 정말 삭제하시겠습니까?`,()=>{
+    if(type==='line'){if(cfg.lines.length<=1){showToast('라인 최소 1개','warn');return;}const r=cfg.lines.splice(idx,1)[0];if(lmLineSel===r)lmLineSel=cfg.lines[0];}
+    else if(type==='prod'){const removed=(cfg.lineProds[al]||[]).splice(idx,1)[0];if(removed!==undefined)delete cfg.prodNames[removed];}
+    else{(cfg.dims||[]).splice(idx,1);}
+    document.getElementById('cfgBody').innerHTML=renderLM();
+  });
 }
-function renameItem(type,idx){
-  // Capture dropdown state before prompt (prompt blocks UI, dropdown stays)
+// 커스텀 확인 팝업 — 브라우저 기본 confirm()은 버튼 글씨를 바꿀 수 없어서 직접 구현
+// 군 개수 부족 자동 알림 팝업 (10초 후 자동 소멸 + 닫기 버튼)
+function showInsufficientPopup(messages){
+  if(!messages||!messages.length)return;
+  const old=document.querySelector('.auto-popup-overlay');if(old)old.remove();
+  const overlay=document.createElement('div');
+  overlay.className='auto-popup-overlay';
+  overlay.innerHTML=`<div class="auto-popup-box"><button class="auto-popup-close" onclick="this.closest('.auto-popup-overlay').remove()">✕</button>${messages.map(m=>`<div class="auto-popup-msg">${esc(m).replace(/\n/g,'<br>')}</div>`).join('')}</div>`;
+  document.body.appendChild(overlay);
+  setTimeout(()=>{if(overlay.parentNode)overlay.remove();},7000);
+}
+// 현재 선택된 라인/품번/치수 기준으로, 설정된 조회 조건(군 개수 등)에 데이터가 못 미치면 안내
+function checkDataSufficiency(){
+  const key=curKey();ensureData(key);const pd=allData[key];
+  const spec=getSpec();
+  const all=[...pd.complete];sortD(all);
+  const msgs=[];
+  const isIMR=getDimMode(curLine,curProd,curDim)==='imr';
+  if(isIMR){
+    const imrCfg=cfg.imr||DEF.imr;
+    const imrWin=windowGroups(all,imrCfg.k||25,imrCfg.drMode??0,imrCfg.drDate);
+    if(imrWin.length<(imrCfg.k||25)){
+      msgs.push('군 개수가 설정된 조건의 군 개수보다 작아 I-MR 관리도의 UCL/LCL 을 분석하기에 부적절합니다.\n조건을 변경하거나 조건에 맞는 데이터를 더 쌓아주세요');
+    }
+  }else{
+    const xbarrWin=windowGroups(all,cfg.k||25,cfg.drMode??0,cfg.drDate);
+    if(xbarrWin.length<(cfg.k||25)){
+      msgs.push('군 크기 조건을 만족하는 군 개수가 설정된 조건의 군 개수보다 작아 X bar R 관리도의 UCL/LCL 를 분석하기에 부적절합니다.\n조건을 변경하거나 조건에 맞는 데이터를 더 쌓아주세요');
+    }
+  }
+  if(spec.usl!=null||spec.lsl!=null){
+    const capCfg=cfg.cap||DEF.cap;
+    const capWin=windowGroups(all,capCfg.k||125,capCfg.drMode??0,capCfg.drDate);
+    if(capWin.length<(capCfg.k||125)){
+      msgs.push('군 개수가 설정된 조건의 군 개수보다 작아 Pp, Ppk 를 분석하기에 부적절합니다.\n조건을 변경하거나 조건에 맞는 데이터를 더 쌓아주세요');
+    }
+  }
+  showInsufficientPopup(msgs);
+}
+function showConfirmPopup(message,onConfirm,confirmLabel='삭제합니다',cancelLabel='취소',onCancel){
+  const overlay=document.createElement('div');
+  overlay.className='confirm-popup-overlay';
+  overlay.innerHTML=`<div class="confirm-popup-box"><div class="confirm-popup-msg">${esc(message).replace(/\n/g,'<br>')}</div><div class="confirm-popup-btns"><button class="confirm-popup-btn confirm-popup-cancel">${esc(cancelLabel)}</button><button class="confirm-popup-btn confirm-popup-danger">${esc(confirmLabel)}</button></div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.confirm-popup-danger').onclick=()=>{overlay.remove();onConfirm();};
+  overlay.querySelector('.confirm-popup-cancel').onclick=()=>{overlay.remove();onCancel&&onCancel();};
+  overlay.addEventListener('click',(e)=>{if(e.target===overlay){overlay.remove();onCancel&&onCancel();}});
+}
+function commitLineEdit(idx,el){
   const lmDropdown=document.getElementById('lmLS');
   if(lmDropdown)lmLineSel=lmDropdown.value;
-  const al=getAL();
-  const arr=type==='line'?cfg.lines:(cfg.dims||[]);
-  const cur=arr[idx];if(cur===undefined)return;
-  const nv=prompt(`이름 변경 (현재: ${cur})`,cur);
-  if(!nv||nv.trim()===''||nv.trim()===cur)return;
-  const newVal=nv.trim();
-  if(type==='line'){
-    const old=cfg.lines[idx];
-    cfg.lines[idx]=newVal;
-    cfg.lineProds[newVal]=cfg.lineProds[old]||[];
-    delete cfg.lineProds[old];
-    if(lmLineSel===old)lmLineSel=newVal;
-  }else{
-    (cfg.dims||[])[idx]=newVal;
-  }
+  const old=cfg.lines[idx];if(old===undefined)return;
+  const newVal=el.value.trim();
+  if(!newVal){el.value=old;return;}
+  if(newVal===old)return;
+  if(cfg.lines.includes(newVal)){showToast('이미 존재하는 라인명입니다.','warn');el.value=old;return;}
+  cfg.lines[idx]=newVal;
+  cfg.lineProds[newVal]=cfg.lineProds[old]||[];
+  delete cfg.lineProds[old];
+  if(lmLineSel===old)lmLineSel=newVal;
   document.getElementById('cfgBody').innerHTML=renderLM();
 }
-function renameProdCode(idx){
+function commitProdCodeEdit(idx,el){
   const al=getAL();
   const oldCode=(cfg.lineProds[al]||[])[idx];if(oldCode===undefined)return;
-  const nv=prompt(`품번 수정 (현재: ${oldCode})`,oldCode);
-  if(!nv||nv.trim()===''||nv.trim().toUpperCase()===oldCode)return;
-  const newCode=nv.trim().toUpperCase();
-  if(!isValidProdCode(newCode)){alert(PROD_CODE_ERR);return;}
+  const newCode=el.value.trim().toUpperCase();
+  if(!newCode||newCode===oldCode){el.value=oldCode;return;}
+  if(!isValidProdCode(newCode)){alert(PROD_CODE_ERR);el.value=oldCode;return;}
   const dupLine=findLineOfProd(newCode,al,idx);
-  if(dupLine){alert(`이미 ${dupLine} 라인에 등록된 품번입니다.`);return;}
-  // migrate name map
+  if(dupLine){alert(`이미 ${dupLine} 라인에 등록된 품번입니다.`);el.value=oldCode;return;}
   if(cfg.prodNames[oldCode]!==undefined){cfg.prodNames[newCode]=cfg.prodNames[oldCode];delete cfg.prodNames[oldCode];}
   cfg.lineProds[al][idx]=newCode;
-  // migrate specs referencing old code under this line
   Object.keys(cfg.specs).forEach(k=>{
     const parts=k.split('__');
-    if(parts[0]===al&&parts[1]===oldCode){
-      cfg.specs[`${al}__${newCode}__${parts[2]}`]=cfg.specs[k];delete cfg.specs[k];
-    }
+    if(parts[0]===al&&parts[1]===oldCode){cfg.specs[`${al}__${newCode}__${parts[2]}`]=cfg.specs[k];delete cfg.specs[k];}
   });
-  // migrate measurement data referencing old code under this line
   Object.keys(allData).forEach(k=>{
     const parts=k.split('__');
-    if(parts[0]===al&&parts[1]===oldCode){
-      allData[`${al}__${newCode}__${parts[2]}`]=allData[k];delete allData[k];
-    }
+    if(parts[0]===al&&parts[1]===oldCode){allData[`${al}__${newCode}__${parts[2]}`]=allData[k];delete allData[k];}
   });
   if(curLine===al&&curProd===oldCode)curProd=newCode;
   document.getElementById('cfgBody').innerHTML=renderLM();
 }
-function renameProdName(idx){
+function commitProdNameEdit(idx,el){
   const al=getAL();
   const code=(cfg.lineProds[al]||[])[idx];if(code===undefined)return;
   const oldName=cfg.prodNames[code]||'';
-  const nv=prompt(`품명 수정 (현재: ${oldName})`,oldName);
-  if(nv===null)return;
-  const newName=nv.trim();
-  if(!newName){alert('품명을 입력하세요.');return;}
+  const newName=el.value.trim();
+  if(!newName){alert('품명을 입력하세요.');el.value=oldName;return;}
   if(newName===oldName)return;
   const dupCode=Object.keys(cfg.prodNames).find(c=>c!==code&&cfg.prodNames[c]===newName);
-  if(dupCode){alert(`이미 등록된 품명입니다. (품번: ${dupCode})`);return;}
+  if(dupCode){alert(`이미 등록된 품명입니다. (품번: ${dupCode})`);el.value=oldName;return;}
   cfg.prodNames[code]=newName;
   document.getElementById('cfgBody').innerHTML=renderLM();
+}
+// 치수는 라인/품번과 달리 전 제품 공통이라, 이름을 바꾸면 그 치수명을 참조하던
+// 규격(specs)과 측정데이터(allData)를 전부 새 이름으로 옮겨줘야 데이터가 안 끊깁니다.
+// (브라우저 네이티브 prompt() 대신, 다른 목록들과 같은 방식의 인라인 입력 + 앱 자체 확인 팝업 사용)
+function renameDim(idx){
+  const arr=cfg.dims||[];
+  const cur=arr[idx];if(cur===undefined)return;
+  const row=document.querySelector(`#ilDim .item-row[data-idx="${idx}"]`);
+  if(!row)return;
+  row.innerHTML=`<input class="item-edit-inp" style="flex:1" id="dimEditInp${idx}" onkeydown="if(event.key==='Enter')this.blur();" onblur="commitDimRename(${idx},this)"><button class="ibtn-sm del-sm" onclick="removeItem('dim',${idx})">✕</button>`;
+  const inp=document.getElementById(`dimEditInp${idx}`);inp.value=cur;inp.focus();inp.select();
+}
+function commitDimRename(idx,el){
+  const arr=cfg.dims||[];
+  const cur=arr[idx];
+  const nv=el.value.trim();
+  const redraw=()=>{document.getElementById('cfgBody').innerHTML=renderLM();};
+  if(cur===undefined||!nv||nv===cur){redraw();return;}
+  if(arr.includes(nv)){alert('이미 존재하는 치수명입니다.');redraw();return;}
+  showConfirmPopup(
+    `이름을 변경합니다.\n지금까지 '${cur}'로 저장된 규격/측정데이터가 모두 '${nv}'로 옮겨집니다.`,
+    ()=>{
+      arr[idx]=nv;
+      Object.keys(cfg.specs).forEach(k=>{
+        const parts=k.split('__');
+        if(parts[2]===cur){cfg.specs[`${parts[0]}__${parts[1]}__${nv}`]=cfg.specs[k];delete cfg.specs[k];}
+      });
+      Object.keys(allData).forEach(k=>{
+        const parts=k.split('__');
+        if(parts[2]===cur){allData[`${parts[0]}__${parts[1]}__${nv}`]=allData[k];delete allData[k];}
+      });
+      if(curDim===cur)curDim=nv;
+      redraw();
+    },
+    '변경합니다','취소',
+    redraw
+  );
 }
 function saveLM(){
   // Capture any unsaved dropdown state
@@ -980,39 +2011,239 @@ function renderSpec(){
   const sl=specLineSel2||cfg.lines[0];const prods=cfg.lineProds[sl]||[];const dims=cfg.dims||[];
   let tbl='';
   if(prods.length&&dims.length){
-    const cloneOpts=()=>{
-      const opts=['<option value="">선택...</option>'];
-      cfg.lines.forEach(ln=>{(cfg.lineProds[ln]||[]).forEach(pc=>{opts.push(`<option value="${esc(ln)}__${esc(pc)}">${esc(ln)} - ${esc(pc)}${cfg.prodNames[pc]?'('+esc(cfg.prodNames[pc])+')':''}</option>`);});});
-      return opts.join('');
-    };
-    tbl=`<div style="overflow-x:auto"><table class="smt"><thead><tr><th style="min-width:205px">구분</th><th>복제</th>${dims.map(d=>`<th>${esc(d)}</th>`).join('')}</tr></thead><tbody>`;
-    prods.forEach(p=>{tbl+=`<tr><th style="min-width:205px">${esc(p)}<br>${esc(cfg.prodNames[p]||'')}</th><td><select id="cln_${esc(sl)}_${esc(p)}" class="dsel" style="font-size:12px;width:55px;padding:4px 6px" onchange="cloneSpecRow('${esc(sl)}','${esc(p)}')">${cloneOpts()}</select></td>${dims.map(d=>{const k2=`${sl}__${p}__${d}`,sp=cfg.specs[k2]||{};return `<td><input id="spu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${sp.usl??''}" placeholder="USL" style="margin-bottom:4px"><input id="spl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${sp.lsl??''}" placeholder="LSL"></td>`;}).join('')}</tr>`;});
+    tbl=`<div style="overflow:auto;max-height:520px"><table class="smt"><thead><tr><th style="min-width:133px">구분</th><th style="min-width:132px">설정</th><th style="min-width:90px">관리자</th>${dims.map(d=>`<th style="min-width:150px">${esc(d)}</th>`).join('')}</tr></thead><tbody>`;
+    prods.forEach(p=>{
+      tbl+=`<tr><th style="min-width:133px">${esc(p)}<br>${esc(cfg.prodNames[p]||'')}</th>
+      <td><div class="spec-btn-grid">${cloneBtnHtml(sl,p)}${enhancedBtnHtml(sl,p)}${modeBtnHtml(sl,p)}${ruleBtnHtml(sl,p)}</div></td>
+      <td>${adminMselHtml(sl,p)}</td>
+      ${dims.map(d=>specCellHtml(sl,p,d)).join('')}</tr>`;
+    });
     tbl+='</tbody></table></div>';
   }else tbl='<div style="color:var(--tx3);padding:10px">이 라인에 품번 또는 치수가 없습니다</div>';
-  return `<div class="mf"><label>라인 선택</label><select id="specLS" class="dsel" style="width:100%" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select></div>${tbl}`;
+  return `<div class="spec-line-select"><div class="mf" style="margin-bottom:0;display:flex;align-items:center;gap:6px"><label style="margin:0">라인 선택</label><select id="specLS" class="dsel" style="flex:1" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select><span class="gs-info-icon" onmouseenter="showSimpleTip(event,'가장 마지막으로 수정한 날짜가 규격 아래에 나타납니다')" onmousemove="moveTip(event)" onmouseleave="hideGsTip()">ⓘ</span></div></div>${tbl}`;
 }
-function cloneSpecRow(sl,destProd){
-  const sel=document.getElementById(`cln_${sl}_${destProd}`);if(!sel||!sel.value)return;
-  const[srcLine,srcProd]=sel.value.split('__');
-  const srcName=cfg.prodNames[srcProd]||'',destName=cfg.prodNames[destProd]||'';
-  const msg=`해당 제품의 규격을 복제하시겠습니까?\n\n${srcLine} ${srcProd} 의 규격을 복제하여\n${sl} ${destProd} 으로 붙여넣기`;
-  if(!confirm(msg)){sel.value='';return;}
-  (cfg.dims||[]).forEach(d=>{
-    const srcSpec=cfg.specs[`${srcLine}__${srcProd}__${d}`];
-    if(srcSpec)cfg.specs[`${sl}__${destProd}__${d}`]={lsl:srcSpec.lsl,usl:srcSpec.usl};
+// ─── 제품별 설정 4버튼 (복제하기 / 검사강화 / 관리도 / 룰적용) ───
+function cloneOptsHtml(sl,destProd){
+  const opts=[];
+  (cfg.lineProds[sl]||[]).forEach(pc=>{
+    if(pc===destProd)return;
+    opts.push(`<div class="msel-opt" onclick="cloneSpecRow('${esc(sl)}','${esc(destProd)}','${esc(sl)}','${esc(pc)}')">${esc(pc)}${cfg.prodNames[pc]?' ('+esc(cfg.prodNames[pc])+')':''}</div>`);
   });
-  saveStore();render();document.getElementById('cfgBody').innerHTML=renderSpec();showToast(`${srcProd} 규격 복제됨`,'ok');
+  return opts.join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">복제할 제품 없음</div>';
+}
+function cloneBtnHtml(line,prod){
+  const uid=`cln_${safeId(line)}_${safeId(prod)}`;
+  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn" onclick="toggleMsel('${uid}')">복제하기</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${cloneOptsHtml(line,prod)}</div></div>`;
+}
+function cloneSpecRow(destLine,destProd,srcLine,srcProd){
+  const uid=`cln_${safeId(destLine)}_${safeId(destProd)}`;
+  const panel=document.getElementById(`msel_panel_${uid}`);if(panel)panel.style.display='none';
+  const msg=`해당 제품의 규격을 복제하시겠습니까?\n\n${srcLine} ${srcProd} 의 규격을 복제하여\n${destLine} ${destProd} 으로 붙여넣기`;
+  showConfirmPopup(msg,()=>{
+    (cfg.dims||[]).forEach(d=>{
+      const srcSpec=cfg.specs[`${srcLine}__${srcProd}__${d}`];
+      if(srcSpec)cfg.specs[`${destLine}__${destProd}__${d}`]={...srcSpec};
+    });
+    saveStore();render();document.getElementById('cfgBody').innerHTML=renderSpec();showToast(`${srcProd} 규격 복제됨`,'ok');
+  },'복제합니다','취소');
+}
+function enhancedBtnHtml(line,prod){
+  const ps=getProdSettings(line,prod);
+  const uid=`ei_${safeId(line)}_${safeId(prod)}`;
+  const opts=`<div class="msel-opt" onclick="setProdEnhanced('${esc(line)}','${esc(prod)}',false)">초중종 마다 1개 (shift당 3개)</div><div class="msel-opt" onclick="setProdEnhanced('${esc(line)}','${esc(prod)}',true)">초중종 마다 2개 (shift당 6개)</div>`;
+  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn${ps.enhanced?' on':''}" onclick="toggleMsel('${uid}')">검사강화</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${opts}</div></div>`;
+}
+function setProdEnhanced(line,prod,val){
+  const ps=getProdSettings(line,prod);
+  const uid=`ei_${safeId(line)}_${safeId(prod)}`;
+  if(ps.enhanced===val){const p=document.getElementById(`msel_panel_${uid}`);if(p)p.style.display='none';return;}
+  ps.enhanced=val;
+  saveStore();
+  if(curLine===line&&curProd===prod){autoSavePendingInputs();buildMeasGrid();restorePendingInputs();render();}
+  document.getElementById('cfgBody').innerHTML=renderSpec();
+  showToast(val?'검사강화 적용됨 (12칸)':'기본 검사로 변경됨 (6칸)','ok');
+}
+function modeBtnHtml(line,prod){
+  const uid=`md_${safeId(line)}_${safeId(prod)}`;
+  const eligibleDims=(cfg.dims||[]).filter(d=>{
+    const sp=cfg.specs[getKey(line,prod,d)];
+    return sp&&(sp.usl!=null||sp.lsl!=null);
+  });
+  const anyXbarr=eligibleDims.some(d=>getDimMode(line,prod,d)==='xbarr');
+  const btnText=anyXbarr?'일부 X bar R':'I-MR';
+  const checks=eligibleDims.map(d=>{
+    const checked=getDimMode(line,prod,d)==='xbarr';
+    return `<label class="msel-opt" style="display:block"><input type="checkbox" value="${esc(d)}" ${checked?'checked':''} onchange="onDimModeCheck('${esc(line)}','${esc(prod)}',this)" style="margin-right:6px">${esc(d)}</label>`;
+  }).join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">USL 또는 LSL이 입력된 치수가 없습니다</div>';
+  const panel=`<div style="padding:5px 8px;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--bdr);margin-bottom:4px;line-height:1.4">선택한 치수들은 X bar R 관리도가 적용됩니다</div>${checks}`;
+  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn${anyXbarr?' on':''}" onclick="toggleMsel('${uid}')">${esc(btnText)}</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${panel}</div></div>`;
+}
+// 치수 하나의 실측 데이터를, 그 치수에 지금 적용된 관리도 종류(I-MR/X bar R) 기준으로 완성/미완성 재분류
+function reclassifyDim(line,prod,dim){
+  const key=getKey(line,prod,dim);const pdd=allData[key];if(!pdd)return;
+  const need=completionThreshold(line,prod,dim);
+  const merged=[...pdd.complete,...pdd.pending];
+  const newC=[],newP=[];
+  merged.forEach(d=>{const cnt=countVals(d.values);if(cnt>=need)newC.push(d);else if(cnt>0)newP.push(d);});
+  sortD(newC);sortD(newP);
+  pdd.complete=newC;pdd.pending=newP;
+}
+// 관리자 선택처럼, 드롭다운 안 체크박스를 누르는 즉시 그 치수 하나만 X bar R ↔ I-MR 전환
+function onDimModeCheck(line,prod,checkboxEl){
+  const dim=checkboxEl.value;
+  const sp=cfg.specs[getKey(line,prod,dim)];if(!sp)return;
+  if(checkboxEl.checked)sp.mode='xbarr';else delete sp.mode;
+  reclassifyDim(line,prod,dim);
+  saveStore();
+  if(curLine===line&&curProd===prod&&curDim===dim){hlX=null;hlR=null;render();}
+  const uid=`md_${safeId(line)}_${safeId(prod)}`;
+  const anyXbarr=(cfg.dims||[]).some(d=>getDimMode(line,prod,d)==='xbarr');
+  const btn=document.querySelector(`#msel_wrap_${uid} .spec-pbtn`);
+  if(btn){btn.textContent=anyXbarr?'일부 X bar R':'I-MR';btn.classList.toggle('on',anyXbarr);}
+}
+function ruleBtnHtml(line,prod){
+  const ps=getProdSettings(line,prod);
+  const uid=`rul_${safeId(line)}_${safeId(prod)}`;
+  const btnText=ps.rule===8?'룰 8까지':'룰 1만';
+  const opts=`<div class="msel-opt" onclick="setProdRule('${esc(line)}','${esc(prod)}',1)">룰 1만 적용</div><div class="msel-opt" onclick="setProdRule('${esc(line)}','${esc(prod)}',8)">룰 8까지 적용</div>`;
+  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn${ps.rule===8?' on':''}" onclick="toggleMsel('${uid}')">${esc(btnText)}</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${opts}</div></div>`;
+}
+function setProdRule(line,prod,rule){
+  const ps=getProdSettings(line,prod);
+  const uid=`rul_${safeId(line)}_${safeId(prod)}`;
+  if(ps.rule===rule){const p=document.getElementById(`msel_panel_${uid}`);if(p)p.style.display='none';return;}
+  ps.rule=rule;
+  saveStore();
+  if(curLine===line&&curProd===prod){hlX=null;hlR=null;render();}
+  document.getElementById('cfgBody').innerHTML=renderSpec();
+  showToast(rule===8?'룰 8까지 적용':'룰 1만 적용','ok');
+}
+// ─── 제품별 담당 관리자 (알림발송 탭과 동일한 cfg.assignments를 공유 — 서로 자동 연동) ───
+// 배정 인원 수 대신 이름을 직접 보여줌 — 2명 이상이면 "첫번째이름 외"
+function adminAssignLabel(line,prod){
+  const names=cfg.assignments.filter(x=>x.line===line&&x.prod===prod).map(x=>x.admin);
+  if(!names.length)return '관리자 선택...';
+  if(names.length===1)return names[0];
+  return `${names[0]} 외`;
+}
+function adminMselHtml(line,prod){
+  const uid=`spadm_${safeId(line)}_${safeId(prod)}`;
+  const label=adminAssignLabel(line,prod);
+  const checks=cfg.admins.map(a=>{
+    const checked=cfg.assignments.some(x=>x.admin===a.name&&x.line===line&&x.prod===prod);
+    return `<label><input type="checkbox" value="${esc(a.name)}" ${checked?'checked':''} onchange="onSpecAdminCheck('${esc(line)}','${esc(prod)}',this)"> ${esc(a.name)}</label>`;
+  }).join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">등록된 관리자 없음</div>';
+  return `<div class="msel" id="msel_wrap_${uid}" style="width:100%"><button type="button" class="spec-pbtn" style="width:100%" onclick="toggleMsel('${uid}')"><span id="msel_label_${uid}">${esc(label)}</span></button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${checks}</div></div>`;
+}
+function onSpecAdminCheck(line,prod,checkboxEl){
+  const adminName=checkboxEl.value;
+  if(checkboxEl.checked){
+    if(!cfg.assignments.some(x=>x.admin===adminName&&x.line===line&&x.prod===prod))cfg.assignments.push({line,prod,admin:adminName});
+  }else{
+    cfg.assignments=cfg.assignments.filter(x=>!(x.admin===adminName&&x.line===line&&x.prod===prod));
+  }
+  saveStore();
+  const uid=`spadm_${safeId(line)}_${safeId(prod)}`;
+  const label=adminAssignLabel(line,prod);
+  const lbl=document.getElementById(`msel_label_${uid}`);
+  if(lbl)lbl.textContent=label;
+  // 알림발송 탭 쪽 위젯이 지금 같이 떠 있다면(드물지만) 그쪽 표시도 함께 갱신
+  const unUid=`un_${safeId(line)}_${safeId(prod)}`;
+  const unLbl=document.getElementById(`msel_label_${unUid}`);
+  if(unLbl)unLbl.textContent=label;
+  const idx=cfg.admins.findIndex(a=>a.name===adminName);
+  if(idx>=0){
+    const cb=document.querySelector(`#msel_panel_adm${idx} input[value="${CSS.escape(line+'__'+prod)}"]`);
+    if(cb)cb.checked=checkboxEl.checked;
+    const acnt=cfg.assignments.filter(x=>x.admin===adminName).length;
+    const albl=document.getElementById(`msel_label_adm${idx}`);
+    if(albl)albl.textContent=acnt?`${acnt}개 제품 배정됨`:'제품 선택...';
+  }
+}
+// ─── 치수별 USL/UCL/LSL/LCL 입력칸 (편측 공차면 반대쪽 관리한계 입력 자체를 막음) ───
+// 날짜를 26.09.11 처럼 짧게
+function ymdShort(s){
+  if(!s)return '';
+  const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(!m)return s;
+  return `${m[1].slice(2)}.${m[2]}.${m[3]}`;
+}
+function specCellHtml(sl,p,d){
+  const k2=`${sl}__${p}__${d}`,sp=cfg.specs[k2]||{};
+  const uslVal=sp.usl??'',lslVal=sp.lsl??'';
+  const uclDisabled=(sp.usl==null),lclDisabled=(sp.lsl==null);
+  const uclVal=uclDisabled?'':(sp.ucl??''),lclVal=lclDisabled?'':(sp.lcl??'');
+  const uclDateTxt=(!uclDisabled&&sp.uclDate)?ymdShort(sp.uclDate):'';
+  const lclDateTxt=(!lclDisabled&&sp.lclDate)?ymdShort(sp.lclDate):'';
+  const ids=`'${esc(sl)}','${esc(p)}','${esc(d)}'`;
+  const nav=slot=>`onkeydown="specArrowNav(event,${ids},'${slot}')"`;
+  return `<td><div class="spec-cell">
+    <input id="spu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${uslVal}" placeholder="USL" oninput="onUslLslInput(${ids})" ${nav('u')}>
+    <input id="scu_${esc(sl)}_${esc(p)}_${esc(d)}" value="${uclVal}" placeholder="UCL"${uclDisabled?' disabled':''} ${nav('cu')}>
+    <div class="sc-date">${uclDateTxt}</div>
+    <input id="spl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${lslVal}" placeholder="LSL" oninput="onUslLslInput(${ids})" ${nav('l')}>
+    <input id="scl_${esc(sl)}_${esc(p)}_${esc(d)}" value="${lclVal}" placeholder="LCL"${lclDisabled?' disabled':''} ${nav('cl')}>
+    <div class="sc-date">${lclDateTxt}</div>
+  </div></td>`;
+}
+// USL/UCL/LSL/LCL 칸: 방향키로 다른 제품(행)·다른 치수(열)로 이동(엑셀 스타일),
+// Tab키는 화면 배치(USL·UCL 위, LSL·LCL 아래)와 상관없이 USL→LSL→UCL→LCL 순서로 이동
+function specArrowNav(e,sl,p,d,slot){
+  if(e.key==='Tab'){
+    const order=['u','l','cu','cl'];
+    const idx=order.indexOf(slot);
+    const dir=e.shiftKey?-1:1;
+    const nextIdx=idx+dir;
+    if(nextIdx<0||nextIdx>=order.length)return; // 맨 앞/뒤는 원래 탭 순서(이전·다음 치수)에 맡김
+    const prefix={u:'spu',l:'spl',cu:'scu',cl:'scl'}[order[nextIdx]];
+    const target=document.getElementById(`${prefix}_${sl}_${p}_${d}`);
+    if(target&&!target.disabled){e.preventDefault();target.focus();target.select&&target.select();}
+    return;
+  }
+  if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
+  e.preventDefault();
+  const prods=cfg.lineProds[sl]||[],dims=cfg.dims||[];
+  let pi=prods.indexOf(p),di=dims.indexOf(d);
+  if(e.key==='ArrowUp')pi--;else if(e.key==='ArrowDown')pi++;
+  else if(e.key==='ArrowLeft')di--;else if(e.key==='ArrowRight')di++;
+  if(pi<0||pi>=prods.length||di<0||di>=dims.length)return;
+  const prefix={u:'spu',cu:'scu',l:'spl',cl:'scl'}[slot];
+  const target=document.getElementById(`${prefix}_${sl}_${prods[pi]}_${dims[di]}`);
+  if(target&&!target.disabled){target.focus();target.select&&target.select();}
+}
+function onUslLslInput(sl,p,d){
+  const uslEl=document.getElementById(`spu_${sl}_${p}_${d}`),lslEl=document.getElementById(`spl_${sl}_${p}_${d}`);
+  const uclEl=document.getElementById(`scu_${sl}_${p}_${d}`),lclEl=document.getElementById(`scl_${sl}_${p}_${d}`);
+  if(uslEl&&uclEl){const has=uslEl.value.trim()!=='';uclEl.disabled=!has;if(!has)uclEl.value='';}
+  if(lslEl&&lclEl){const has=lslEl.value.trim()!=='';lclEl.disabled=!has;if(!has)lclEl.value='';}
 }
 function specLC(){specLineSel2=document.getElementById('specLS').value;document.getElementById('cfgBody').innerHTML=renderSpec();}
 function saveSpec(){
   const sl=specLineSel2||cfg.lines[0];const prods=cfg.lineProds[sl]||[];const dims=cfg.dims||[];
+  const today=getTodayKey();
   prods.forEach(p=>dims.forEach(d=>{
     const lslEl=document.getElementById(`spl_${sl}_${p}_${d}`),uslEl=document.getElementById(`spu_${sl}_${p}_${d}`);
+    const uclEl=document.getElementById(`scu_${sl}_${p}_${d}`),lclEl=document.getElementById(`scl_${sl}_${p}_${d}`);
     const lsl=lslEl&&lslEl.value.trim()!==''?parseFloat(lslEl.value):null;
     const usl=uslEl&&uslEl.value.trim()!==''?parseFloat(uslEl.value):null;
-    cfg.specs[`${sl}__${p}__${d}`]={lsl:isNaN(lsl)?null:lsl,usl:isNaN(usl)?null:usl};
+    const uslOk=!isNaN(usl)&&usl!=null,lslOk=!isNaN(lsl)&&lsl!=null;
+    let ucl=(uslOk&&uclEl&&uclEl.value.trim()!=='')?parseFloat(uclEl.value):null;
+    let lcl=(lslOk&&lclEl&&lclEl.value.trim()!=='')?parseFloat(lclEl.value):null;
+    if(isNaN(ucl))ucl=null; if(isNaN(lcl))lcl=null;
+    const key=`${sl}__${p}__${d}`;
+    const prev=cfg.specs[key]||{};
+    const uclChanged=(prev.ucl??null)!==ucl;
+    const lclChanged=(prev.lcl??null)!==lcl;
+    cfg.specs[key]={
+      lsl:lslOk?lsl:null,
+      usl:uslOk?usl:null,
+      ucl,lcl,
+      uclDate:uclChanged?(ucl!=null?today:null):(prev.uclDate||null),
+      lclDate:lclChanged?(lcl!=null?today:null):(prev.lclDate||null),
+    };
   }));
   saveStore();render();showToast('규격 저장됨','ok');
+  document.getElementById('cfgBody').innerHTML=renderSpec();
 }
 
 // ─── TAB 3: RAW DATA EDITOR ───
@@ -1022,30 +2253,57 @@ function getRdeAll(){
   const all=[...pd.complete.map(d=>({...d,tp:'complete'})),...pd.pending.map(d=>({...d,tp:'pending'}))];
   sortD(all);all.reverse();return all; // 최근 날짜가 위로
 }
+// 로데이터 편집 표의 측정자 열 머릿말 축약("주간 초품 측정자" → "주초 작업자") — 폭이 넓어지는 문제 방지
+function abbrevMeasLabel(l){
+  const m=l.match(/#(\d)$/);const suf=m?m[1]:'';
+  const base=l.replace(/\s*#\d$/,'');
+  const map={'주간 초품':'주초','주간 중품':'주중','주간 종품':'주종','야간 초품':'야초','야간 중품':'야중','야간 종품':'야종'};
+  return (map[base]||base)+suf+' 작업자';
+}
+// 검사강화를 나중에 껐어도, 예전에 검사강화로 저장된 실적(값이 6칸보다 많이 있는 행)이 있으면
+// 로데이터 편집 표는 계속 12칸(#1/#2)으로 넓게 보여줘서 그 실적이 가려지거나 라벨이 밀리지 않게 함.
+// 새로 입력하는 실적은 여전히 "현재" 검사강화 설정을 따름(#1에만 값이 들어감).
+function rdeEffectiveInfo(line,prod,dim){
+  const ps=getProdSettings(line,prod);
+  const key=getKey(line,prod,dim);ensureData(key);const pd=allData[key];
+  const maxLen=[...pd.complete,...pd.pending].reduce((m,d)=>Math.max(m,(d.values||[]).length),0);
+  const effEnhanced=ps.enhanced||maxLen>6;
+  const enhLabelsAll=[];MEAS_LABELS.forEach(l=>{enhLabelsAll.push(l+' #1');enhLabelsAll.push(l+' #2');});
+  const labels=effEnhanced?enhLabelsAll:MEAS_LABELS.slice();
+  return{effEnhanced,labels,slotN:labels.length,mnLabels:effEnhanced?MEAS_LABELS:labels,nIdxs:effEnhanced?MEAS_LABELS.map((_,k)=>k*2):MEAS_LABELS.map((_,k)=>k)};
+}
 function renderRde(){
   const rl=rdeSelLine||curLine;const prods=cfg.lineProds[rl]||[];const rp=rdeSelProd||(prods[0]||'');
   const dims=cfg.dims||[];const rd=rdeSelDim||(dims[0]||'');
   rdeSelLine=rl;rdeSelProd=rp;rdeSelDim=rd;
+  const{labels,slotN,mnLabels,nIdxs}=rdeEffectiveInfo(rl,rp,rd);
   const all=getRdeAll();
   const rows=all.map((d,ri)=>{
     const bg=d.tp==='pending'?'class="cp-row"':'';
-    // Ensure values array is padded to 6 slots
-    const slots=Array.from({length:6},(_,xi)=>{
+    // Ensure values/names arrays are padded to slotN slots
+    const slots=Array.from({length:slotN},(_,xi)=>{
       const v=d.values[xi];
       return (v!=null&&!isNaN(v)&&v!=='')?v:'';
     });
+    const nslots=nIdxs.map(xi=>(d.names&&d.names[xi])?d.names[xi]:'');
     const xs=slots.map((v,xi)=>`<td><input type="number" step="0.001" data-ri="${ri}" data-xi="${xi}" value="${v}"></td>`).join('');
-    return `<tr ${bg}><td><input type="date" data-ri="${ri}" data-xi="date" value="${toDateInput(d.date)}" style="color-scheme:light" onchange="rdeDateChange(this,${ri})"></td>${xs}<td><button class="rdel" onclick="rdeDel(${ri})">🗑</button></td></tr>`;
+    const ns=nslots.map((v,k)=>`<td><input type="text" list="dl_insp_rde" data-ri="${ri}" data-ni="${nIdxs[k]}" value="${esc(v)}"></td>`).join('');
+    return `<tr ${bg}><td><input type="date" data-ri="${ri}" data-xi="date" value="${toDateInput(d.date)}" style="color-scheme:light" onchange="rdeDateChange(this,${ri})"></td>${xs}${ns}<td><button class="rdel" onclick="rdeDel(${ri})">🗑</button></td></tr>`;
   }).join('');
+  buildInspectorDatalistInto(rl,'dl_insp_rde');
   return `<div class="rde-top-bar">
   <div class="rde-sel-grp"><label>라인</label><select id="rdeL" onchange="onRdeL()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===rl?' selected':''}>${esc(l)}</option>`).join('')}</select></div>
   <div class="rde-sel-grp rde-prod-grp"><label>품번/품명</label><select id="rdeP" onchange="onRdeP()">${prods.map(p=>`<option value="${esc(p)}"${p===rp?' selected':''}>${esc(p)} | ${esc(cfg.prodNames[p]||'')}</option>`).join('')}</select></div>
   <div class="rde-sel-grp"><label>치수</label><select id="rdeD" onchange="onRdeD()">${dims.map(d=>`<option value="${esc(d)}"${d===rd?' selected':''}>${esc(d)}</option>`).join('')}</select></div>
   <button class="add-row-btn" onclick="rdeAddRow()">+ 행 추가</button>
-  <button class="excel-btn" onclick="exportExcel()">📥 Excel 저장</button>
+  <button class="add-row-btn" onclick="downloadRdeTemplate()">엑셀 양식</button>
+  <button class="excel-btn" onclick="document.getElementById('rdeUploadInp').click()">엑셀 업로드</button>
+  <input type="file" id="rdeUploadInp" accept=".xlsx,.xls" style="display:none" onchange="handleRdeUpload(this)">
+  <button class="excel-btn" onclick="exportExcel()">엑셀 저장</button>
 </div>
+<datalist id="dl_insp_rde"></datalist>
 <div style="overflow-x:auto;overflow-y:auto;max-height:420px"><table class="rdt" id="rdeTable">
-<thead><tr><th>날짜</th><th>x1</th><th>x2</th><th>x3</th><th>x4</th><th>x5</th><th>x6</th><th></th></tr></thead>
+<thead><tr><th>날짜</th>${labels.map(l=>`<th>${esc(l)}</th>`).join('')}${mnLabels.map(l=>`<th>${esc(abbrevMeasLabel(l))}</th>`).join('')}<th></th></tr></thead>
 <tbody id="rdeTbody">${rows}</tbody>
 </table></div>`;
 }
@@ -1063,7 +2321,7 @@ function rdeAddRow(){
   // auto-save current state first
   _collectAndSaveRde();
   const key=rdeKey();ensureData(key);
-  allData[key].pending.push({date:'',values:[]});
+  allData[key].pending.push({date:'',values:[],names:[]});
   saveStore();document.getElementById('cfgBody').innerHTML=renderRde();
 }
 function rdeDel(ri){
@@ -1084,26 +2342,36 @@ function rdeDel(ri){
 function _collectAndSaveRde(){
   const key=rdeKey();ensureData(key);const pd=allData[key];
   const tbody=document.getElementById('rdeTbody');if(!tbody)return;
+  const rl2=rdeSelLine||curLine,rp2=rdeSelProd||curProd,rd2=rdeSelDim||curDim;
+  const{effEnhanced,slotN}=rdeEffectiveInfo(rl2,rp2,rd2);
+  const need=completionThreshold(rl2,rp2,rd2);
   const newC=[],newP=[];
   [...tbody.querySelectorAll('tr')].forEach(tr=>{
     const dInp=tr.querySelector('input[type="date"]');
     const dateStr=dInp?fromDateInput(dInp.value):'';
     if(!dateStr)return;
-    // Collect sparse: slot 0..5 preserving positions
-    const vals=new Array(6).fill(null);
+    // Collect sparse: slot 0..slotN-1 preserving positions
+    const vals=new Array(slotN).fill(null);
+    const names=new Array(slotN).fill(null);
     let hasAny=false;
-    for(let xi=0;xi<6;xi++){
+    for(let xi=0;xi<slotN;xi++){
       const inp=tr.querySelector(`input[data-xi="${xi}"]`);
       if(inp&&inp.value.trim()!==''){
         const v=parseFloat(inp.value);
-        if(!isNaN(v)){vals[xi]=v;hasAny=true;}
+        if(!isNaN(v)){
+          vals[xi]=v;hasAny=true;
+          const ni0=mnSlot(xi+1,effEnhanced)-1; // 검사강화면 #1/#2가 같은 측정자 칸(data-ni)을 공유
+          const nInp=tr.querySelector(`input[data-ni="${ni0}"]`);
+          if(nInp&&nInp.value.trim()!=='')names[xi]=nInp.value.trim();
+        }
       }
     }
     if(!hasAny)return;
     const trimmed=sparseValues(vals);
+    const trimmedNames=names.slice(0,trimmed.length);
     const cnt=countVals(trimmed);
-    if(cnt>=cfg.n)newC.push({date:dateStr,values:trimmed});
-    else if(cnt>0)newP.push({date:dateStr,values:trimmed});
+    if(cnt>=need)newC.push({date:dateStr,values:trimmed,names:trimmedNames});
+    else if(cnt>0)newP.push({date:dateStr,values:trimmed,names:trimmedNames});
   });
   sortD(newC);sortD(newP);
   pd.complete=newC;pd.pending=newP;
@@ -1114,8 +2382,8 @@ function saveRde(){
 }
 
 // ─── TAB 4: ALERT / ADMIN ASSIGNMENT ───
-function isValidEmail(e){return /^[^\s@]+@ctr\.co\.kr$/i.test(e);}
-const EMAIL_DOMAIN_ERR='이메일은 @ctr.co.kr 도메인만 사용 가능합니다.';
+function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
+const EMAIL_DOMAIN_ERR='올바른 이메일 형식이 아닙니다. (예: name@company.com)';
 function josaRL(word){
   if(!word)return '를';
   const code=word.charCodeAt(word.length-1)-0xAC00;
@@ -1133,13 +2401,13 @@ function toggleMsel(id){
   const panel=document.getElementById(`msel_panel_${id}`);
   if(!panel)return;
   const isOpen=panel.style.display!=='none';
-  document.querySelectorAll('.msel-panel').forEach(p=>{p.style.display='none';const w=p.closest('.msel');if(w)w.style.zIndex='';});
+  document.querySelectorAll('.msel-panel').forEach(p=>{p.style.display='none';const w=p.closest('.msel');if(w)w.style.zIndex='';const cell=p.closest('td,th');if(cell)cell.style.zIndex='';});
   panel.style.display=isOpen?'none':'block';
-  if(!isOpen){const w=panel.closest('.msel');if(w)w.style.zIndex='90';}
+  if(!isOpen){const w=panel.closest('.msel');if(w)w.style.zIndex='90';const cell=panel.closest('td,th');if(cell)cell.style.zIndex='50';}
   openMselId=isOpen?null:id;
 }
 document.addEventListener('click',(e)=>{
-  if(!e.target.closest('.msel'))document.querySelectorAll('.msel-panel').forEach(p=>{p.style.display='none';const w=p.closest('.msel');if(w)w.style.zIndex='';});
+  if(!e.target.closest('.msel'))document.querySelectorAll('.msel-panel').forEach(p=>{p.style.display='none';const w=p.closest('.msel');if(w)w.style.zIndex='';const cell=p.closest('td,th');if(cell)cell.style.zIndex='';});
 });
 function renderAlerts(){
   const adminRows=cfg.admins.map((a,i)=>{
@@ -1148,12 +2416,12 @@ function renderAlerts(){
     const label=mySet.size?`${mySet.size}개 제품 배정됨`:'제품 선택...';
     const checks=items.map(it=>`<label><input type="checkbox" value="${esc(it.key)}" ${mySet.has(it.key)?'checked':''} onchange="onAdminProdCheck(${i},this)"> ${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?'('+esc(cfg.prodNames[it.prod])+')':''}</label>`).join('');
     return `<div class="item-row" style="align-items:center;cursor:default">
-      <span class="item-name" style="flex:0 0 90px">${esc(a.name)}</span>
       <button class="ibtn-sm" onclick="renameAdminName(${i})">수정</button>
-      <span class="item-name" style="flex:0 0 170px">${esc(a.email)}</span>
+      <span class="item-name" style="flex:0 0 74px">${esc(a.name)}</span>
       <button class="ibtn-sm" onclick="renameAdminEmail(${i})">수정</button>
+      <span class="item-name" style="flex:0 0 196px">${esc(a.email)}</span>
       <div class="msel" id="msel_wrap_adm${i}" style="flex:1;min-width:0">
-        <button type="button" class="dsel msel-btn" onclick="toggleMsel('adm${i}')"><span id="msel_label_adm${i}">${esc(label)}</span><span>▾</span></button>
+        <button type="button" class="dsel msel-btn" onclick="toggleMsel('adm${i}')"><span id="msel_label_adm${i}">${esc(label)}</span><span class="dsel-arrow"></span></button>
         <div class="msel-panel" id="msel_panel_adm${i}" style="display:none">${checks}</div>
       </div>
       <button class="ibtn-sm del-sm" onclick="removeAdmin(${i})">✕</button>
@@ -1162,8 +2430,8 @@ function renderAlerts(){
   return `<div class="col-h">관리자 목록</div>
   <div class="item-list" style="max-height:400px;overflow:visible">${adminRows||'<div style="color:var(--tx3);padding:8px;font-size:13px">등록된 관리자가 없습니다</div>'}</div>
   <div class="add-row">
-    <input id="addAdmName" placeholder="새 관리자 이름" style="max-width:110px">
-    <input id="addAdmEmail" placeholder="이메일 (@ctr.co.kr)">
+    <input id="addAdmName" placeholder="새 관리자 이름" style="width:119px;flex:0 0 auto">
+    <input id="addAdmEmail" placeholder="이메일 (예: name@company.com)">
     <button class="add-btn" onclick="addAdmin()">+ 추가</button>
   </div>
   <div class="col-h" style="margin-top:14px">미배정 제품 확인</div>
@@ -1178,15 +2446,15 @@ function renderUnassignedList(){
   const rows=items.map(it=>{
     const uid=`un_${safeId(it.line)}_${safeId(it.prod)}`;
     const checks=cfg.admins.map(a=>`<label><input type="checkbox" value="${esc(a.name)}" onchange="onUnassignedCheck('${esc(it.line)}','${esc(it.prod)}',this)"> ${esc(a.name)}</label>`).join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">등록된 관리자 없음</div>';
-    return `<div style="display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid var(--bdr)">
-      <span style="flex:1;font-size:13px;color:var(--tx2)">${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?'('+esc(cfg.prodNames[it.prod])+')':''}</span>
+    return `<div class="item-row" style="cursor:default">
+      <span class="item-name" style="flex:1">${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?' ( '+esc(cfg.prodNames[it.prod])+' )':''}</span>
       <div class="msel" id="msel_wrap_${uid}" style="width:160px">
-        <button type="button" class="dsel msel-btn" style="font-size:12px;padding:5px 8px" onclick="toggleMsel('${uid}')"><span id="msel_label_${uid}">관리자 선택...</span><span>▾</span></button>
+        <button type="button" class="dsel msel-btn" style="font-size:12px;padding:5px 8px" onclick="toggleMsel('${uid}')"><span id="msel_label_${uid}">관리자 선택...</span><span class="dsel-arrow"></span></button>
         <div class="msel-panel" id="msel_panel_${uid}" style="display:none">${checks}</div>
       </div>
     </div>`;
   }).join('');
-  return `<div style="max-height:280px;overflow-y:auto;border:1px solid var(--bdr);border-radius:4px;padding:2px 8px 2px 2px">${rows}</div>`;
+  return `<div class="item-list" style="max-height:280px;overflow-x:hidden">${rows}</div>`;
 }
 function onUnassignedCheck(line,prod,checkboxEl){
   const adminName=checkboxEl.value;
@@ -1197,9 +2465,8 @@ function onUnassignedCheck(line,prod,checkboxEl){
   }
   saveStore();
   const uid=`un_${safeId(line)}_${safeId(prod)}`;
-  const cnt=cfg.assignments.filter(x=>x.line===line&&x.prod===prod).length;
   const lbl=document.getElementById(`msel_label_${uid}`);
-  if(lbl)lbl.textContent=cnt?`${cnt}명 배정됨`:'관리자 선택...';
+  if(lbl)lbl.textContent=adminAssignLabel(line,prod);
   // also refresh matching admin's own product-select label/checkbox state if visible
   const idx=cfg.admins.findIndex(a=>a.name===adminName);
   if(idx>=0){
@@ -1264,12 +2531,96 @@ function removeAdmin(idx){
 function saveAlerts(){saveStore();render();showToast('알림 발송 설정 저장됨','ok');}
 
 // ═══ EXCEL (RDE — all data in RDE table + stats) ═══
+// 로데이터 편집 - 엑셀 양식 다운로드 (2개 시트: shift당 3개/shift당 6개)
+function downloadRdeTemplate(){
+  const wb=XLSX.utils.book_new();
+  const sheet1Header=['날짜',...MEAS_LABELS,...MEAS_LABELS.map(l=>l+' 측정자')];
+  const enhLabels=[];MEAS_LABELS.forEach(l=>{enhLabels.push(l+' #1');enhLabels.push(l+' #2');});
+  // 검사강화(#1/#2)는 같은 순간에 잰 두 값이라 측정자 열은 페어당 1개만 둠
+  const sheet2Header=['날짜',...enhLabels,...MEAS_LABELS.map(l=>l+' 측정자')];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([sheet1Header]),'shift당 3개');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([sheet2Header]),'shift당 6개');
+  XLSX.writeFile(wb,'로데이터_양식.xlsx');
+}
+// 엑셀 날짜 셀은 문자열("2026-07-03" 등)이거나 엑셀 자체 날짜 일련번호(숫자)일 수 있음
+function parseExcelDateCell(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number'){
+    const d=XLSX.SSF.parse_date_code(v);
+    if(!d)return null;
+    return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const s=String(v).trim().replace(/\./g,'-').replace(/\//g,'-');
+  const m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(!m)return null;
+  return `${m[1]}-${String(+m[2]).padStart(2,'0')}-${String(+m[3]).padStart(2,'0')}`;
+}
+// 로데이터 편집 - 엑셀 업로드: 값이 있는 시트가 정확히 1개여야 하고, 그 값을
+// "현재 선택된 라인/품번/치수"의 로데이터로 채워 넣음 (그 제품에 실제 설정된 슬롯 구성 기준)
+function handleRdeUpload(inputEl){
+  const file=inputEl.files&&inputEl.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const candidates=[];
+      wb.SheetNames.forEach(name=>{
+        const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:''});
+        const dataRows=rows.slice(1).filter(r=>r.some(c=>c!==''&&c!=null));
+        if(dataRows.length)candidates.push({name,rows:dataRows});
+      });
+      if(candidates.length===0){alert('업로드한 엑셀에 값이 있는 시트가 없습니다.');inputEl.value='';return;}
+      if(candidates.length>1){alert('값이 있는 시트가 2개 이상입니다. 값을 채운 시트가 하나만 있어야 합니다.');inputEl.value='';return;}
+      const rows=candidates[0].rows;
+      _collectAndSaveRde();
+      const rl=rdeSelLine||curLine,rp=rdeSelProd||curProd,rd=rdeSelDim||curDim;
+      const ps=getProdSettings(rl,rp);
+      const slotN=measLabels(rl,rp).length;
+      const nIdxs=ps.enhanced?MEAS_LABELS.map((_,k)=>k*2):MEAS_LABELS.map((_,k)=>k);
+      const key=getKey(rl,rp,rd);ensureData(key);const pd=allData[key];
+      const need=completionThreshold(rl,rp,rd);
+      let addedC=0,addedP=0,skipped=0;
+      rows.forEach(r=>{
+        const dateStr=parseExcelDateCell(r[0]);
+        if(!dateStr){skipped++;return;}
+        const vals=new Array(slotN).fill(null);
+        for(let xi=0;xi<slotN;xi++){const v=parseFloat(r[1+xi]);if(!isNaN(v))vals[xi]=v;}
+        const names=new Array(slotN).fill(null);
+        nIdxs.forEach((xi,k)=>{
+          const nv=r[1+slotN+k];
+          if(nv!=null&&String(nv).trim()!==''){
+            names[xi]=String(nv).trim();
+            if(ps.enhanced)names[xi+1]=String(nv).trim();
+          }
+        });
+        const cnt=countVals(vals);
+        if(cnt===0)return;
+        const trimmed=sparseValues(vals);
+        const trimmedNames=names.slice(0,trimmed.length);
+        pd.complete=pd.complete.filter(d=>d.date!==dateStr);
+        pd.pending=pd.pending.filter(d=>d.date!==dateStr);
+        if(cnt>=need){pd.complete.push({date:dateStr,values:trimmed,names:trimmedNames});addedC++;}
+        else{pd.pending.push({date:dateStr,values:trimmed,names:trimmedNames});addedP++;}
+      });
+      sortD(pd.complete);sortD(pd.pending);
+      saveStore();render();
+      document.getElementById('cfgBody').innerHTML=renderRde();
+      showToast(`업로드 완료 (완성 ${addedC}건 / 미완성 ${addedP}건${skipped?`, 날짜 인식 실패 ${skipped}건 제외`:''})`,'ok');
+    }catch(err){
+      alert('엑셀 파일을 읽는 중 오류가 발생했습니다. 양식을 확인해주세요.');
+    }
+    inputEl.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
 function exportExcel(){
   _collectAndSaveRde();
   const rl=rdeSelLine||curLine,rp=rdeSelProd||curProd,rd=rdeSelDim||curDim;
   const rpName=cfg.prodNames[rp]||'';
   const key=rdeKey();ensureData(key);const pd=allData[key];
   const spec=cfg.specs[`${rl}__${rp}__${rd}`]||{lsl:null,usl:null};
+  const labels=measLabels(rl,rp);const slotN=labels.length;
   // Use ALL data from this combo (complete + pending)
   const allRows=[...pd.complete,...pd.pending].sort((a,b)=>dateNum(a.date)-dateNum(b.date));
   const stats=calcStats(pd.complete);
@@ -1280,9 +2631,7 @@ function exportExcel(){
   }
   const avX=new Set(Object.values(vX).flat()),avR=new Set(Object.values(vR).flat());
   const wb=XLSX.utils.book_new();
-  // Build rows: data columns A-K, stats further right
-  const headerRow=['라인','품번','품명','치수','날짜','x1','x2','x3','x4','x5','x6','X̄','R','판정(X̄)','판정(R)','','','통계(X̄)','통계(R)'];
-  const dataRows=[];
+  const headerRow=['라인','품번','품명','치수','날짜',...labels,...labels.map(l=>l+' 측정자'),'X̄','R','판정(X̄)','판정(R)'];
   const statLabels=['USL','UCL','X̄̄ / R̄','LCL','LSL','n','군 개수'];
   const statValsX=[
     spec.usl!=null?+spec.usl:'',
@@ -1300,19 +2649,19 @@ function exportExcel(){
     stats?+stats.LCLr.toFixed(4):'',
     '','','',
   ];
-  allRows.forEach((d,i)=>{
+  const dataRows=allRows.map(d=>{
     const vv=validVals(d.values);const xb=vv.length?vv.reduce((s,v)=>s+v,0)/vv.length:0;const R=vv.length>1?Math.max(...vv)-Math.min(...vv):0;
     const compIdx=pd.complete.findIndex(c=>c.date===d.date);
     const jX=compIdx>=0?avX.has(compIdx)?'위반':'정상':'—';const jR=compIdx>=0?avR.has(compIdx)?'위반':'정상':'—';
-    const statLbl=i<statLabels.length?statLabels[i]:'';const sX=i<statValsX.length?statValsX[i]:'';const sR=i<statValsR.length?statValsR[i]:'';
     const dateVal=(d.date&&d.date.indexOf('-')>=0)?new Date(d.date+'T00:00:00'):d.date;
-    dataRows.push([rl,rp,rpName,rd,dateVal,d.values[0]??'',d.values[1]??'',d.values[2]??'',d.values[3]??'',d.values[4]??'',d.values[5]??'',+xb.toFixed(4),+R.toFixed(4),jX,jR,'',statLbl,sX,sR]);
+    const valVals=Array.from({length:slotN},(_,vi)=>d.values[vi]??'');
+    const nameVals=Array.from({length:slotN},(_,ni)=>(d.names&&d.names[ni])?d.names[ni]:'');
+    return[rl,rp,rpName,rd,dateVal,...valVals,...nameVals,+xb.toFixed(4),+R.toFixed(4),jX,jR];
   });
-  // Fill remaining stat rows if data rows < 7
-  for(let i=dataRows.length;i<statLabels.length;i++){
-    dataRows.push(Array(16).fill('').concat([statLabels[i],statValsX[i],statValsR[i]]));
-  }
-  const ws=XLSX.utils.aoa_to_sheet([headerRow,...dataRows]);
+  // 통계값(USL~군개수)을 A열 1행부터 두고, 표(머릿말+실제 데이터)는 그 아래로 두 줄 띄운 10행부터 시작
+  const statRows=statLabels.map((lbl,i)=>[lbl,statValsX[i],statValsR[i]]);
+  const aoa=[...statRows,[],[],headerRow,...dataRows];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
   XLSX.utils.book_append_sheet(wb,ws,'로데이터');
   XLSX.writeFile(wb,`XbarR_${rl}_${rp}${rd}_${new Date().toISOString().slice(0,10)}.xlsx`);
   showToast('Excel 저장됨','ok');
@@ -1324,8 +2673,16 @@ function saveStore(){
   saveDataToFirebase();
   saveCfgToFirebase();
 }
-function saveCfgToFirebase(){
-  fetch(FB_DB_URL+'/cfgBlob.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(cfg))})
+function saveCfgToFirebase(tempTiers){
+  let pushCfg=cfg;
+  if(tempTiers&&tempTiers.length){
+    pushCfg=JSON.parse(JSON.stringify(cfg));
+    tempTiers.forEach(t=>{
+      if(t==='xbarr'){pushCfg.k=DEF.k;pushCfg.n=DEF.n;pushCfg.drMode=DEF.drMode;pushCfg.drDate=DEF.drDate;}
+      else{pushCfg[t]={...DEF[t]};}
+    });
+  }
+  fetch(FB_DB_URL+'/cfgBlob.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(JSON.stringify(pushCfg))})
     .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);})
     .catch(e=>{console.error(e);showToast('설정 저장 실패: '+e.message,'warn');});
 }
