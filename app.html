@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <!--
 리비전 이력
+r14: 라이트 모드(🌙/☀ 버튼), 스크롤바 투명·어둡게, 왼쪽 열 접기, 검사구 사용표준 팝업 확대+PDF 드래그 이동(pdf.js), 분석 메뉴 개편
+     (클릭/Ctrl 다중선택, 라인→제품 연동, y축 자동범위, 산점도, 상관관계 분석, 제목 '치수 | 라인 | 품번'), 값 입력 시 사라지던 버그 수정,
+     규격 저장 시 X̄-R 지정 유지, I-MR 로데이터 슬롯별 전개, 편측 규격 Pp/Ppk, 알림발송 배정 개수 오류 수정
 r2 (설정-라인/제품/치수 목록 UI 정리, 1단계):
   - 라인/품번/치수 리스트의 드래그 핸들(⠿) 및 수동 순서변경 기능 제거
   - X 삭제 버튼 클릭 시 즉시 삭제 대신 커스텀 확인 팝업("삭제합니다"/"취소") 표시
@@ -159,7 +162,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .stat-tbl td{padding:3px 6px;border:1px solid var(--bdr);white-space:nowrap}
 .stat-tbl .st-lbl{color:var(--tx3);background:var(--sur3);font-size:12px;text-align:right;font-weight:700;width:50%}
 .stat-tbl .st-v{font-family:var(--mono);font-weight:700;font-size:14px;text-align:center}
-.sv-ucl{color:var(--ucl)}.sv-cl{color:var(--cl)}.sv-lcl{color:var(--lcl)}.sv-spec{color:#e879f9}.sv-n{color:var(--acc)}.sv-warn{color:var(--red)!important}
+.sv-ucl{color:var(--ucl)}.sv-cl{color:var(--cl)}.sv-lcl{color:var(--lcl)}.sv-spec{color:#e879f9}.sv-n{color:var(--tx3)}.sv-warn{color:var(--red)!important}
 
 .md-btns{display:flex;gap:4px;margin-top:2px}
 .md-btn{background:var(--sur2);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx2);cursor:pointer;font-size:14px;font-weight:600;padding:5px 10px;white-space:nowrap}
@@ -217,10 +220,6 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 
 /* RAW TABLE */
 .raw-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 11px}
-.raw-card:hover{border-color:var(--acc)}
-.rt-popup{table-layout:auto;font-size:14px}
-.rt-popup th{font-size:14px;padding:6px 10px}
-.rt-popup td{font-size:14px;padding:5px 10px}
 .raw-hdr{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--tx3);margin-bottom:6px;display:flex;justify-content:space-between}
 .raw-hdr span{color:var(--tx2);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0}
 .ts{overflow-x:auto}
@@ -270,10 +269,43 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .analysis-right{flex:1;overflow:auto;position:relative}
 #analysisCardsInner{position:relative}
 #analysisCardsInner.dragging{background-image:linear-gradient(rgba(88,166,255,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(88,166,255,.28) 1px,transparent 1px);background-size:var(--ana-cell-w,300px) var(--ana-cell-h,270px)}
-.ana-card{position:absolute;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:10px;cursor:grab;box-sizing:border-box;overflow:hidden}
+.ana-card{display:flex;flex-direction:column;position:absolute;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:10px;cursor:grab;box-sizing:border-box;overflow:hidden}
 .ana-card:active{cursor:grabbing}
 .ana-resize-handle{position:absolute;right:0;bottom:0;width:32px;height:32px;cursor:nwse-resize;color:rgba(255,255,255,.35);font-size:20px;display:flex;align-items:flex-end;justify-content:flex-end;padding:2px 4px;user-select:none;z-index:2;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.06) 50%)}
 .ana-resize-handle:hover{color:rgba(255,255,255,.75)}
+.ana-card .cw{flex:1 1 auto;min-height:0;position:relative;height:auto!important}
+.ana-card-sub{font-size:11.5px;font-weight:600;color:var(--tx3);margin-top:2px}
+.ana-pp.bad{color:var(--red);font-weight:700}
+.ana-card.corr-red{border:2px solid #f85149;box-shadow:0 0 0 1px rgba(248,81,73,.35)}
+.ana-item{user-select:none}
+.ana-item.on{background:var(--sur3);box-shadow:inset 3px 0 0 var(--acc);font-weight:700}
+.ana-item-txt{flex:1;min-width:0}
+.ana-corr-box{flex:0 0 auto;width:16px;height:16px;cursor:pointer}
+.ana-hint{font-size:11px;color:var(--tx3);line-height:1.4;margin:2px 0 4px}
+.ana-corr-row{display:flex;gap:6px;margin-top:2px}
+.ana-corr-popup{position:fixed;z-index:260;display:none;background:var(--sur);border:1px solid var(--bdr2);border-radius:8px;box-shadow:0 10px 36px rgba(0,0,0,.45);max-width:92vw}
+.ana-corr-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:8px 12px;cursor:move;font-size:13px;font-weight:700;color:var(--tx);border-bottom:1px solid var(--bdr);user-select:none}
+.ana-corr-head button{background:none;border:none;color:var(--tx3);font-size:16px;cursor:pointer}
+.ana-corr-head button:hover{color:var(--red)}
+.ana-corr-body{padding:10px 12px;max-height:70vh;overflow:auto}
+.cm-tbl{border-collapse:collapse;font-size:12.5px}
+.cm-tbl th,.cm-tbl td{border:1px solid var(--bdr);padding:5px 9px;text-align:center;color:var(--tx)}
+.cm-tbl th{background:var(--sur3);font-weight:700;white-space:nowrap}
+.cm-tbl .cm-sub{font-weight:400;font-size:10.5px;color:var(--tx3)}
+.cm-tbl .cm-na{color:var(--tx3)}
+.cm-note{font-size:12px;line-height:1.7;margin-top:10px;color:var(--tx2)}
+.pdf-viewer{flex:1;min-height:0;margin:0 16px 16px;overflow:auto;background:#525659;border-radius:4px;cursor:grab}
+.pdf-viewer.grabbing{cursor:grabbing}
+.pdf-viewer #dashPdfPages{display:block;padding:12px;min-width:min-content;min-height:100%}
+.pdf-page{display:block;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);margin:0 auto 10px}
+.pdf-msg{color:#ddd;padding:30px}
+.pdf-zoom{display:flex;align-items:center;gap:6px;flex:0 0 auto;font-size:12px;color:var(--tx2)}
+.pdf-pick.on{border-color:var(--acc);color:var(--acc);font-weight:700}
+.left{transition:width .2s,min-width .2s}
+.left.collapsed{width:0;min-width:0;border-right-width:0}
+.right{position:relative}
+.left-toggle{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:20;width:16px;height:56px;border:1px solid var(--bdr2);border-left:none;border-radius:0 6px 6px 0;background:var(--sur2);color:var(--tx3);cursor:pointer;font-size:10px;padding:0}
+.left-toggle:hover{color:var(--acc);border-color:var(--acc)}
 .ana-card-title{font-size:12.5px;font-weight:700;color:var(--tx2);margin-bottom:6px;line-height:1.35}
 .ana-drag-handle{color:var(--tx3);margin-right:4px;font-size:12px}
 .ana-card canvas{width:100%!important}
@@ -357,10 +389,14 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 .spec-btn-grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:3px;width:124px;margin:0 auto}
 .spec-pbtn{width:100%;height:100%;background:var(--sur3);border:1px solid var(--bdr2);border-radius:4px;color:var(--tx);font-size:10.5px;padding:5px 2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .spec-pbtn.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+.spec-pbtn.std-on{background:#4b5563;border-color:#4b5563;color:#fff;font-weight:700}
+.smt .msel-panel{text-align:left}
+.smt .msel-panel label{justify-content:flex-start;text-align:left}
+.smt .msel-panel input[type=checkbox]{width:auto;padding:0;margin:0;flex:0 0 auto}
 .msel-panel .msel-opt{display:block;padding:5px 8px;font-size:12.5px;color:var(--tx);cursor:pointer;border-radius:3px;white-space:nowrap;text-align:left}
 .msel-panel .msel-opt:hover{background:var(--sur3)}
-.spec-cell{display:grid;grid-template-columns:50px 40px 22px;column-gap:3px;row-gap:2px;align-items:center;width:119px;margin:0 auto}
-.spec-cell input{width:100%;text-align:center;font-size:11px;padding:2px 1px}
+.spec-cell{display:grid;grid-template-columns:54px 46px 22px;column-gap:3px;row-gap:2px;align-items:center;width:129px;margin:0 auto}
+.spec-cell input{width:100%;text-align:center;font-size:12.5px;padding:2px 1px}
 .sc-date{font-size:10px;color:var(--tx3);text-align:center;line-height:1.25;margin-left:-2px}
 
 /* DATE RANGE */
@@ -408,7 +444,43 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
 
 .toast{position:fixed;bottom:20px;right:20px;background:var(--grn);color:#0d1117;font-weight:700;padding:9px 16px;border-radius:var(--r);font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:600}
 .toast.show{opacity:1}
+
+/* 스크롤바: 흰 배경 없이 투명, 막대는 어둡게 */
+*{scrollbar-width:thin;scrollbar-color:#3a414b transparent}
+html[data-theme="light"] *{scrollbar-color:#c9c2ac transparent}
+@supports not (scrollbar-color:auto){
+  ::-webkit-scrollbar{width:9px;height:9px;background:transparent}
+  ::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+  ::-webkit-scrollbar-thumb{background:#3a414b;border-radius:6px}
+  html[data-theme="light"] ::-webkit-scrollbar-thumb{background:#c9c2ac}
+}
+/* ── 라이트 모드 (CMM 대시보드 템플릿 팔레트: paper #f6f4ee / panel #fff / ink #132025 / blue #3aa0c9) ── */
+html[data-theme="light"]{--bg:#f6f4ee;--sur:#ffffff;--sur2:#f0ede2;--sur3:#e4e0d5;--bdr:#e4e0d5;--bdr2:#c9c2ac;--acc:#2b8db5;--red:#c0503a;--grn:#2f8f6f;--yel:#d98a3d;--tx:#132025;--tx2:#33464c;--tx3:#5a6b70;--ucl:#c0503a;--cl:#2f8f6f;--lcl:#2b8db5}
+html[data-theme="light"] .mini-dash{background:#faf9f5}
+html[data-theme="light"] .md-sel option,html[data-theme="light"] .dsel option{background:#fff;color:#132025}
+html[data-theme="light"] .sv-spec{color:#a13fb8}
+html[data-theme="light"] .input-area{background:#faf9f5}
+html[data-theme="light"] .today-btn{background:#e4e0d5;border-color:#c9c2ac;color:#132025}
+html[data-theme="light"] .today-btn:hover{background:#d9d3c2}
+html[data-theme="light"] .mlbl{color:#5a6b70}
+html[data-theme="light"] .pend-note{background:#fff8e6}
+html[data-theme="light"] .save-btn,html[data-theme="light"] .add-btn,html[data-theme="light"] .mbtn.p,html[data-theme="light"] .gs-tab.on,html[data-theme="light"] .ana-empty-btn.on,html[data-theme="light"] .toast{color:#fff}
+html[data-theme="light"] .np{background:#f0ede2}
+html[data-theme="light"] .nb.ok{background:#eef6f2}
+html[data-theme="light"] .nb.viol{background:#fbe6d4}
+html[data-theme="light"] .nb.hl{box-shadow:0 0 0 2px #132025,0 0 8px rgba(19,32,37,.3)!important}
+html[data-theme="light"] .tip{background:#ffffff;color:#132025;box-shadow:0 4px 14px rgba(19,32,37,.18)}
+html[data-theme="light"] .pw-box,html[data-theme="light"] .cfg-modal,html[data-theme="light"] .analysis-modal,html[data-theme="light"] .confirm-popup-box,html[data-theme="light"] .spec-line-select{background:#ffffff}
+html[data-theme="light"] .cp-row{background:#fff8e6}
+html[data-theme="light"] .ana-resize-handle{color:rgba(19,32,37,.4);background:linear-gradient(135deg,transparent 50%,rgba(19,32,37,.07) 50%)}
+html[data-theme="light"] .ana-resize-handle:hover{color:rgba(19,32,37,.8)}
+html[data-theme="light"] .ana-card.corr-red{border-color:#c0503a}
+html[data-theme="light"] .spec-pbtn.std-on{background:#5b6469;border-color:#5b6469}
+html[data-theme="light"] .rdel:hover{color:var(--red)}
+html[data-theme="light"] .auto-popup-box{background:rgba(255,240,236,.92);border-color:#e6b8ab}
+html[data-theme="light"] .msel-panel,html[data-theme="light"] .ana-corr-popup{box-shadow:0 6px 20px rgba(19,32,37,.18)}
 </style>
+<script>(function(){try{var t=localStorage.getItem('spc_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
 <body>
 <div class="outer">
@@ -427,7 +499,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
       <tr id="row-pval"><td class="st-lbl"></td><td class="st-v"></td><td class="st-lbl">p-value</td><td class="st-v sv-cl" id="di-pval">—</td></tr>
       <tr><td class="st-lbl" id="lbl-c1">군 개수</td><td class="st-v sv-n" id="di-c1">0</td><td class="st-lbl" id="lbl-c2">군 크기</td><td class="st-v sv-n" id="di-c2">3</td></tr>
     </table>
-    <div class="md-btns"><button class="md-btn" style="flex:1" onclick="openPwModal()">⚙ 설정</button><button class="md-btn" style="flex:1" onclick="openAnalysis()">📊 분석</button></div>
+    <div class="md-btns"><button class="md-btn" style="flex:1" onclick="openPwModal()">⚙ 설정</button><button class="md-btn" style="flex:1" onclick="openAnalysis()">📊 분석</button><button class="md-btn" id="themeBtn" style="padding:5px 9px" title="라이트/다크 모드 전환" onclick="toggleTheme()">☀</button></div>
   </div>
   <div class="inp-wrap">
     <div class="sec-h">측정값 입력</div>
@@ -445,7 +517,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
     <button class="md-btn" style="width:100%;height:56px;margin-top:8px" onclick="openDashStdPdfPopup()">📄 검사구 사용표준</button>
   </div>
 </div>
-<div class="right">
+<div class="right"><button type="button" class="left-toggle" id="leftToggle" onclick="toggleLeftPanel()" title="왼쪽 패널 접기/펼치기">◀</button>
   <div class="charts-area">
     <div class="chart-row">
       <div class="np"><div class="np-t">X̄ 규칙</div><div class="np-g" id="nbX"></div></div>
@@ -461,7 +533,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
         <div class="cw"><canvas id="cR"></canvas></div>
       </div>
     </div>
-    <div class="raw-card" style="cursor:pointer" onclick="openRawDataPopup()">
+    <div class="raw-card">
       <div class="raw-hdr">측정 데이터</div>
       <div class="ts"><table class="rt" id="rawTable"><thead id="rtHead"></thead><tbody id="rtBody"></tbody></table></div>
     </div>
@@ -525,8 +597,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
   <div class="cfg-head"><h2>📊 분석</h2><button class="cfg-close" onclick="closeAnalysis()">✕</button></div>
   <div class="analysis-body">
     <div class="analysis-left">
-      <div class="line-sel-row"><label>라인</label><select id="anaLine" onchange="renderAnalysisList()"></select></div>
-      <div class="line-sel-row"><label>제품</label><select id="anaProd" onchange="renderAnalysisList()"></select></div>
+      <div class="line-sel-row"><label>라인</label><select id="anaLine" onchange="onAnaLineChange()"></select></div>
+      <div class="line-sel-row"><label>제품</label><select id="anaProd" onchange="onAnaProdChange()"></select></div>
       <div class="line-sel-row"><label>치수</label><select id="anaDim" onchange="renderAnalysisList()"></select></div>
       <div class="ana-range-row">
         <label>기간</label>
@@ -537,30 +609,25 @@ body{background:var(--bg);color:var(--tx);font-family:var(--font);font-size:13px
           <button type="button" class="ana-empty-btn" id="anaEmptyBtn" onclick="toggleAnaIncludeEmpty()">미생성일 포함</button>
         </div>
       </div>
+      <div class="ana-hint">Ctrl 을 누른 채로 다중 선택 시 여러 개의 그래프를 대조할 수 있습니다</div>
       <div class="analysis-list" id="analysisList"></div>
+      <div class="ana-corr-row"><button type="button" class="ana-empty-btn" id="anaCorrBtn" onclick="onAnaCorrBtn()">상관관계 분석</button><button type="button" class="ana-empty-btn" id="anaCorrCancel" style="display:none" onclick="cancelAnaCorr()">취소</button></div>
     </div>
     <div class="analysis-right" id="analysisCards"><div id="analysisCardsInner"></div></div>
   </div>
 </div>
 </div>
-<div class="cfg-overlay" id="rawDataModal">
-<div class="cfg-modal" style="width:auto;max-width:95vw">
-  <div class="cfg-head"><h2>측정 데이터</h2><button class="cfg-close" onclick="closeRawDataPopup()">✕</button></div>
-  <div style="padding:12px 16px;max-height:75vh;overflow:auto">
-    <table class="rt rt-popup" id="rawTablePopup"><thead id="rtHeadPopup"></thead><tbody id="rtBodyPopup"></tbody></table>
-  </div>
-</div>
-</div>
 <div class="cfg-overlay" id="dashStdPdfModal">
-<div class="cfg-modal" style="width:900px;max-width:92vw;height:85vh;display:flex;flex-direction:column">
+<div class="cfg-modal" style="width:1500px;max-width:97vw;height:93vh;max-height:93vh;display:flex;flex-direction:column">
   <div class="cfg-head"><h2>📄 검사구 사용표준</h2><button class="cfg-close" onclick="closeDashStdPdfPopup()">✕</button></div>
-  <div style="padding:10px 16px 0">
+  <div style="padding:10px 16px 0;flex-shrink:0">
     <div style="font-size:13px;color:var(--tx2);margin-bottom:8px">조회하실 검사구 사용표준을 선택하세요.</div>
-    <div id="dashStdPdfBtns" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div id="dashStdPdfBtns" style="display:flex;flex-wrap:nowrap;gap:6px;flex:1;min-width:0;overflow-x:auto"></div>
+      <div class="pdf-zoom" id="pdfZoomBox"><button type="button" class="ibtn-sm" onclick="pdfZoom(-0.2)">－</button><span id="pdfZoomLbl">100%</span><button type="button" class="ibtn-sm" onclick="pdfZoom(0.2)">＋</button><button type="button" class="ibtn-sm" onclick="pdfFit()">맞춤</button></div>
+    </div>
   </div>
-  <div style="flex:1;padding:0 16px 16px;min-height:0">
-    <iframe id="dashStdPdfFrame" style="width:100%;height:100%;border:1px solid var(--bdr2);border-radius:4px;background:#fff"></iframe>
-  </div>
+  <div class="pdf-viewer" id="dashPdfView"><div id="dashPdfPages"></div></div>
 </div>
 </div>
 <script>
@@ -597,6 +664,7 @@ function ensureCfgDefaults(){
   if(!cfg.cap)cfg.cap={k:125,drMode:0,drDate:null};
   if(!cfg.prodSettings)cfg.prodSettings={};
   if(!cfg.stdPdfs)cfg.stdPdfs={};
+  pruneAssignments();
 }
 // 제품(라인+품번) 단위 설정 — 치수와 무관하게 그 제품 전체에 적용됨 (관리도 종류/룰레벨/검사강화)
 function getProdSettings(line,prod){
@@ -857,6 +925,17 @@ document.getElementById && document.addEventListener('DOMContentLoaded',()=>{
   const inp=document.getElementById('inDate');
   if(inp){inp.addEventListener('blur',handleDateShorthand);}
 });
+function normalizeDateShorthand(){
+  const inp=document.getElementById('inDate');if(!inp)return false;
+  const raw=inp.value.replace(/[-\/\s]/g,'');
+  if(/^\d{6}$/.test(raw)){
+    const yy=parseInt(raw.slice(0,2)),mm=parseInt(raw.slice(2,4)),dd=parseInt(raw.slice(4,6));
+    if(mm>=1&&mm<=12&&dd>=1&&dd<=31){inp.value=`${2000+yy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;return true;}
+    const mm2=parseInt(raw.slice(0,2)),dd2=parseInt(raw.slice(2,4)),yy2=parseInt(raw.slice(4,6));
+    if(mm2>=1&&mm2<=12&&dd2>=1&&dd2<=31){inp.value=`${2000+yy2}-${String(mm2).padStart(2,'0')}-${String(dd2).padStart(2,'0')}`;return true;}
+  }
+  return false;
+}
 function handleDateShorthand(){
   const inp=document.getElementById('inDate');if(!inp)return;
   const raw=inp.value.replace(/[-\/\s]/g,'');
@@ -944,7 +1023,7 @@ function onNameTyped(i){
 function saveEntry(){
   if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   const dInp=document.getElementById('inDate');
-  handleDateShorthand();
+  normalizeDateShorthand(); // 주의: onDateChange()를 부르면 아직 저장 전인 입력값이 지워지므로 날짜 정규화만 함
   const dv=fromDateInput(dInp.value);
   if(!dv){showToast('날짜 입력 필요','warn');return;}
   // Build sparse array: index 0..slotN-1, null if empty — preserve slot positions
@@ -995,9 +1074,19 @@ function getViewData(){
   if(!all.length)return[];
   return windowGroups(all,cfg.k||20,cfg.drMode??0,cfg.drDate);
 }
+// I-MR은 값 하나하나가 관리도의 점 하나 — 같은 날 주간 초품/종품 값이 다 있으면 각각 별개의 점으로 전개
+function expandIMR(entries){
+  const out=[];
+  (entries||[]).forEach(e=>{
+    (e.values||[]).forEach((v,i)=>{
+      if(v!=null&&!isNaN(v)){const vals=new Array(i+1).fill(null);vals[i]=v;out.push({date:e.date,values:vals,names:e.names});}
+    });
+  });
+  return out;
+}
 function getViewDataIMR(){
   const key=curKey();ensureData(key);
-  const all=[...allData[key].complete];sortD(all);
+  const all=expandIMR((()=>{const a=[...allData[key].complete];sortD(a);return a;})());
   if(!all.length)return[];
   const imrCfg=cfg.imr||DEF.imr;
   return windowGroups(all,imrCfg.k||25,imrCfg.drMode??0,imrCfg.drDate);
@@ -1091,12 +1180,13 @@ function calcCapability(pd,spec){
     pp=(spec.usl-spec.lsl)/(6*sd);
     ppk=Math.min((spec.usl-mean)/(3*sd),(mean-spec.lsl)/(3*sd));
   }else if(spec.usl!=null){
-    ppk=(spec.usl-mean)/(3*sd);
+    ppk=(spec.usl-mean)/(3*sd);pp=ppk;
   }else{
-    ppk=(mean-spec.lsl)/(3*sd);
+    ppk=(mean-spec.lsl)/(3*sd);pp=ppk;
   }
+  const oneSided=!(spec.usl!=null&&spec.lsl!=null); // 편측 규격은 Pp 정의가 없어 Ppk(단측 지수)와 같은 값을 표시
   const pValue=andersonDarlingPValue(vals);
-  return{pp,ppk,pValue,mean,sd,nVals:vals.length,groups:win.length};
+  return{pp,ppk,pValue,mean,sd,nVals:vals.length,groups:win.length,oneSided};
 }
 
 function nelsonCheck(vals,CL,UCL,LCL,sx,isR){
@@ -1211,6 +1301,10 @@ function updateDash(stats,pd,vg,spec,isIMR){
 }
 
 // ═══ CHARTS ═══
+function isLight(){return document.documentElement.getAttribute('data-theme')==='light';}
+function CH(){return isLight()
+  ?{tick:'#5a6b70',grid:'rgba(19,32,37,.10)',bdr:'#c9c2ac',tipbg:'#ffffff',tipt:'#132025',tipb:'#33464c',line:'#2b8db5'}
+  :{tick:'#cccccc',grid:'rgba(55,62,71,.9)',bdr:'#373e47',tipbg:'#1a2030',tipt:'#ffffff',tipb:'#cccccc',line:'#58a6ff'};}
 function renderCharts(stats,vX,vR,topLabel){
   topLabel=topLabel||'X̄';
   if(gAX){cancelAnimationFrame(gAX);gAX=null;}if(gAR){cancelAnimationFrame(gAR);gAR=null;}
@@ -1225,7 +1319,7 @@ function renderCharts(stats,vX,vR,topLabel){
   const yR=(vals,UCL,LCL)=>{const pad=(UCL-LCL)*0.4;return{min:Math.min(...vals,LCL)-pad,max:Math.max(...vals,UCL)+pad};};
   const glow=(hl)=>({id:'glow',afterDatasetsDraw(ch){if(!hl.size)return;const ctx=ch.ctx,meta=ch.getDatasetMeta(0),t=Date.now()/700;hl.forEach(i=>{const pt=meta.data[i];if(!pt)return;const p=0.35+0.45*Math.sin(t);ctx.save();const g=ctx.createRadialGradient(pt.x,pt.y,3,pt.x,pt.y,18);g.addColorStop(0,`rgba(255,20,20,${p})`);g.addColorStop(1,'rgba(255,0,0,0)');ctx.beginPath();ctx.arc(pt.x,pt.y,18,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.restore();});}});
   const zone=(CL,sx,UCL,LCL)=>({id:'zone',beforeDatasetsDraw(ch){const ctx=ch.ctx,ya=ch.scales.y,ca=ch.chartArea;const band=(lo,hi,col)=>{const y1=ya.getPixelForValue(hi),y2=ya.getPixelForValue(lo);ctx.save();ctx.fillStyle=col;ctx.fillRect(ca.left,Math.min(y1,y2),ca.width,Math.abs(y2-y1));ctx.restore();};band(CL-sx,CL+sx,'rgba(63,185,80,.06)');band(CL+sx,CL+2*sx,'rgba(210,153,34,.07)');band(CL-2*sx,CL-sx,'rgba(210,153,34,.07)');band(CL+2*sx,UCL,'rgba(248,81,73,.09)');if(LCL<CL-2*sx)band(LCL,CL-2*sx,'rgba(248,81,73,.09)');}});
-  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},layout:{padding:{left:0,right:40}},onResize:()=>{setTimeout(syncTableColsToChart,0);},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2030',borderColor:'#373e47',borderWidth:1,titleColor:'#fff',bodyColor:'#ccc',padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',maxRotation:45,font:{size:11}},border:{color:'#373e47'}},y:{min:yMin,max:yMax,afterFit:s=>{s.width=50;},grid:{color:'rgba(55,62,71,.9)'},ticks:{color:'#ccc',font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:'#373e47'}}}});
+  const opts=(yMin,yMax)=>({responsive:true,maintainAspectRatio:false,animation:{duration:300},interaction:{mode:'index',intersect:false},layout:{padding:{left:0,right:40}},onResize:()=>{setTimeout(syncTableColsToChart,0);},plugins:{legend:{display:false},tooltip:{backgroundColor:CH().tipbg,borderColor:CH().bdr,borderWidth:1,titleColor:CH().tipt,bodyColor:CH().tipb,padding:10,callbacks:{label:ctx=>ctx.raw==null?null:` ${ctx.dataset.label}: ${typeof ctx.raw==='number'?ctx.raw.toFixed(4):'—'}`}}},scales:{x:{grid:{color:CH().grid},ticks:{color:CH().tick,maxRotation:45,font:{size:11}},border:{color:CH().bdr}},y:{min:yMin,max:yMax,afterFit:s=>{s.width=50;},grid:{color:CH().grid},ticks:{color:CH().tick,font:{size:11,family:"'Courier New',monospace"},callback:v=>v.toFixed(3)},border:{color:CH().bdr}}}});
   const xLim=[cL(stats.UCLx,'#ff6b6b',[6,3],'UCL'),cL(stats.xbb+2*stats.sx,'#fbbf24',[4,4],'+2σ'),cL(stats.xbb+stats.sx,'#fde68a',[2,4],'+1σ'),cL(stats.xbb,'#4ade80',[8,4],'CL'),cL(stats.xbb-stats.sx,'#bfdbfe',[2,4],'-1σ'),cL(stats.xbb-2*stats.sx,'#93c5fd',[4,4],'-2σ'),cL(stats.LCLx,'#60a5fa',[6,3],'LCL')];
   const xr=yR(xv,stats.UCLx,stats.LCLx);
   xChart=new Chart(document.getElementById('cXbar').getContext('2d'),{type:'line',plugins:[zone(stats.xbb,stats.sx,stats.UCLx,stats.LCLx),glow(hlX2)],data:{labels,datasets:[{label:topLabel,data:xv,fill:false,tension:.2,order:1,borderColor:'#58a6ff',borderWidth:2,pointRadius:ptRad(xv,hlX2),pointBackgroundColor:ptC(xv,hlX2,avX),pointBorderColor:ptC(xv,hlX2,avX),pointHoverRadius:9},...xLim]},options:opts(xr.min,xr.max)});
@@ -1342,6 +1436,25 @@ function updateMasterPwDots(){for(let i=0;i<4;i++)document.getElementById(`mpd${
 function openPwModal(){pwBuf='';updatePwDots();document.getElementById('pwErr').textContent='';document.getElementById('pwModal').classList.add('open');}
 function closePwModal(){document.getElementById('pwModal').classList.remove('open');pwBuf='';}
 function pwKey(k){if(pwBuf.length>=4)return;pwBuf+=k;updatePwDots();if(pwBuf.length===4){if(pwBuf===PW){closePwModal();openCfg();}else{document.getElementById('pwErr').textContent='비밀번호가 틀렸습니다';setTimeout(()=>{pwBuf='';updatePwDots();document.getElementById('pwErr').textContent='';},900);}}}
+// 대시보드 왼쪽 열(라인·제품·치수 ~ 검사구 사용표준) 접기/펼치기 — 저장하지 않으므로 새로고침하면 항상 펼쳐진 상태
+function toggleLeftPanel(){
+  const l=document.querySelector('.left'),b=document.getElementById('leftToggle');
+  const collapsed=l.classList.toggle('collapsed');
+  b.textContent=collapsed?'▶':'◀';
+  setTimeout(()=>{window.dispatchEvent(new Event('resize'));},260);
+}
+// 라이트/다크 모드 (선택은 이 브라우저에 기억)
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  const b=document.getElementById('themeBtn');if(b)b.textContent=t==='light'?'🌙':'☀';
+}
+function toggleTheme(){
+  const t=isLight()?'dark':'light';
+  try{localStorage.setItem('spc_theme',t);}catch(e){}
+  applyTheme(t);
+  try{render();}catch(e){}
+  if(document.getElementById('analysisModal').classList.contains('open'))renderAnalysisCards();
+}
 function pwDel(){if(pwBuf.length){pwBuf=pwBuf.slice(0,-1);updatePwDots();}}
 function updatePwDots(){for(let i=0;i<4;i++)document.getElementById(`pd${i}`).classList.toggle('filled',i<pwBuf.length);}
 
@@ -1373,17 +1486,37 @@ function getAllCombos(){
   });
   return out;
 }
+function anaProdLabel(p){return `${esc(p)}${cfg.prodNames[p]?' ('+esc(cfg.prodNames[p])+')':''}`;}
+function rebuildAnaProdOptions(){
+  const fl=document.getElementById('anaLine').value,prodSel=document.getElementById('anaProd');
+  const cur=prodSel.value;
+  let prods;
+  if(fl)prods=cfg.lineProds[fl]||[];
+  else{const s=new Set();cfg.lines.forEach(l=>(cfg.lineProds[l]||[]).forEach(p=>s.add(p)));prods=[...s];}
+  prodSel.innerHTML='<option value="">전체 제품</option>'+prods.map(p=>`<option value="${esc(p)}">${anaProdLabel(p)}</option>`).join('');
+  prodSel.value=prods.includes(cur)?cur:'';
+}
+function onAnaLineChange(){rebuildAnaProdOptions();renderAnalysisList();}
+function onAnaProdChange(){
+  const lineSel=document.getElementById('anaLine'),prodSel=document.getElementById('anaProd');
+  const fp=prodSel.value;
+  if(fp&&!lineSel.value){
+    const owner=cfg.lines.find(l=>(cfg.lineProds[l]||[]).includes(fp));
+    if(owner){lineSel.value=owner;rebuildAnaProdOptions();prodSel.value=fp;}
+  }
+  renderAnalysisList();
+}
 function openAnalysis(){
-  const lineSel=document.getElementById('anaLine'),prodSel=document.getElementById('anaProd'),dimSel=document.getElementById('anaDim');
-  const allProds=new Set();cfg.lines.forEach(l=>(cfg.lineProds[l]||[]).forEach(p=>allProds.add(p)));
+  const lineSel=document.getElementById('anaLine'),dimSel=document.getElementById('anaDim');
   lineSel.innerHTML='<option value="">전체 라인</option>'+cfg.lines.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
-  prodSel.innerHTML='<option value="">전체 제품</option>'+[...allProds].map(p=>`<option value="${esc(p)}">${esc(p)}${cfg.prodNames[p]?' ('+esc(cfg.prodNames[p])+')':''}</option>`).join('');
+  rebuildAnaProdOptions();
   dimSel.innerHTML='<option value="">전체 치수</option>'+(cfg.dims||[]).map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');
   document.getElementById('analysisModal').classList.add('open');
   const emptyBtn=document.getElementById('anaEmptyBtn');if(emptyBtn)emptyBtn.classList.toggle('on',anaIncludeEmpty);
   renderAnalysisList();renderAnalysisCards();
 }
 function closeAnalysis(){
+  closeAnaCorr(true);cancelAnaCorr();
   document.getElementById('analysisModal').classList.remove('open');
   Object.values(analysisCharts).forEach(c=>c.destroy());
   analysisCharts={};
@@ -1394,16 +1527,111 @@ function renderAnalysisList(){
   const listEl=document.getElementById('analysisList');
   listEl.innerHTML=combos.map(c=>{
     const key=getKey(c.line,c.prod,c.dim);
-    const checked=analysisSelected.has(key)?'checked':'';
     const pname=cfg.prodNames[c.prod]||'';
-    return `<label class="ana-item"><input type="checkbox" ${checked} onchange="onAnaCheck('${esc(c.line)}','${esc(c.prod)}','${esc(c.dim)}',this.checked)"> ${esc(c.line)} | ${esc(c.prod)}${pname?'('+esc(pname)+')':''} | ${esc(c.dim)}</label>`;
+    const box=anaCorrMode?`<input type="checkbox" class="ana-corr-box" ${anaCorrSel.has(key)?'checked':''} onclick="event.stopPropagation()" onchange="onAnaCorrCheck(this.closest('.ana-item').dataset.anakey,this.checked)">`:'';
+    return `<div class="ana-item${analysisSelected.has(key)?' on':''}" data-anakey="${esc(key)}" onclick="onAnaItemClick(event,this)"><span class="ana-item-txt">${esc(c.line)} | ${esc(c.prod)}${pname?'('+esc(pname)+')':''} | ${esc(c.dim)}</span>${box}</div>`;
   }).join('')||'<div style="color:var(--tx3);padding:10px;font-size:12.5px">조건에 맞는 항목이 없습니다</div>';
 }
-function onAnaCheck(line,prod,dim,checked){
-  const key=getKey(line,prod,dim);
-  if(checked){analysisSelected.add(key);if(!analysisOrder.includes(key))analysisOrder.push(key);}
-  else{analysisSelected.delete(key);analysisOrder=analysisOrder.filter(k=>k!==key);}
-  renderAnalysisCards();
+// 클릭 = 그 항목만 활성화, Ctrl(⌘)+클릭 = 여러 개 추가/해제해서 그래프 대조
+function onAnaItemClick(e,el){
+  const key=el.dataset.anakey;
+  if(e.ctrlKey||e.metaKey){
+    if(analysisSelected.has(key)){analysisSelected.delete(key);analysisOrder=analysisOrder.filter(k=>k!==key);}
+    else{analysisSelected.add(key);if(!analysisOrder.includes(key))analysisOrder.push(key);}
+  }else{
+    analysisSelected=new Set([key]);analysisOrder=[key];
+  }
+  renderAnalysisList();renderAnalysisCards();
+}
+// ─── 상관관계 분석 ───
+let anaCorrMode=false,anaCorrSel=new Set(),anaCorrRed=new Set();
+function setAnaCorrUI(){
+  const b=document.getElementById('anaCorrBtn'),c=document.getElementById('anaCorrCancel');
+  if(b){b.textContent=anaCorrMode?'분석 시작':'상관관계 분석';b.classList.toggle('on',anaCorrMode);}
+  if(c)c.style.display=anaCorrMode?'':'none';
+}
+function onAnaCorrBtn(){
+  if(!anaCorrMode){anaCorrMode=true;anaCorrSel=new Set();setAnaCorrUI();renderAnalysisList();return;}
+  if(anaCorrSel.size<2){showToast('상관관계 분석은 치수를 2개 이상 선택하세요','warn');return;}
+  runAnaCorr();
+}
+function cancelAnaCorr(){if(!anaCorrMode)return;anaCorrMode=false;anaCorrSel=new Set();setAnaCorrUI();renderAnalysisList();}
+function onAnaCorrCheck(key,checked){if(checked)anaCorrSel.add(key);else anaCorrSel.delete(key);}
+function anaSeries(key){
+  const pd=allData[key]||{complete:[],pending:[]};const m=new Map();
+  [...pd.complete,...pd.pending].forEach(e=>{(e.values||[]).forEach((v,i)=>{if(v!=null&&!isNaN(v))m.set(e.date+'#'+i,v);});});
+  return m;
+}
+function pearson(a,b){
+  const xs=[],ys=[];
+  a.forEach((v,k)=>{if(b.has(k)){xs.push(v);ys.push(b.get(k));}});
+  const n=xs.length;if(n<3)return{r:null,n};
+  const mx=xs.reduce((s,v)=>s+v,0)/n,my=ys.reduce((s,v)=>s+v,0)/n;
+  let sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sxy+=(xs[i]-mx)*(ys[i]-my);sxx+=(xs[i]-mx)**2;syy+=(ys[i]-my)**2;}
+  if(!sxx||!syy)return{r:null,n};
+  return{r:sxy/Math.sqrt(sxx*syy),n};
+}
+function runAnaCorr(){
+  const keys=[...anaCorrSel];
+  const ser=keys.map(anaSeries);
+  const mat=keys.map((_,i)=>keys.map((_,j)=>i===j?{r:1,n:ser[i].size}:pearson(ser[i],ser[j])));
+  anaCorrRed=new Set(keys); // 분석 대상은 차트에서 빨간 테두리 (결과 팝업의 X 를 눌러야 해제)
+  keys.forEach(k=>{analysisSelected.add(k);if(!analysisOrder.includes(k))analysisOrder.push(k);}); // 차트가 안 떠 있던 것은 새로 띄움
+  anaCorrMode=false;anaCorrSel=new Set();setAnaCorrUI();
+  renderAnalysisList();renderAnalysisCards();
+  showAnaCorrPopup(keys,mat);
+}
+function anaCorrHead(keys,k){
+  const p=k.split('__');
+  const sameLP=keys.every(x=>{const q=x.split('__');return q[0]===keys[0].split('__')[0]&&q[1]===keys[0].split('__')[1];});
+  return sameLP?esc(p[2]):`${esc(p[2])}<br><span class="cm-sub">${esc(p[0])} | ${esc(p[1])}</span>`;
+}
+function showAnaCorrPopup(keys,mat){
+  let pop=document.getElementById('anaCorrPopup');
+  if(!pop){
+    pop=document.createElement('div');pop.id='anaCorrPopup';pop.className='ana-corr-popup';
+    pop.innerHTML='<div class="ana-corr-head" id="anaCorrHead"><span>상관관계 분석 결과 (피어슨 r)</span><button type="button" onclick="closeAnaCorr()">✕</button></div><div class="ana-corr-body" id="anaCorrBody"></div>';
+    document.body.appendChild(pop);
+    document.getElementById('anaCorrHead').addEventListener('mousedown',anaCorrDragStart);
+  }
+  const rowHead=k=>anaCorrHead(keys,k);
+  let html='<table class="cm-tbl"><thead><tr><th></th>'+keys.map(k=>`<th>${rowHead(k)}</th>`).join('')+'</tr></thead><tbody>';
+  mat.forEach((row,i)=>{
+    html+=`<tr><th>${rowHead(keys[i])}</th>`+row.map((c,j)=>{
+      if(c.r==null)return `<td class="cm-na" title="공통 측정점 ${c.n}개 — 3개 미만이라 산출 불가">—</td>`;
+      const a=Math.min(1,Math.abs(c.r));
+      const bg=i===j?'transparent':(c.r>=0?`rgba(43,141,181,${(a*0.55).toFixed(2)})`:`rgba(192,80,58,${(a*0.55).toFixed(2)})`);
+      return `<td style="background:${bg}" title="공통 측정점 n=${c.n}">${i===j?'1':c.r.toFixed(2)}</td>`;
+    }).join('')+'</tr>';
+  });
+  html+='</tbody></table>';
+  const pairs=[];
+  for(let i=0;i<keys.length;i++)for(let j=i+1;j<keys.length;j++){const c=mat[i][j];if(c.r!=null&&Math.abs(c.r)>=0.7)pairs.push({i,j,r:c.r,n:c.n});}
+  pairs.sort((a,b)=>Math.abs(b.r)-Math.abs(a.r));
+  html+='<div class="cm-note">'+(pairs.length?'<b>강한 상관 (|r| ≥ 0.7)</b><br>'+pairs.map(p=>`${anaCorrHead(keys,keys[p.i]).replace(/<br>.*$/,'')} ↔ ${anaCorrHead(keys,keys[p.j]).replace(/<br>.*$/,'')} : r=${p.r.toFixed(2)} (n=${p.n})`).join('<br>'):'|r| ≥ 0.7 인 강한 상관 쌍이 없습니다.')+'<br><span style="color:var(--tx3)">같은 날짜·같은 측정 슬롯에서 값이 모두 있는 점만으로 계산하며, 셀에 마우스를 올리면 공통 측정점 수(n)가 보입니다.</span></div>';
+  document.getElementById('anaCorrBody').innerHTML=html;
+  if(pop.style.display!=='block'){
+    const r=document.getElementById('analysisList').getBoundingClientRect();
+    pop.style.left=Math.max(8,r.left+6)+'px';pop.style.top=Math.max(8,r.top+6)+'px';
+  }
+  pop.style.display='block';
+}
+let anaCorrDrag=null;
+function anaCorrDragStart(e){
+  if(e.target.tagName==='BUTTON')return;
+  const pop=document.getElementById('anaCorrPopup');const r=pop.getBoundingClientRect();
+  anaCorrDrag={dx:e.clientX-r.left,dy:e.clientY-r.top};e.preventDefault();
+}
+window.addEventListener('mousemove',e=>{
+  if(!anaCorrDrag)return;const pop=document.getElementById('anaCorrPopup');if(!pop)return;
+  pop.style.left=Math.min(window.innerWidth-60,Math.max(-200,e.clientX-anaCorrDrag.dx))+'px';
+  pop.style.top=Math.min(window.innerHeight-40,Math.max(0,e.clientY-anaCorrDrag.dy))+'px';
+});
+window.addEventListener('mouseup',()=>{anaCorrDrag=null;});
+function closeAnaCorr(silent){
+  const pop=document.getElementById('anaCorrPopup');if(pop)pop.style.display='none';
+  const had=anaCorrRed.size>0;anaCorrRed=new Set(); // 팝업을 닫아야만 빨간 테두리 해제
+  if(!silent&&had&&document.getElementById('analysisModal').classList.contains('open'))renderAnalysisCards();
 }
 // ─── 카드 자유 배치(격자 스냅) ───
 // 카드마다 (col,row) 위치를 직접 갖고 있어서, 2개만 선택해도 4사분면·3사분면처럼
@@ -1441,8 +1669,6 @@ function layoutAnaCards(){
     el.style.top=(pos.row*(anaCardH+ANA_GAP))+'px';
     el.style.width=anaCardW+'px';
     el.style.height=anaCardH+'px';
-    const cw=el.querySelector('.cw');
-    if(cw)cw.style.height=Math.max(60,anaCardH-ANA_TITLE_H)+'px';
   });
   // 카드들을 담는 "안쪽" 요소에만 큰 높이를 주고, 바깥(#analysisCards, overflow:auto)은
   // flex로 정해진 자기 높이를 그대로 유지해야 스크롤바가 항상 화면 안에 보임
@@ -1519,10 +1745,11 @@ function renderAnalysisCards(){
     const parts=key.split('__');
     const pd=allData[key]||{complete:[],pending:[]};
     const cap=calcCapability(pd,cfg.specs[key]||{});
-    const ppTxt=cap&&cap.pp!=null?`Pp ${cap.pp.toFixed(2)} / Ppk ${cap.ppk.toFixed(2)}`:'Pp/Ppk —';
+    const ppBad=v=>v<1.67?' bad':''; // Pp/Ppk 1.67 미만은 빨간 글씨
+    const ppTxt=cap&&cap.pp!=null?`<span class="ana-pp${ppBad(cap.pp)}">Pp ${cap.pp.toFixed(2)}</span> / <span class="ana-pp${ppBad(cap.ppk)}">Ppk ${cap.ppk.toFixed(2)}</span>${cap.oneSided?' <span title="편측 규격은 Pp 정의가 없어 Ppk 와 같은 값을 표시">*</span>':''}`:'Pp/Ppk —';
     const pname=cfg.prodNames[parts[1]]?` (${cfg.prodNames[parts[1]]})`:'';
     // 오른쪽 카드에서는 "라인 / 품번 (품명) / 치수"를 세 줄로 표시 (왼쪽 목록은 그대로 한 줄)
-    return `<div class="ana-card" draggable="true" data-anakey="${esc(key)}" ondragstart="anaDragStart(event)" ondragend="anaDragEnd()"><div class="ana-card-title"><span class="ana-drag-handle">⠿</span>${esc(parts[0])}<br>${esc(parts[1])}${esc(pname)}<br>${esc(parts[2])}<span style="float:right;font-weight:400;color:var(--tx3);font-size:11px">${ppTxt}</span></div><div class="cw"><canvas id="anaChart_${idx}"></canvas><span class="ana-resize-handle" draggable="false" onmousedown="anaResizeStart(event)">⤡</span></div></div>`;
+    return `<div class="ana-card${anaCorrRed.has(key)?' corr-red':''}" draggable="true" data-anakey="${esc(key)}" ondragstart="anaDragStart(event)" ondragend="anaDragEnd()"><div class="ana-card-title"><span class="ana-drag-handle">⠿</span>${esc(parts[2])} | ${esc(parts[0])} | ${esc(parts[1])}${esc(pname)}<div class="ana-card-sub">${ppTxt}</div></div><div class="cw"><canvas id="anaChart_${idx}"></canvas><span class="ana-resize-handle" draggable="false" onmousedown="anaResizeStart(event)">⤡</span></div></div>`;
   }).join('');
   layoutAnaCards();
   outer.ondragover=anaContainerDragOver;
@@ -1583,7 +1810,8 @@ function drawAnalysisChart(key,line,prod,dim,idx){
     });
   }
   const tierCfg=isIMR?(cfg.imr||DEF.imr):{k:cfg.k,drMode:cfg.drMode,drDate:cfg.drDate};
-  const vg=(rangeStart||rangeEnd)?all:windowGroups(all,tierCfg.k||(isIMR?25:25),tierCfg.drMode??0,tierCfg.drDate);
+  const allX=isIMR?expandIMR(all):all; // I-MR 은 같은 날 여러 슬롯 값도 각각 점으로
+  const vg=(rangeStart||rangeEnd)?allX:windowGroups(allX,tierCfg.k||(isIMR?25:25),tierCfg.drMode??0,tierCfg.drDate);
   let stats=isIMR?calcStatsIMR(vg,line,prod):calcStats(vg);
   if(analysisCharts[key]){analysisCharts[key].destroy();delete analysisCharts[key];}
   if(!stats||!stats.groups.length){
@@ -1601,11 +1829,16 @@ function drawAnalysisChart(key,line,prod,dim,idx){
     const built=buildAnaExpandedSeries(all,line,prod,isIMR,rangeStart,rangeEnd);
     labels=built.labels;xv=built.xv;
   }else{
-    labels=stats.groups.map(g=>shortDate(g.date));
+    labels=stats.groups.map(g=>isIMR&&g.label?`${shortDate(g.date)} ${g.label}`:shortDate(g.date));
     xv=stats.groups.map(g=>g.xb);
   }
+  // y축: 대시보드와 같은 방식 — 데이터·UCL·LCL 을 모두 포함하고 여유를 둠 (0부터 시작하지 않음)
+  const yVals=xv.filter(v=>v!=null&&!isNaN(v));
+  const hiV=Math.max(...yVals,stats.UCLx),loV=Math.min(...yVals,stats.LCLx);
+  let yPad=(stats.UCLx-stats.LCLx)*0.4;if(!(yPad>0))yPad=(hiV-loV)*0.2||Math.abs(hiV)*0.05||1;
+  const yMin=loV-yPad,yMax=hiV+yPad;
   const datasets=[
-    {label:isIMR?'I':'X̄',data:xv,borderColor:'#58a6ff',borderWidth:2,pointRadius:2,tension:.2,order:1,spanGaps:false},
+    {label:isIMR?'I':'X̄',data:xv,borderColor:CH().line,backgroundColor:CH().line,borderWidth:2,pointRadius:includeEmpty?3:2,showLine:!includeEmpty,tension:.2,order:1,spanGaps:false},
     {label:'UCL',data:labels.map(()=>stats.UCLx),borderColor:'#f85149',borderWidth:1,pointRadius:0,borderDash:[4,4],order:2},
     {label:'CL',data:labels.map(()=>stats.xbb),borderColor:'#3fb950',borderWidth:1,pointRadius:0,borderDash:[2,2],order:2},
     {label:'LCL',data:labels.map(()=>stats.LCLx),borderColor:'#f85149',borderWidth:1,pointRadius:0,borderDash:[4,4],order:2},
@@ -1616,9 +1849,9 @@ function drawAnalysisChart(key,line,prod,dim,idx){
   analysisCharts[key]=new Chart(canvas.getContext('2d'),{
     type:'line',
     data:{labels,datasets},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},scales:{
-      x:{ticks:{color:'#ccc',font:{size:10},maxRotation:90,minRotation:labels.some(l=>String(l).length>6)?60:0,autoSkip:true},grid:{color:'rgba(55,62,71,.6)'}},
-      y:{ticks:{color:'#ccc',font:{size:10}},grid:{color:'rgba(55,62,71,.6)'}}
+    options:{responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{bottom:4,right:6}},plugins:{legend:{display:false}},scales:{
+      x:{ticks:{color:CH().tick,font:{size:10},maxRotation:45,minRotation:0,autoSkip:true,autoSkipPadding:12},grid:{color:CH().grid}},
+      y:{min:yMin,max:yMax,ticks:{color:CH().tick,font:{size:10}},grid:{color:CH().grid}}
     }}
   });
 }
@@ -1842,8 +2075,8 @@ function renderLM(){
     <span style="flex:0 0 auto;white-space:nowrap">품번/품명 목록</span>
     <select id="lmLS" class="dsel" onchange="lmCL()" style="flex:1;min-width:0;font-weight:400;font-size:12.5px;padding:4px 8px">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===al?' selected':''}>${esc(l)}</option>`).join('')}</select>
   </div>
-  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" data-type="prod" data-idx="${i}"><span class="item-name" style="flex:0 0 90px">${esc(p)}</span><button class="ibtn-sm" onclick="renameProdCode(${i})">수정</button><input class="item-edit-inp" style="flex:1" value="${esc(cfg.prodNames[p]||'')}" onblur="commitProdNameEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
-  <div class="add-row"><input id="addProdInp" placeholder="새 품번" style="max-width:120px"><input id="addProdNameInp" placeholder="새 품명"><button class="add-btn" onclick="addProd()">+ 추가</button></div>
+  <div class="item-list" id="ilProd">${prods.map((p,i)=>`<div class="item-row" data-type="prod" data-idx="${i}"><span class="item-name" style="flex:0 0 108px">${esc(p)}</span><button class="ibtn-sm" onclick="renameProdCode(${i})">수정</button><input class="item-edit-inp" style="flex:1" value="${esc(cfg.prodNames[p]||'')}" onblur="commitProdNameEdit(${i},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('prod',${i})">✕</button></div>`).join('')}</div>
+  <div class="add-row"><input id="addProdInp" placeholder="새 품번" style="flex:0 0 120px;max-width:none;min-width:0"><input id="addProdNameInp" placeholder="새 품명"><button class="add-btn" onclick="addProd()">+ 추가</button></div>
 </div>
 <div class="col-section">
   <div class="col-h">치수 목록 (공통)</div>
@@ -1986,7 +2219,7 @@ function renameProdCode(idx){
   const row=document.querySelector(`#ilProd .item-row[data-idx="${idx}"]`);
   if(!row)return;
   const nameVal=cfg.prodNames[cur]||'';
-  row.innerHTML=`<input class="item-edit-inp" style="flex:0 0 90px" id="prodEditInp${idx}" onkeydown="if(event.key==='Enter')this.blur();" onblur="commitProdCodeEdit(${idx},this)"><input class="item-edit-inp" style="flex:1" value="${esc(nameVal)}" onblur="commitProdNameEdit(${idx},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('prod',${idx})">✕</button>`;
+  row.innerHTML=`<input class="item-edit-inp" style="flex:0 0 108px;border-color:var(--bdr2)" id="prodEditInp${idx}" onkeydown="if(event.key==='Enter')this.blur();" onblur="commitProdCodeEdit(${idx},this)"><input class="item-edit-inp" style="flex:1" value="${esc(nameVal)}" onblur="commitProdNameEdit(${idx},this)" onkeydown="if(event.key==='Enter')this.blur()"><button class="ibtn-sm del-sm" onclick="removeItem('prod',${idx})">✕</button>`;
   const inp=document.getElementById(`prodEditInp${idx}`);inp.value=cur;inp.focus();inp.select();
 }
 function commitProdCodeEdit(idx,el){
@@ -1995,9 +2228,11 @@ function commitProdCodeEdit(idx,el){
   const newCode=el.value.trim().toUpperCase();
   const redraw=()=>{document.getElementById('cfgBody').innerHTML=renderLM();};
   if(!newCode||newCode===oldCode){redraw();return;}
-  if(!isValidProdCode(newCode)){alert(PROD_CODE_ERR);redraw();return;}
+  // 양식 위반/중복이면 수정이 완료되지 않고 입력칸에 그대로 머무름
+  const stay=(msg)=>{if(window.__prodEditAlert)return;window.__prodEditAlert=true;alert(msg);window.__prodEditAlert=false;setTimeout(()=>{el.focus();el.select();},0);};
+  if(!isValidProdCode(newCode)){stay(PROD_CODE_ERR);return;}
   const dupLine=findLineOfProd(newCode,al,idx);
-  if(dupLine){alert(`이미 ${dupLine} 라인에 등록된 품번입니다.`);redraw();return;}
+  if(dupLine){stay(`이미 ${dupLine} 라인에 등록된 품번입니다.`);return;}
   if(cfg.prodNames[oldCode]!==undefined){cfg.prodNames[newCode]=cfg.prodNames[oldCode];delete cfg.prodNames[oldCode];}
   cfg.lineProds[al][idx]=newCode;
   Object.keys(cfg.specs).forEach(k=>{
@@ -2081,7 +2316,7 @@ function renderSpec(){
   const sl=specLineSel2||cfg.lines[0];const prods=cfg.lineProds[sl]||[];const dims=cfg.dims||[];
   let tbl='';
   if(prods.length&&dims.length){
-    tbl=`<div style="overflow:auto;max-height:520px"><table class="smt"><thead><tr><th style="min-width:133px">구분</th><th style="min-width:144px">설정</th><th style="min-width:61px">관리자</th>${dims.map(d=>`<th style="min-width:127px">${esc(d)}</th>`).join('')}</tr></thead><tbody>`;
+    tbl=`<div style="overflow:auto;max-height:520px"><table class="smt"><thead><tr><th style="min-width:133px">구분</th><th style="min-width:144px">설정</th><th style="min-width:61px">관리자</th>${dims.map(d=>`<th style="min-width:137px">${esc(d)}</th>`).join('')}</tr></thead><tbody>`;
     prods.forEach(p=>{
       tbl+=`<tr><th style="min-width:133px">${esc(p)}<br><span style="font-weight:400">${esc(cfg.prodNames[p]||'')}</span></th>
       <td><div class="spec-btn-grid">${stdBtnHtml(sl,p)}${enhancedBtnHtml(sl,p)}${modeBtnHtml(sl,p)}${ruleBtnHtml(sl,p)}</div></td>
@@ -2090,18 +2325,17 @@ function renderSpec(){
     });
     tbl+='</tbody></table></div>';
   }else tbl='<div style="color:var(--tx3);padding:10px">이 라인에 품번 또는 치수가 없습니다</div>';
-  return `<div class="spec-line-select"><div class="mf" style="margin-bottom:0;display:flex;align-items:center;gap:6px"><label style="margin:0">라인 선택</label><select id="specLS" class="dsel" style="flex:1" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select><span class="gs-info-icon" onmouseenter="showSimpleTip(event,'가장 마지막으로 수정한 날짜가 규격 아래에 나타납니다')" onmousemove="moveTip(event)" onmouseleave="hideGsTip()">ⓘ</span><button type="button" class="add-btn" style="flex:0 0 auto" onclick="openCloneMatrixPopup()">복제하기</button></div></div>${tbl}`;
+  return `<div class="spec-line-select"><div class="mf" style="margin-bottom:0;display:flex;align-items:center;gap:6px"><label style="margin:0">라인 선택</label><select id="specLS" class="dsel" style="flex:1" onchange="specLC()">${cfg.lines.map(l=>`<option value="${esc(l)}"${l===sl?' selected':''}>${esc(l)}</option>`).join('')}</select><span class="gs-info-icon" onmouseenter="showSimpleTip(event,'UCL, LCL 을 가장 마지막으로 수정한 날짜가 그 오른쪽에 나타납니다')" onmousemove="moveTip(event)" onmouseleave="hideGsTip()">ⓘ</span><button type="button" class="add-btn" style="flex:0 0 auto" onclick="openCloneMatrixPopup()">복제하기</button></div></div>${tbl}`;
 }
 // ─── 규격 일괄 복제 (라인 선택 옆 "복제하기" 버튼) — 선택 란 a → 선택 란 b 로 규격을 복사 ───
 function openCloneMatrixPopup(){
   const overlay=document.createElement('div');
   overlay.className='confirm-popup-overlay';
   overlay.id='cloneMatrixOverlay';
-  overlay.innerHTML=`<div class="confirm-popup-box" style="text-align:left;width:340px;max-width:90vw">
-    <div class="confirm-popup-msg" style="text-align:left">'선택 란(가칭 a)'의 규격을 복사하여 일괄<br>'선택 란(가칭 b)'의 규격으로 적용합니다.</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0">
-      <div><label style="display:block;font-size:12px;color:var(--tx3);margin-bottom:4px">선택 란 a</label><select id="cloneMatA" class="dsel" style="width:100%" onchange="renderCloneMatrixSelects()"></select></div>
-      <div><label style="display:block;font-size:12px;color:var(--tx3);margin-bottom:4px">선택 란 b</label><select id="cloneMatB" class="dsel" style="width:100%" onchange="renderCloneMatrixSelects()"></select></div>
+  overlay.innerHTML=`<div class="confirm-popup-box" style="text-align:left;max-width:92vw;width:auto">
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;font-size:14px;color:var(--tx)">
+      <div style="display:flex;align-items:center;gap:8px;white-space:nowrap"><select id="cloneMatA" class="dsel" style="width:220px" onchange="renderCloneMatrixSelects()"></select><span>의 규격을 복사하여 일괄</span></div>
+      <div style="display:flex;align-items:center;gap:8px;white-space:nowrap"><select id="cloneMatB" class="dsel" style="width:220px" onchange="renderCloneMatrixSelects()"></select><span>의 규격으로 적용합니다.</span></div>
     </div>
     <div class="confirm-popup-btns"><button class="confirm-popup-btn confirm-popup-cancel" onclick="closeCloneMatrixPopup()">취소</button><button class="confirm-popup-btn confirm-popup-danger" id="cloneMatApplyBtn" onclick="applyCloneMatrix()" disabled>적용</button></div>
   </div>`;
@@ -2159,7 +2393,8 @@ function stdPdfLabels(list){
 }
 function stdBtnHtml(line,prod){
   const uid=`std_${safeId(line)}_${safeId(prod)}`;
-  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn" onclick="openStdPdfManager('${esc(line)}','${esc(prod)}')">사용표준</button></div>`;
+  const has=stdPdfList(line,prod).length>0;
+  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn${has?' std-on':''}" onclick="openStdPdfManager('${esc(line)}','${esc(prod)}')">사용표준</button></div>`;
 }
 function openStdPdfManager(line,prod){
   const overlay=document.createElement('div');
@@ -2175,6 +2410,10 @@ function openStdPdfManager(line,prod){
   document.body.appendChild(overlay);
   overlay.addEventListener('click',(e)=>{if(e.target===overlay)closeStdPdfManager();});
   renderStdPdfMgrList(line,prod);
+}
+function refreshStdBtn(line,prod){
+  const b=document.querySelector(`#msel_wrap_std_${safeId(line)}_${safeId(prod)} .spec-pbtn`);
+  if(b)b.classList.toggle('std-on',stdPdfList(line,prod).length>0);
 }
 function closeStdPdfManager(){const o=document.getElementById('stdPdfMgrOverlay');if(o)o.remove();}
 function renderStdPdfMgrList(line,prod){
@@ -2203,7 +2442,7 @@ function uploadStdPdf(){
     cfg.stdPdfs[key].push({id:'p'+Date.now()+Math.random().toString(36).slice(2,7),date:today,dataUrl:reader.result,fileName:file.name});
     saveCfgToFirebase();
     inp.value='';
-    renderStdPdfMgrList(line,prod);
+    renderStdPdfMgrList(line,prod);refreshStdBtn(line,prod);
     showToast('PDF 업로드됨','ok');
   };
   reader.onerror=()=>showToast('PDF 읽기 실패','warn');
@@ -2214,7 +2453,7 @@ function deleteStdPdf(line,prod,id){
     const key=stdPdfKey(line,prod);
     if(cfg.stdPdfs&&cfg.stdPdfs[key]){cfg.stdPdfs[key]=cfg.stdPdfs[key].filter(it=>it.id!==id);}
     saveCfgToFirebase();
-    renderStdPdfMgrList(line,prod);
+    renderStdPdfMgrList(line,prod);refreshStdBtn(line,prod);
   },'삭제합니다','취소');
 }
 function viewStdPdf(line,prod,id){
@@ -2224,37 +2463,112 @@ function viewStdPdf(line,prod,id){
   if(!w)showToast('팝업이 차단되었습니다. 브라우저에서 팝업을 허용해주세요','warn');
 }
 // ─── 대시보드의 "검사구 사용표준" 버튼 — 현재 선택된 라인/제품의 PDF를 팝업으로 조회 ───
-let dashStdPdfSel=null;
-function openDashStdPdfPopup(){
-  const list=stdPdfList(curLine,curProd);
-  if(!list.length){showToast('업로드된 검사구 사용표준이 없습니다 (규격 설정 > 사용표준 에서 업로드)','warn');return;}
-  const sorted=[...list].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
-  dashStdPdfSel=sorted[0].id;
-  renderDashStdPdfBtns();
-  document.getElementById('dashStdPdfModal').classList.add('open');
+function showNoticePopup(msg){
+  const overlay=document.createElement('div');
+  overlay.className='confirm-popup-overlay';
+  overlay.innerHTML=`<div class="confirm-popup-box"><div class="confirm-popup-msg">${esc(msg)}</div><div class="confirm-popup-btns"><button class="confirm-popup-btn confirm-popup-danger" style="background:var(--acc);color:#fff">확인</button></div></div>`;
+  document.body.appendChild(overlay);
+  const close=()=>overlay.remove();
+  overlay.querySelector('button').onclick=close;
+  overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
 }
-function closeDashStdPdfPopup(){document.getElementById('dashStdPdfModal').classList.remove('open');}
+let dashStdPdfSel=null;
+function dashStdSorted(){return [...stdPdfList(curLine,curProd)].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);}
+function openDashStdPdfPopup(){
+  const sorted=dashStdSorted();
+  if(!sorted.length){showNoticePopup('해당 제품은 검사구 사용표준이 등록되지 않았습니다. 관리자에 문의하세요.');return;}
+  dashStdPdfSel=sorted[0].id; // 기본: 가장 먼저 업로드된 PDF
+  document.getElementById('dashStdPdfModal').classList.add('open');
+  renderDashStdPdfBtns();
+  showDashPdf(sorted[0]);
+}
+function closeDashStdPdfPopup(){
+  document.getElementById('dashStdPdfModal').classList.remove('open');
+  pdfRenderToken++;const pg=document.getElementById('dashPdfPages');if(pg)pg.innerHTML='';
+  if(pdfDoc){try{pdfDoc.destroy();}catch(e){}pdfDoc=null;}
+}
 function renderDashStdPdfBtns(){
   const wrap=document.getElementById('dashStdPdfBtns');if(!wrap)return;
-  const list=stdPdfList(curLine,curProd);
-  const sorted=[...list].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  const sorted=dashStdSorted();
   const labels=stdPdfLabels(sorted);
-  wrap.innerHTML=sorted.map(it=>`<button type="button" class="ibtn-sm" style="${it.id===dashStdPdfSel?'border-color:var(--acc);color:var(--acc)':''}" onclick="selectDashStdPdf('${it.id}')">${esc(labels[it.id])}</button>`).join('');
-  const cur=sorted.find(x=>x.id===dashStdPdfSel)||sorted[0];
-  const frame=document.getElementById('dashStdPdfFrame');
-  if(frame&&cur)frame.src=cur.dataUrl;
+  wrap.innerHTML=sorted.map(it=>`<button type="button" class="ibtn-sm pdf-pick${it.id===dashStdPdfSel?' on':''}" style="white-space:nowrap;flex:0 0 auto" onclick="selectDashStdPdf('${it.id}')">${esc(labels[it.id])}</button>`).join('');
 }
-function selectDashStdPdf(id){dashStdPdfSel=id;renderDashStdPdfBtns();}
-// ─── 대시보드 "측정 데이터" 표 팝업 — 같은 표 내용을 훨씬 큰 글자로 보여줌 ───
-function openRawDataPopup(){
-  const head=document.getElementById('rtHead'),body=document.getElementById('rtBody');
-  if(!head||!body)return;
-  document.getElementById('rtHeadPopup').innerHTML=head.innerHTML;
-  document.getElementById('rtBodyPopup').innerHTML=body.innerHTML;
-  document.getElementById('rawDataModal').classList.add('open');
+function selectDashStdPdf(id){
+  dashStdPdfSel=id;renderDashStdPdfBtns();
+  const it=dashStdSorted().find(x=>x.id===id);if(it)showDashPdf(it);
 }
-function closeRawDataPopup(){document.getElementById('rawDataModal').classList.remove('open');}
-document.getElementById('rawDataModal').addEventListener('click',(e)=>{if(e.target.id==='rawDataModal')closeRawDataPopup();});
+// PDF 뷰어: 브라우저 기본 뷰어(iframe)는 마우스로 잡아 끄는 이동이 안 되는 경우가 있어 pdf.js 로 직접 그림 (실패하면 iframe 으로 대체)
+let pdfjsPromise=null,pdfDoc=null,pdfScale=1,pdfFitScale=1,pdfRenderToken=0,pdfZoomTimer=null;
+function loadPdfJs(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  if(pdfjsPromise)return pdfjsPromise;
+  pdfjsPromise=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{try{window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';res(window.pdfjsLib);}catch(e){pdfjsPromise=null;rej(e);}};
+    s.onerror=()=>{pdfjsPromise=null;rej(new Error('pdf.js 로드 실패'));};
+    document.head.appendChild(s);
+  });
+  return pdfjsPromise;
+}
+function dataUrlToBytes(u){const b=atob(u.split(',')[1]);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+async function showDashPdf(it){
+  const view=document.getElementById('dashPdfView'),pages=document.getElementById('dashPdfPages'),zb=document.getElementById('pdfZoomBox');
+  const token=++pdfRenderToken;
+  pages.innerHTML='<div class="pdf-msg">PDF 불러오는 중...</div>';
+  try{
+    const lib=await loadPdfJs();
+    if(pdfDoc){try{pdfDoc.destroy();}catch(e){}pdfDoc=null;}
+    const doc=await lib.getDocument({data:dataUrlToBytes(it.dataUrl)}).promise;
+    if(token!==pdfRenderToken){try{doc.destroy();}catch(e){}return;}
+    pdfDoc=doc;
+    const p1=await doc.getPage(1);const vp=p1.getViewport({scale:1});
+    pdfFitScale=Math.max(0.3,(view.clientWidth-32)/vp.width);pdfScale=pdfFitScale;
+    if(zb)zb.style.display='';
+    await renderPdfPages(token);
+  }catch(e){
+    if(token!==pdfRenderToken)return;
+    pdfDoc=null;if(zb)zb.style.display='none';
+    pages.innerHTML=`<iframe src="${it.dataUrl}" style="width:100%;height:100%;min-height:80vh;border:0;background:#fff"></iframe>`;
+  }
+}
+async function renderPdfPages(token){
+  const pages=document.getElementById('dashPdfPages');if(!pdfDoc)return;
+  const doc=pdfDoc,dpr=window.devicePixelRatio||1;
+  const frag=document.createDocumentFragment();const canvases=[];
+  for(let i=1;i<=doc.numPages;i++){
+    const page=await doc.getPage(i);
+    if(token!==pdfRenderToken)return;
+    const vp=page.getViewport({scale:pdfScale*dpr});
+    const c=document.createElement('canvas');c.className='pdf-page';
+    c.width=Math.floor(vp.width);c.height=Math.floor(vp.height);
+    c.style.width=(vp.width/dpr)+'px';c.style.height=(vp.height/dpr)+'px';
+    frag.appendChild(c);canvases.push({c,page,vp});
+  }
+  pages.innerHTML='';pages.appendChild(frag);
+  document.getElementById('pdfZoomLbl').textContent=Math.round(pdfScale/pdfFitScale*100)+'%';
+  for(const o of canvases){
+    if(token!==pdfRenderToken)return;
+    await o.page.render({canvasContext:o.c.getContext('2d'),viewport:o.vp}).promise;
+  }
+}
+function pdfZoom(delta){
+  if(!pdfDoc)return;
+  pdfScale=Math.min(pdfFitScale*4,Math.max(pdfFitScale*0.4,pdfScale+delta*pdfFitScale));
+  document.getElementById('pdfZoomLbl').textContent=Math.round(pdfScale/pdfFitScale*100)+'%';
+  clearTimeout(pdfZoomTimer);const token=++pdfRenderToken;
+  pdfZoomTimer=setTimeout(()=>renderPdfPages(token),120);
+}
+function pdfFit(){if(!pdfDoc)return;pdfScale=pdfFitScale;const token=++pdfRenderToken;renderPdfPages(token);}
+// 손바닥 커서로 잡아 끌어서 이동 + Ctrl+휠 확대/축소
+(function(){
+  const view=document.getElementById('dashPdfView');if(!view)return;
+  let drag=null;
+  view.addEventListener('mousedown',e=>{if(e.button!==0)return;drag={x:e.clientX,y:e.clientY,sl:view.scrollLeft,st:view.scrollTop};view.classList.add('grabbing');e.preventDefault();});
+  window.addEventListener('mousemove',e=>{if(!drag)return;view.scrollLeft=drag.sl-(e.clientX-drag.x);view.scrollTop=drag.st-(e.clientY-drag.y);});
+  window.addEventListener('mouseup',()=>{if(drag){drag=null;view.classList.remove('grabbing');}});
+  view.addEventListener('wheel',e=>{if(e.ctrlKey&&pdfDoc){e.preventDefault();pdfZoom(e.deltaY<0?0.2:-0.2);}},{passive:false});
+})();
 function enhancedBtnHtml(line,prod){
   const ps=getProdSettings(line,prod);
   const uid=`ei_${safeId(line)}_${safeId(prod)}`;
@@ -2278,13 +2592,13 @@ function modeBtnHtml(line,prod){
     return sp&&(sp.usl!=null||sp.lsl!=null);
   });
   const anyXbarr=eligibleDims.some(d=>getDimMode(line,prod,d)==='xbarr');
-  const btnText=anyXbarr?'일부 X bar R':'I-MR';
+  const btnText=anyXbarr?'일부 X\u0304-R':'I-MR';
   const checks=eligibleDims.map(d=>{
     const checked=getDimMode(line,prod,d)==='xbarr';
     return `<label class="msel-opt" style="display:block"><input type="checkbox" value="${esc(d)}" ${checked?'checked':''} onchange="onDimModeCheck('${esc(line)}','${esc(prod)}',this)" style="margin-right:6px">${esc(d)}</label>`;
   }).join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">USL 또는 LSL이 입력된 치수가 없습니다</div>';
-  const panel=`<div style="padding:5px 8px;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--bdr);margin-bottom:4px;line-height:1.4">선택한 치수들은 X bar R 관리도가 적용됩니다</div>${checks}`;
-  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn${anyXbarr?' on':''}" style="text-align:left;padding-left:8px" onclick="toggleMsel('${uid}')">${esc(btnText)}</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${panel}</div></div>`;
+  const panel=`<div style="padding:5px 8px;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--bdr);margin-bottom:4px;line-height:1.4">선택한 치수들은 X̄-R 관리도가 적용됩니다</div>${checks}`;
+  return `<div class="msel" id="msel_wrap_${uid}"><button type="button" class="spec-pbtn${anyXbarr?' on':''}" onclick="toggleMsel('${uid}')">${esc(btnText)}</button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${panel}</div></div>`;
 }
 // 치수 하나의 실측 데이터를, 그 치수에 지금 적용된 관리도 종류(I-MR/X bar R) 기준으로 완성/미완성 재분류
 function reclassifyDim(line,prod,dim){
@@ -2307,7 +2621,7 @@ function onDimModeCheck(line,prod,checkboxEl){
   const uid=`md_${safeId(line)}_${safeId(prod)}`;
   const anyXbarr=(cfg.dims||[]).some(d=>getDimMode(line,prod,d)==='xbarr');
   const btn=document.querySelector(`#msel_wrap_${uid} .spec-pbtn`);
-  if(btn){btn.textContent=anyXbarr?'일부 X bar R':'I-MR';btn.classList.toggle('on',anyXbarr);}
+  if(btn){btn.textContent=anyXbarr?'일부 X\u0304-R':'I-MR';btn.classList.toggle('on',anyXbarr);}
 }
 function ruleBtnHtml(line,prod){
   const ps=getProdSettings(line,prod);
@@ -2341,7 +2655,7 @@ function adminMselHtml(line,prod){
     const checked=cfg.assignments.some(x=>x.admin===a.name&&x.line===line&&x.prod===prod);
     return `<label><input type="checkbox" value="${esc(a.name)}" ${checked?'checked':''} onchange="onSpecAdminCheck('${esc(line)}','${esc(prod)}',this)"> ${esc(a.name)}</label>`;
   }).join('')||'<div style="color:var(--tx3);font-size:12px;padding:4px">등록된 관리자 없음</div>';
-  return `<div class="msel" id="msel_wrap_${uid}" style="width:100%"><button type="button" class="spec-pbtn" style="width:100%;text-align:left;padding-left:6px;overflow:hidden;text-overflow:ellipsis" onclick="toggleMsel('${uid}')"><span id="msel_label_${uid}">${esc(label)}</span></button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${checks}</div></div>`;
+  return `<div class="msel" id="msel_wrap_${uid}" style="width:100%"><button type="button" class="spec-pbtn" style="width:100%;overflow:hidden;text-overflow:ellipsis" onclick="toggleMsel('${uid}')"><span id="msel_label_${uid}">${esc(label)}</span></button><div class="msel-panel" id="msel_panel_${uid}" style="display:none">${checks}</div></div>`;
 }
 function onSpecAdminCheck(line,prod,checkboxEl){
   const adminName=checkboxEl.value;
@@ -2363,7 +2677,7 @@ function onSpecAdminCheck(line,prod,checkboxEl){
   if(idx>=0){
     const cb=document.querySelector(`#msel_panel_adm${idx} input[value="${CSS.escape(line+'__'+prod)}"]`);
     if(cb)cb.checked=checkboxEl.checked;
-    const acnt=cfg.assignments.filter(x=>x.admin===adminName).length;
+    const acnt=assignCount(adminName);
     const albl=document.getElementById(`msel_label_adm${idx}`);
     if(albl)albl.textContent=acnt?`${acnt}개 제품 배정됨`:'제품 선택...';
   }
@@ -2460,6 +2774,7 @@ function saveSpec(){
       uclDate:uclChanged?(ucl!=null?today:null):(prev.uclDate||null),
       lclDate:lclChanged?(lcl!=null?today:null):(prev.lclDate||null),
     };
+    if(prev.mode)cfg.specs[key].mode=prev.mode; // 저장해도 치수별 X̄-R 지정이 풀리지 않게 유지
   }));
   saveStore();render();showToast('규격 저장됨','ok');
   document.getElementById('cfgBody').innerHTML=renderSpec();
@@ -2609,6 +2924,13 @@ function josaRL(word){
   if(code<0||code>11171)return '를';
   return (code%28===0)?'를':'을';
 }
+// 삭제/변경돼 더 이상 없는 라인·품번에 남아있는 배정은 세지 않음 (체크된 개수와 표시 개수가 어긋나던 원인)
+function assignValid(x){return (cfg.lineProds[x.line]||[]).includes(x.prod);}
+function pruneAssignments(){
+  const seen=new Set();
+  cfg.assignments=(cfg.assignments||[]).filter(x=>{const k=x.admin+'\u0001'+x.line+'\u0001'+x.prod;if(seen.has(k)||!assignValid(x))return false;seen.add(k);return true;});
+}
+function assignCount(name){return cfg.assignments.filter(x=>x.admin===name&&assignValid(x)).length;}
 function allProdItemsSorted(selectedSet){
   const items=[];
   cfg.lines.forEach(ln=>{(cfg.lineProds[ln]||[]).forEach(pc=>{items.push({line:ln,prod:pc,key:`${ln}__${pc}`});});});
@@ -2630,7 +2952,7 @@ document.addEventListener('click',(e)=>{
 });
 function renderAlerts(){
   const adminRows=cfg.admins.map((a,i)=>{
-    const mySet=new Set(cfg.assignments.filter(x=>x.admin===a.name).map(x=>`${x.line}__${x.prod}`));
+    const mySet=new Set(cfg.assignments.filter(x=>x.admin===a.name&&assignValid(x)).map(x=>`${x.line}__${x.prod}`));
     const items=allProdItemsSorted(mySet);
     const label=mySet.size?`${mySet.size}개 제품 배정됨`:'제품 선택...';
     const checks=items.map(it=>`<label><input type="checkbox" value="${esc(it.key)}" ${mySet.has(it.key)?'checked':''} onchange="onAdminProdCheck(${i},this)"> ${esc(it.line)} - ${esc(it.prod)}${cfg.prodNames[it.prod]?' ( '+esc(cfg.prodNames[it.prod])+' )':''}</label>`).join('');
@@ -2691,7 +3013,7 @@ function onUnassignedCheck(line,prod,checkboxEl){
   if(idx>=0){
     const cb=document.querySelector(`#msel_panel_adm${idx} input[value="${CSS.escape(line+'__'+prod)}"]`);
     if(cb)cb.checked=checkboxEl.checked;
-    const acnt=cfg.assignments.filter(x=>x.admin===adminName).length;
+    const acnt=assignCount(adminName);
     const albl=document.getElementById(`msel_label_adm${idx}`);
     if(albl)albl.textContent=acnt?`${acnt}개 제품 배정됨`:'제품 선택...';
   }
@@ -2705,7 +3027,7 @@ function onAdminProdCheck(idx,checkboxEl){
     cfg.assignments=cfg.assignments.filter(x=>!(x.admin===a.name&&x.line===line&&x.prod===prod));
   }
   saveStore();
-  const cnt=cfg.assignments.filter(x=>x.admin===a.name).length;
+  const cnt=assignCount(a.name);
   const lbl=document.getElementById(`msel_label_adm${idx}`);
   if(lbl)lbl.textContent=cnt?`${cnt}개 제품 배정됨`:'제품 선택...';
 }
@@ -2930,6 +3252,7 @@ let toastT=null;
 function showToast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.style.background=type==='warn'?'#d29922':'#3fb950';el.classList.add('show');if(toastT)clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2500);}
 
 window.addEventListener('load',()=>{
+  applyTheme(document.documentElement.getAttribute('data-theme')||'dark');
   loadCfgFromFirebase(()=>{
     loadDataFromFirebase(()=>{
       init();
